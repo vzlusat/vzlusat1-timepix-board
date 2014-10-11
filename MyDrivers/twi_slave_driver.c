@@ -245,9 +245,6 @@ void TWI_SlaveReadHandler(TWI_Slave_t *twi)
 		uint8_t data = twi->interface->SLAVE.DATA;
 		twi->receivedData[twi->bytesReceived] = data;
 
-		/* Process data. */
-		twi->Process_Data();
-
 		twi->bytesReceived++;
 
 		/* If application signalling need to abort (error occured),
@@ -318,4 +315,8 @@ void TWI_SlaveTransactionFinished(TWI_Slave_t *twi, uint8_t result)
 {
 	twi->result = result;
 	twi->status = TWIS_STATUS_READY;
+	
+
+	/* Process data. */
+	twi->Process_Data();
 }

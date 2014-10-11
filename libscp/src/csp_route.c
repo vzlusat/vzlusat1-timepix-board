@@ -75,7 +75,7 @@ int csp_promisc_enabled = 0;
 
 typedef struct {
 	csp_iface_t * interface;
-	csp_packet_t * packet;
+	csp_packet_t * outcomingPacket;
 } csp_route_queue_t;
 
 /**
@@ -263,7 +263,7 @@ CSP_DEFINE_TASK(csp_task_router) {
 		if (csp_route_next_packet(&input) != CSP_ERR_NONE)
 			continue;
 
-		packet = input.packet;
+		packet = input.outcomingPacket;
 
 		csp_log_packet("Input: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %"PRIu16"\r\n",
 				packet->id.src, packet->id.dst, packet->id.dport,
@@ -524,7 +524,7 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 
 	csp_route_queue_t queue_element;
 	queue_element.interface = interface;
-	queue_element.packet = packet;
+	queue_element.outcomingPacket = packet;
 
 	fifo = csp_route_get_fifo(packet->id.pri);
 	result = csp_route_enqueue(router_input_fifo[fifo], &queue_element, 0, pxTaskWoken);
