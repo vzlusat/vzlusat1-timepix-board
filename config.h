@@ -9,7 +9,7 @@
 #define CONFIG_H_
 
 // If the board is the Medipix board, compile some board specific stuff
-#define MEDIPIX_BOARD	1
+#define MEDIPIX_BOARD	0
 
 // Address of the local CSP node
 #define CSP_MY_ADDRESS	2
