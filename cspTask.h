@@ -13,7 +13,8 @@
 typedef enum {
 	
 	echoBackEvent = 0,
-	freeHeapEvent = 1
+	freeHeapEvent = 1,
+	statusEvent = 2
 	
 } eCSPEvent_t;
 

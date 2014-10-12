@@ -13,10 +13,6 @@
 #include "mainTask.h"
 #include "cspTask.h"
 
-#include <string.h>
-
-extern UsartBuffer * medipix_usart_buffer;
-
 #if MEDIPIX_BOARD == 1
 
 // Blinking RTOS task, just for debugging
@@ -64,12 +60,12 @@ int main(void) {
 	/* -------------------------------------------------------------------- */
 	/*	Starts task that handles incoming communication		 				*/
 	/* -------------------------------------------------------------------- */
-	xTaskCreate(cspTask, (signed char*) "cspTask", 64, NULL, configNORMAL_PRIORITY, NULL);
+	xTaskCreate(cspTask, (signed char*) "cspTask", 128, NULL, configNORMAL_PRIORITY, NULL);
 	
 	/* -------------------------------------------------------------------- */
 	/*	Starts task that handles outgoing communication		 				*/
 	/* -------------------------------------------------------------------- */
-	xTaskCreate(mainTask, (signed char*) "mainTask", 2048, NULL, configNORMAL_PRIORITY, NULL);
+	xTaskCreate(mainTask, (signed char*) "mainTask", 512, NULL, configNORMAL_PRIORITY, NULL);
 	
 	/* -------------------------------------------------------------------- */
 	/*	Starts the scheduler and all previously created tasks				*/

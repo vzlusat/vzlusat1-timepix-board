@@ -67,6 +67,7 @@
  *****************************************************************************/
 
 #include "twi_slave_driver.h"
+#include "system.h"
 
 
 /*! \brief Initalizes TWI slave driver structure.

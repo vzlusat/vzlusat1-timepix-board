@@ -61,8 +61,7 @@ int i2c_init(int handle, int mode, uint8_t addr, uint16_t speed, int queue_len_t
 	
 	callbackFunction = callback;
 	
-	//!!! pøepsat return
-	return 1;
+	return E_NO_ERR;
 }
 
 /**

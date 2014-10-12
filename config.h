@@ -29,20 +29,23 @@
 // Slave address of the CSP i2c interface
 #define CSP_I2C_OBC_ADDRESS	0x56
 
-// Number of CSP buffer to alocate
+// Number of CSP buffer to allocate
 #define CSP_BUFFER_COUNT	1
 
 // CSP Buffer size in bytes
-#define CSP_BUFFER_SIZE	270
+#define CSP_BUFFER_SIZE	86
+
+// Maximum size of CSP packet, payload + header
+#define CSP_PACKET_SIZE	72
 
 // Size of CSP router stack in words
-#define CSP_ROUTER_STACK	128
+#define CSP_ROUTER_STACK	500
 
 // Do not ever change!!!
 #define CSP_ROUTER_PRIORITY	0
 
 // Baudrate of the CSP i2c interface
-#define CSP_I2C_BAUDRATE	100000
+#define CSP_I2C_BAUDRATE	400000
 
 #if MEDIPIX_BOARD == 1
 

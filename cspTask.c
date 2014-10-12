@@ -15,7 +15,7 @@ xQueueHandle * xCSPEventQueue;
 void cspTask(void *p) {
 	
 	/* Create socket without any socket options */
-	csp_socket_t * sock = csp_socket(CSP_SO_NONE);
+	csp_socket_t * sock = csp_socket(CSP_SO_CRC32REQ);
 
 	/* Bind all ports to socket */
 	csp_bind(sock, CSP_ANY);
@@ -43,6 +43,7 @@ void cspTask(void *p) {
 			switch (csp_conn_dport(conn)) {
 				
 				/* if Port 15 packet received */
+				// Echo back the incoming packet
 				case 15:
 				
 					newEvent->eEventType = echoBackEvent;
@@ -51,13 +52,25 @@ void cspTask(void *p) {
 					
 				break;
 					
+				/* if Port 16 packet received */
+				// Free Heap space in Human readable form
 				case 16:
 				
 					newEvent->eEventType = freeHeapEvent;
 					newEvent->pvData = packet;
 					xQueueSend(xCSPEventQueue, newEvent, 10);	
 					
-				break;				
+				break;	
+				
+				/* if Port 17 packet received */
+				// Return info status message
+				case 17:
+				
+					newEvent->eEventType = statusEvent;
+					newEvent->pvData = packet;
+					xQueueSend(xCSPEventQueue, newEvent, 10);
+				
+				break;		
 				
 				/* Process packet here */
 				default:

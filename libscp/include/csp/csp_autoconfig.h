@@ -2,7 +2,7 @@
  * csp_autoconfig.h
  *
  * Created: 16.9.2014 23:18:51
- *  Author: klaxalk
+ *  Author: Tomas Baca
  */ 
 
 
@@ -15,11 +15,11 @@
 #undef CSP_POSIX 
 #undef CSP_WINDOWS
 #undef CSP_MACOSX 
-#define CSP_DEBUG 1
+#undef CSP_DEBUG
 #undef CSP_USE_RDP 
-#undef CSP_USE_CRC32 
-#undef CSP_USE_HMAC 
-#undef CSP_USE_XTEA 
+#define CSP_USE_CRC32	1
+#undef CSP_USE_HMAC	1
+#undef CSP_USE_XTEA	1
 #undef CSP_USE_PROMISC 
 #undef CSP_USE_QOS 
 #define CSP_BUFFER_STATIC

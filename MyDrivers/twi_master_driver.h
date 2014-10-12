@@ -82,8 +82,8 @@ typedef enum TWIM_RESULT_enum {
 } TWIM_RESULT_t;
 
 /*! Buffer size defines */
-#define TWIM_WRITE_BUFFER_SIZE         270
-#define TWIM_READ_BUFFER_SIZE          10
+#define TWIM_WRITE_BUFFER_SIZE         72
+#define TWIM_READ_BUFFER_SIZE          1
 
 
 /*! \brief TWI master driver struct
