@@ -2,7 +2,7 @@
  * system.c
  *
  * Created: 11.10.2014 18:40:47
- *  Author: Tomas Baca
+ *  Author: Tomas Baca 
  */
 
  #include "sysclk.h"
