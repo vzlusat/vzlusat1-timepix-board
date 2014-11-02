@@ -15,7 +15,7 @@ xQueueHandle * xCSPEventQueue;
 void cspTask(void *p) {
 	
 	/* Create socket without any socket options */
-	csp_socket_t * sock = csp_socket(CSP_SO_CRC32REQ);
+	csp_socket_t * sock = csp_socket(CSP_SO_NONE);
 
 	/* Bind all ports to socket */
 	csp_bind(sock, CSP_ANY);
@@ -66,7 +66,7 @@ void cspTask(void *p) {
 				// Return info status message
 				case 17:
 				
-					newEvent->eEventType = statusEvent;
+					newEvent->eEventType = housKeepingEvent;
 					newEvent->pvData = packet;
 					xQueueSend(xCSPEventQueue, newEvent, 10);
 				

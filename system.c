@@ -2,19 +2,19 @@
  * system.c
  *
  * Created: 11.10.2014 18:40:47
- *  Author: Tomas Baca 
+ *  Author: Tomas Baca
  */
 
  #include "sysclk.h"
  #include "system.h"
-
- csp_packet_t * outcomingPacket;
+ #include "TC_driver.h"
  
- #if MEDIPIX_BOARD == 1
+ volatile uint32_t milisecondsTimer;
+ volatile uint32_t secondsTimer;
+ volatile uint32_t hoursTimer;
  
+ // UART handler
  UsartBuffer * medipix_usart_buffer;
- 
- #endif // MEDIPIX_BOARD == 1
 
 /* -------------------------------------------------------------------- */
 /*	Initialize the xMega peripherals									*/
@@ -34,15 +34,52 @@ void boardInit() {
 	sysclk_enable_module(SYSCLK_PORT_E, 0xff);
 	sysclk_enable_module(SYSCLK_PORT_F, 0xff);
 		
-	#if MEDIPIX_BOARD == 1
+	/* -------------------------------------------------------------------- */
+	/*	Timer for RTC														*/
+	/* -------------------------------------------------------------------- */
 	
-	ioport_set_pin_dir(RED, IOPORT_DIR_OUTPUT);
+	// select the clock source and pre-scaler by 8
+	TC1_ConfigClockSource(&TCC1, TC_CLKSEL_DIV64_gc);
+	
+	TC1_SetOverflowIntLevel(&TCC1, TC_OVFINTLVL_LO_gc);
+	
+	TC_SetPeriod(&TCC1, 499);
+	
+	milisecondsTimer = 0;
+	secondsTimer = 0;
+	hoursTimer = 0;
+	
+	/* -------------------------------------------------------------------- */
+	/*	Setup LEDs															*/
+	/* -------------------------------------------------------------------- */
+	
 	ioport_set_pin_dir(YELLOW, IOPORT_DIR_OUTPUT);
+	ioport_set_pin_dir(RED, IOPORT_DIR_OUTPUT);
 	
 	led_yellow_off();
 	led_red_off();
-	
+		
+	/* -------------------------------------------------------------------- */
+	/*	Setup UART															*/
+	/* -------------------------------------------------------------------- */
 	medipix_usart_buffer = usartBufferInitialize(&MPX_USART, MPX_USART_BAUDRATE, MPX_USART_BUFFERSIZE);
+}
+
+/* -------------------------------------------------------------------- */
+/*	Interrupt for timing the RTC										*/
+/* -------------------------------------------------------------------- */
+ISR(TCC1_OVF_vect) {
 	
-	#endif // MEDIPIX_BOARD == 1
+	// shut down the output PPM pulse
+
+	if (milisecondsTimer++ == 1000) {
+		
+		milisecondsTimer = 0;
+		
+		if (secondsTimer++ == 3600) {
+			
+			secondsTimer = 0;
+			hoursTimer++;
+		}
+	}
 }

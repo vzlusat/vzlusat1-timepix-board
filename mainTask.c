@@ -7,48 +7,28 @@
 
 #include "mainTask.h"
 #include "cspTask.h"
+#include "system.h"
 
-extern csp_packet_t * outcomingPacket;
-extern xQueueHandle xCSPEventQueue;
-
-/* The variable used to receive from the queue. */
-xCSPStackEvent_t xReceivedEvent;
+csp_packet_t * outcomingPacket;
 
 /* -------------------------------------------------------------------- */
-/*	Reply the heap free space in human readable form					*/
+/*	Reply the free heap space in human readable form					*/
 /* -------------------------------------------------------------------- */
 int sendFreeHeapSpace(csp_packet_t * inPacket) {
-
-	/* Get packet buffer for data */
-
-	/* Connect to host HOST, port PORT with regular UDP-like protocol and 1000 ms timeout */
-	/* priority, destination, destination port, timeout, opts */
-	csp_conn_t *conn = csp_connect(CSP_PRIO_NORM, inPacket->id.src, 15, 1000, CSP_O_CRC32);
-	if (conn == NULL) {
-		/* Connect failed */
-		printf("Connection failed\\n");
-		return -1;
-	}
 	
 	char msg[20];
 	itoa(xPortGetFreeHeapSize(), msg, 10);
 	
 	/* Copy message to packet */
 	strcpy(outcomingPacket->data, msg);
-	
 	outcomingPacket->length = strlen(msg);
 
 	/* Send packet */
-	if (!csp_send(conn, outcomingPacket, 1000)) {
-		
+	if (!csp_sendto(CSP_PRIO_NORM, inPacket->id.src, inPacket->id.sport, inPacket->id.dport, CSP_O_NONE, outcomingPacket, 1000)) {
 		/* Send failed */
-		printf("Send failed\\n");
 	} else {
 		/* Send succeeded */
 	}
-
-	/* Close connection */
-	csp_close(conn);
 
 	return 0;
 }
@@ -56,35 +36,21 @@ int sendFreeHeapSpace(csp_packet_t * inPacket) {
 /* -------------------------------------------------------------------- */
 /*	Reply with some status info message									*/
 /* -------------------------------------------------------------------- */
-int systemStatus(csp_packet_t * inPacket) {
-
-	/* Get packet buffer for data */
-
-	/* Connect to host HOST, port PORT with regular UDP-like protocol and 1000 ms timeout */
-	/* priority, destination, destination port, timeout, opts */
-	csp_conn_t *conn = csp_connect(CSP_PRIO_NORM, inPacket->id.src, 15, 1000, CSP_O_CRC32);
-	if (conn == NULL) {
-		/* Connect failed */
-		printf("Connection failed\\n");
-		return -1;
-	}
+int houseKeeping(csp_packet_t * inPacket) {
 	
-	// the info message
-	char msg[] = "\n\rMedipix board\n\rSoftware v1.0\n\r";
+	// put the info message into the packet
+	char msg[64];
+	sprintf(msg, "Timepix Board\n\rSoftware v1.0\n\rUptime: %id %ih %im %ds\n\r", (int16_t) hoursTimer/24, (int16_t) hoursTimer%24, (int16_t) secondsTimer/60, (int16_t) secondsTimer%60);
+
 	strcpy(outcomingPacket->data, msg);
 	outcomingPacket->length = strlen(msg);
 
 	/* Send packet */
-	if (!csp_send(conn, outcomingPacket, 1000)) {
-		
+	if (!csp_sendto(CSP_PRIO_NORM, inPacket->id.src, inPacket->id.sport, inPacket->id.dport, CSP_O_NONE, outcomingPacket, 1000)) {
 		/* Send failed */
-		printf("Send failed\\n");
-		} else {
-			/* Send succeeded */
-		}
-
-	/* Close connection */
-	csp_close(conn);
+	} else {
+		/* Send succeeded */
+	}
 
 	return 0;
 }
@@ -94,32 +60,14 @@ int systemStatus(csp_packet_t * inPacket) {
 /* -------------------------------------------------------------------- */
 int echoBack(csp_packet_t * inPacket) {
 
-	/* Get packet buffer for data */
-
-	/* Connect to host HOST, port PORT with regular UDP-like protocol and 1000 ms timeout */
-	/* priority, destination, destination port, timeout, opts */
-	csp_conn_t *conn = csp_connect(CSP_PRIO_NORM, inPacket->id.src, inPacket->id.dport, 1000, CSP_O_CRC32);
-	if (conn == NULL) {
-		/* Connect failed */
-		printf("Connection failed\\n");
-		return -1;
-	}
-		
-	/* Send the same data back */
-	strcpy(outcomingPacket->data, inPacket->data);
-	outcomingPacket->length = inPacket->length;
-
 	/* Send packet */
-	if (!csp_send(conn, outcomingPacket, 1000)) {
+	// reuses the incoming packet for the response
+	if (!csp_sendto(CSP_PRIO_NORM, inPacket->id.src, inPacket->id.sport, inPacket->id.dport, CSP_O_NONE, inPacket, 1000)) {
 		
 		/* Send failed */
-		printf("Send failed\\n");
 	} else {
 		/* Send succeeded */
 	}
-
-	/* Close connection */
-	csp_close(conn);
 
 	return 0;
 }
@@ -129,43 +77,47 @@ int echoBack(csp_packet_t * inPacket) {
 /* -------------------------------------------------------------------- */
 void mainTask(void *p) {
 	
-	// packet used to handle incoming communication
+	/* The variable used to receive from the queue. */
+	xCSPStackEvent_t xReceivedEvent;
+	
 	outcomingPacket = csp_buffer_get(CSP_PACKET_SIZE);
 	
 	// infinite while loop of the program 
 	while (1) {
 		
 		// the queue between cspTask and the main task
-		xQueueReceive(xCSPEventQueue, &xReceivedEvent, portMAX_DELAY);
+		// this is unblocking way how to read from the queue, the last parameter is "ticks to wait"
+		if (xQueueReceive(xCSPEventQueue, &xReceivedEvent, 1)) {
 		
-		switch( xReceivedEvent.eEventType )
-		{
-			// Reply with RTOS free heap space
-			// replies in Human Readable form
-			case freeHeapEvent :
+			switch( xReceivedEvent.eEventType )
+			{
+				// Reply with RTOS free heap space
+				// replies in Human Readable form
+				case freeHeapEvent :
 			
-				sendFreeHeapSpace(xReceivedEvent.pvData);
+					sendFreeHeapSpace(xReceivedEvent.pvData);
 			
-			break;
+				break;
 			
-			// Echo back the whole packet
-			// incoming port => outcoming
-			case echoBackEvent :
+				// Echo back the whole packet
+				// incoming port => outcoming
+				case echoBackEvent :
 			
-				echoBack(xReceivedEvent.pvData);
+					echoBack(xReceivedEvent.pvData);
 			
-			break;
+				break;
 			
-			// sends the info about the system
-			case statusEvent :
+				// sends the info about the system
+				case housKeepingEvent :
 			
-				systemStatus(xReceivedEvent.pvData);
+					houseKeeping(xReceivedEvent.pvData);
 			
-			break;
-
-			default :
-			/* Should not get here. */
-			break;
+				break;
+		
+				default :
+					/* Should not get here. */
+				break;
+			}
 		}
 	}
 }

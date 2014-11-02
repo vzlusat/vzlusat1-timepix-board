@@ -10,11 +10,13 @@
 #ifndef CSPTASK_H_
 #define CSPTASK_H_
 
+extern xQueueHandle * xCSPEventQueue;
+
 typedef enum {
 	
 	echoBackEvent = 0,
 	freeHeapEvent = 1,
-	statusEvent = 2
+	housKeepingEvent = 2
 	
 } eCSPEvent_t;
 
@@ -29,6 +31,5 @@ typedef struct CSP_TASK_COMMANDS
 /*	Task that handles CSP incoming packets								*/
 /* -------------------------------------------------------------------- */
 void cspTask(void *p);
-
 
 #endif /* CSPTASK_H_ */
