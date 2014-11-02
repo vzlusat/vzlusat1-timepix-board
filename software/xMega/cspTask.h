@@ -16,7 +16,8 @@ typedef enum {
 	
 	echoBackEvent = 0,
 	freeHeapEvent = 1,
-	housKeepingEvent = 2
+	housKeepingEvent = 2,
+	medipixEvent = 3
 	
 } eCSPEvent_t;
 

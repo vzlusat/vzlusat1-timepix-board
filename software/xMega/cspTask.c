@@ -6,8 +6,7 @@
  */ 
 
 #include "cspTask.h"
-
-xQueueHandle * xCSPEventQueue;
+#include "mainTask.h"
 
 /* -------------------------------------------------------------------- */
 /*	Task that handles CSP incoming packets								*/

@@ -10,6 +10,7 @@
 #include "system.h"
 
 csp_packet_t * outcomingPacket;
+xQueueHandle * xCSPEventQueue;
 
 /* -------------------------------------------------------------------- */
 /*	Reply the free heap space in human readable form					*/
@@ -24,10 +25,11 @@ int sendFreeHeapSpace(csp_packet_t * inPacket) {
 	outcomingPacket->length = strlen(msg);
 
 	/* Send packet */
-	if (!csp_sendto(CSP_PRIO_NORM, inPacket->id.src, inPacket->id.sport, inPacket->id.dport, CSP_O_NONE, outcomingPacket, 1000)) {
-		/* Send failed */
-	} else {
+	if (csp_sendto(CSP_PRIO_NORM, inPacket->id.src, inPacket->id.sport, inPacket->id.dport, CSP_O_NONE, outcomingPacket, 1000) == CSP_ERR_NONE) {
 		/* Send succeeded */
+		led_red_toggle();
+		} else {
+		/* Send failed */
 	}
 
 	return 0;
@@ -40,16 +42,19 @@ int houseKeeping(csp_packet_t * inPacket) {
 	
 	// put the info message into the packet
 	char msg[64];
-	sprintf(msg, "Timepix Board\n\rSoftware v1.0\n\rUptime: %id %ih %im %ds\n\r", (int16_t) hoursTimer/24, (int16_t) hoursTimer%24, (int16_t) secondsTimer/60, (int16_t) secondsTimer%60);
+	sprintf(msg, "Timepix Board\n\rUptime: %id %ih %im %ds\n\r", (int16_t) hoursTimer/24, (int16_t) hoursTimer%24, (int16_t) secondsTimer/60, (int16_t) secondsTimer%60);
 
+	memset(outcomingPacket->data, '\0', sizeof(outcomingPacket->data));
 	strcpy(outcomingPacket->data, msg);
 	outcomingPacket->length = strlen(msg);
 
 	/* Send packet */
-	if (!csp_sendto(CSP_PRIO_NORM, inPacket->id.src, inPacket->id.sport, inPacket->id.dport, CSP_O_NONE, outcomingPacket, 1000)) {
-		/* Send failed */
-	} else {
+	if (csp_sendto(CSP_PRIO_NORM, inPacket->id.src, inPacket->id.sport, inPacket->id.dport, CSP_O_NONE, outcomingPacket, 1000) == CSP_ERR_NONE) {
+		
 		/* Send succeeded */
+		led_red_toggle();
+	} else {
+		/* Send failed */
 	}
 
 	return 0;
@@ -62,11 +67,11 @@ int echoBack(csp_packet_t * inPacket) {
 
 	/* Send packet */
 	// reuses the incoming packet for the response
-	if (!csp_sendto(CSP_PRIO_NORM, inPacket->id.src, inPacket->id.sport, inPacket->id.dport, CSP_O_NONE, inPacket, 1000)) {
-		
-		/* Send failed */
-	} else {
+	if (csp_sendto(CSP_PRIO_NORM, inPacket->id.src, inPacket->id.sport, inPacket->id.dport, CSP_O_NONE, inPacket, 1000) == CSP_ERR_NONE) {
 		/* Send succeeded */
+		led_red_toggle();
+		} else {
+		/* Send failed */
 	}
 
 	return 0;
@@ -89,8 +94,7 @@ void mainTask(void *p) {
 		// this is unblocking way how to read from the queue, the last parameter is "ticks to wait"
 		if (xQueueReceive(xCSPEventQueue, &xReceivedEvent, 1)) {
 		
-			switch( xReceivedEvent.eEventType )
-			{
+			switch( xReceivedEvent.eEventType ) {
 				// Reply with RTOS free heap space
 				// replies in Human Readable form
 				case freeHeapEvent :
@@ -112,6 +116,15 @@ void mainTask(void *p) {
 			
 					houseKeeping(xReceivedEvent.pvData);
 			
+				break;
+				
+				// sends the info about the system
+				case medipixEvent :
+				
+					strcpy(outcomingPacket->data, xReceivedEvent.pvData);
+					outcomingPacket->length = strlen(xReceivedEvent.pvData);
+					csp_sendto(CSP_PRIO_NORM, 1, 15, 15, CSP_O_NONE, outcomingPacket, 1000);
+				
 				break;
 		
 				default :

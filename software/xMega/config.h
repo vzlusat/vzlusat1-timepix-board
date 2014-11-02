@@ -52,7 +52,7 @@
 // define the usart port for MEDIPIX
 #define MPX_USART	USARTC0
 
-#define MPX_USART_BAUDRATE	BAUD57600
+#define MPX_USART_BAUDRATE	BAUD200000
 
 #define MPX_USART_BUFFERSIZE	128	
 

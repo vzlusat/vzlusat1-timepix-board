@@ -160,6 +160,9 @@ UsartBuffer * usartBufferInitialize(USART_t * usart, Baudrate_enum baudrate ,cha
 
 	//http://prototalk.net/forums/showthread.php?t=188
 	switch (baudrate) {
+			case BAUD200000:
+			USART_Baudrate_Set(usartBuffer->usart, 1152 , -7);
+		break;
 			case BAUD115200:
 			USART_Baudrate_Set(usartBuffer->usart, 2094 , -7);
 		break;

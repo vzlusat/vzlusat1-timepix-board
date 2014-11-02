@@ -5,10 +5,12 @@
  *  Author: Tomas Baca
  */ 
 
-#include "system.h"
-
 #ifndef MAINTASK_H_
 #define MAINTASK_H_
+
+#include "system.h"
+
+extern xQueueHandle * xCSPEventQueue;
 
 void mainTask(void *p);
 
