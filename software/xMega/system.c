@@ -60,6 +60,12 @@ void boardInit() {
 	led_red_off();
 		
 	/* -------------------------------------------------------------------- */
+	/*	Setup Medipix Enabler												*/
+	/* -------------------------------------------------------------------- */
+	
+	ioport_set_pin_dir(MEDIPIX_PWR, IOPORT_DIR_OUTPUT);
+		
+	/* -------------------------------------------------------------------- */
 	/*	Setup UART															*/
 	/* -------------------------------------------------------------------- */
 	medipix_usart_buffer = usartBufferInitialize(&MPX_USART, MPX_USART_BAUDRATE, MPX_USART_BUFFERSIZE);

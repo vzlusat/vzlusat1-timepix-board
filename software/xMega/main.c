@@ -11,18 +11,21 @@
 
 #include "system.h"
 #include "mainTask.h"
-#include "cspTask.h"
+#include "cspTask.h"ii
 #include "medipixTask.h"
 
 // Blinking RTOS task, just for debugging
 void blink(void *p) {
 	
+	vTaskDelay(1000);
+	ioport_set_pin_level(MEDIPIX_PWR, true);
+	vTaskDelay(5000);
+	
 	while (1) {
 				
 		led_yellow_toggle();
 		usartBufferPutByte(medipix_usart_buffer, 'i', 1);
-		
-        vTaskDelay(5000);
+		vTaskDelay(5000);
 	}
 }
 
@@ -49,12 +52,12 @@ int main(void) {
 	/* -------------------------------------------------------------------- */
 	/*	Starts blinking task - only for debug								*/
 	/* -------------------------------------------------------------------- */
-	xTaskCreate(blink, (signed char*) "blink", 64, NULL, configNORMAL_PRIORITY, NULL);
+	xTaskCreate(blink, (signed char*) "blink", 128, NULL, configNORMAL_PRIORITY, NULL);
 		
 	/* -------------------------------------------------------------------- */
 	/*	Starts task that handles incoming communication		 				*/
 	/* -------------------------------------------------------------------- */
-	xTaskCreate(cspTask, (signed char*) "cspTask", 256, NULL, configNORMAL_PRIORITY, NULL);
+	xTaskCreate(cspTask, (signed char*) "cspTask", 512, NULL, configNORMAL_PRIORITY, NULL);
 	
 	/* -------------------------------------------------------------------- */
 	/*	Starts task that handles outgoing communication		 				*/

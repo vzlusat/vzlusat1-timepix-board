@@ -20,6 +20,7 @@
 // LEDs
 #define	YELLOW	IOPORT_CREATE_PIN(PORTA, 0)
 #define	RED		IOPORT_CREATE_PIN(PORTA, 4)
+#define	MEDIPIX_PWR		IOPORT_CREATE_PIN(PORTD, 1)
 	
 /* -------------------------------------------------------------------- */
 /*	Macros for manipulating with LEDs									*/
