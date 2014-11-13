@@ -58,6 +58,7 @@ int houseKeeping(csp_packet_t * inPacket) {
 	}
 
 	return 0;
+	
 }
 
 /* -------------------------------------------------------------------- */
@@ -75,6 +76,19 @@ int echoBack(csp_packet_t * inPacket) {
 	}
 
 	return 0;
+}
+
+void toggleMedipix() {
+	
+	vTaskDelay(1000);
+	
+	ioport_set_pin_level(MEDIPIX_PWR, true);
+	
+	vTaskDelay(6000);
+
+	ioport_set_pin_level(MEDIPIX_PWR, false);
+
+	vTaskDelay(1000);
 }
 
 /* -------------------------------------------------------------------- */
@@ -97,9 +111,9 @@ void mainTask(void *p) {
 			switch( xReceivedEvent.eEventType ) {
 				// Reply with RTOS free heap space
 				// replies in Human Readable form
-				case freeHeapEvent :
-			
-					sendFreeHeapSpace(xReceivedEvent.pvData);
+				case medipixPweEvent :
+				
+					toggleMedipix();
 			
 				break;
 			

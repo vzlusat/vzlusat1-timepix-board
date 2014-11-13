@@ -15,7 +15,7 @@ extern xQueueHandle * xCSPEventQueue;
 typedef enum {
 	
 	echoBackEvent = 0,
-	freeHeapEvent = 1,
+	medipixPweEvent = 1,
 	housKeepingEvent = 2,
 	medipixEvent = 3
 	

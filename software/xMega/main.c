@@ -18,13 +18,10 @@
 void blink(void *p) {
 	
 	vTaskDelay(1000);
-	ioport_set_pin_level(MEDIPIX_PWR, true);
-	vTaskDelay(5000);
 	
 	while (1) {
 				
 		led_yellow_toggle();
-		usartBufferPutByte(medipix_usart_buffer, 'i', 1);
 		vTaskDelay(5000);
 	}
 }
