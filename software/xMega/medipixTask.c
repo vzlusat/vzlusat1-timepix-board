@@ -33,6 +33,7 @@ void medipixTask(void *p) {
 			if ((inChar == '\r') || (pos == 62)) {
 				
 				medipixBuffer[pos-1] = '\r';
+				medipixBuffer[pos] = '\n';
 				pos = 0;
 				newEvent->eEventType = medipixEvent;
 				strcpy(newEvent->pvData, medipixBuffer);
