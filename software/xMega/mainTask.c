@@ -42,11 +42,12 @@ int houseKeeping(csp_packet_t * inPacket) {
 	
 	// put the info message into the packet
 	char msg[64];
-	sprintf(msg, "Timepix Board\n\rUptime: %id %ih %im %ds\n\r", (int16_t) hoursTimer/24, (int16_t) hoursTimer%24, (int16_t) secondsTimer/60, (int16_t) secondsTimer%60);
+	memset(msg, 0, 64);
+	sprintf(msg, "Timepix Board\n\rUptime: %id %ih %im %ds\n\r\000", (int16_t) hoursTimer/24, (int16_t) hoursTimer%24, (int16_t) secondsTimer/60, (int16_t) secondsTimer%60);
 
-	memset(outcomingPacket->data, '\0', sizeof(outcomingPacket->data));
+	memset(outcomingPacket->data, 0, sizeof(outcomingPacket->data));
 	strcpy(outcomingPacket->data, msg);
-	outcomingPacket->length = strlen(msg);
+	outcomingPacket->length = strlen(msg)+1;
 
 	/* Send packet */
 	if (csp_sendto(CSP_PRIO_NORM, inPacket->id.src, inPacket->id.sport, inPacket->id.dport, CSP_O_NONE, outcomingPacket, 1000) == CSP_ERR_NONE) {
@@ -80,15 +81,7 @@ int echoBack(csp_packet_t * inPacket) {
 
 void toggleMedipix() {
 	
-	vTaskDelay(1000);
-	
 	ioport_set_pin_level(MEDIPIX_PWR, true);
-	
-	vTaskDelay(6000);
-
-	ioport_set_pin_level(MEDIPIX_PWR, false);
-
-	vTaskDelay(1000);
 }
 
 /* -------------------------------------------------------------------- */
@@ -100,6 +93,9 @@ void mainTask(void *p) {
 	xCSPStackEvent_t xReceivedEvent;
 	
 	outcomingPacket = csp_buffer_get(CSP_PACKET_SIZE);
+	
+	unsigned int dest_p;
+	unsigned int source_p;
 	
 	// infinite while loop of the program 
 	while (1) {
@@ -113,6 +109,8 @@ void mainTask(void *p) {
 				// replies in Human Readable form
 				case medipixPweEvent :
 				
+					dest_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.sport;
+					source_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.dport;
 					toggleMedipix();
 			
 				break;
@@ -136,8 +134,12 @@ void mainTask(void *p) {
 				case medipixEvent :
 				
 					strcpy(outcomingPacket->data, xReceivedEvent.pvData);
-					outcomingPacket->length = strlen(xReceivedEvent.pvData);
-					csp_sendto(CSP_PRIO_NORM, 1, 15, 15, CSP_O_NONE, outcomingPacket, 1000);
+					outcomingPacket->length = strlen(xReceivedEvent.pvData)+1;
+					csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+
+					vTaskDelay(1000);
+
+					ioport_set_pin_level(MEDIPIX_PWR, false);
 				
 				break;
 		
