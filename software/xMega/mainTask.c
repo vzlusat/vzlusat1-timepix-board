@@ -82,6 +82,10 @@ int echoBack(csp_packet_t * inPacket) {
 void toggleMedipix() {
 	
 	ioport_set_pin_level(MEDIPIX_PWR, true);
+
+	vTaskDelay(4000);
+
+	ioport_set_pin_level(MEDIPIX_PWR, true);
 }
 
 /* -------------------------------------------------------------------- */
