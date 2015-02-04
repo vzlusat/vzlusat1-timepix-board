@@ -43,6 +43,12 @@ extern volatile uint32_t secondsTimer;
 extern volatile uint32_t hoursTimer;
 
 /* -------------------------------------------------------------------- */
+/*	Additional quues													*/
+/* -------------------------------------------------------------------- */
+
+xQueueHandle * medipixActionQueue;
+
+/* -------------------------------------------------------------------- */
 /*	Initialize the xMega peripherals									*/
 /* -------------------------------------------------------------------- */
 void boardInit();

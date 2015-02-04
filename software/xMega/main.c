@@ -11,7 +11,7 @@
 
 #include "system.h"
 #include "mainTask.h"
-#include "cspTask.h"ii
+#include "cspTask.h"
 #include "medipixTask.h"
 
 // Blinking RTOS task, just for debugging
@@ -22,7 +22,7 @@ void blink(void *p) {
 	while (1) {
 				
 		led_yellow_toggle();
-		vTaskDelay(5000);
+		vTaskDelay(500);
 	}
 }
 
@@ -59,12 +59,7 @@ int main(void) {
 	/* -------------------------------------------------------------------- */
 	/*	Starts task that handles outgoing communication		 				*/
 	/* -------------------------------------------------------------------- */
-	xTaskCreate(mainTask, (signed char*) "mainTask", 750, NULL, configNORMAL_PRIORITY, NULL);
-	
-	/* -------------------------------------------------------------------- */
-	/*	Starts task that handles incomming communication with Medipix		*/
-	/* -------------------------------------------------------------------- */
-	xTaskCreate(medipixTask, (signed char*) "medipixT", 1024, NULL, configNORMAL_PRIORITY, NULL);
+	xTaskCreate(mainTask, (signed char*) "mainTask", 2048, NULL, configNORMAL_PRIORITY, NULL);
 	
 	/* -------------------------------------------------------------------- */
 	/*	Starts the scheduler and all previously created tasks				*/

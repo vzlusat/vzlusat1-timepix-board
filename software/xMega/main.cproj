@@ -466,10 +466,10 @@
     <Compile Include="mainTask.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="medipixTask.c">
+    <Compile Include="medipix.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="medipixTask.h">
+    <Compile Include="medipix.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="MyDrivers\port_driver.c">
@@ -503,6 +503,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="MyDrivers\usart_driver_RTOS.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="pseudoTables.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="pseudoTables.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="system.c">
@@ -628,8 +634,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="FreeRTOS" />
+    <Folder Include="FreeRTOS\Port\" />
     <Folder Include="FreeRTOS\Source" />
-    <Folder Include="FreeRTOS\Port" />
     <Folder Include="FreeRTOS\Source\include" />
     <Folder Include="libscp\" />
     <Folder Include="libscp\include\" />

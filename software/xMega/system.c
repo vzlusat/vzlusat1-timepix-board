@@ -8,6 +8,7 @@
  #include "sysclk.h"
  #include "system.h"
  #include "TC_driver.h"
+ #include "medipixTask.h"
  
  volatile uint32_t milisecondsTimer;
  volatile uint32_t secondsTimer;
@@ -15,6 +16,9 @@
  
  // UART handler
  UsartBuffer * medipix_usart_buffer;
+ 
+ // queue for command for medipix
+ xQueueHandle * medipixActionQueue;
 
 /* -------------------------------------------------------------------- */
 /*	Initialize the xMega peripherals									*/

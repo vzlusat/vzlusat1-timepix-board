@@ -55,7 +55,7 @@ void cspTask(void *p) {
 				// Free Heap space in Human readable form
 				case 16:
 				
-					newEvent->eEventType = medipixPweEvent;
+					newEvent->eEventType = medipixEvent;
 					newEvent->pvData = packet;
 					xQueueSend(xCSPEventQueue, newEvent, 10);	
 					
