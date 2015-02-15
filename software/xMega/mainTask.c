@@ -122,8 +122,7 @@ int16_t MpxConvertValuesMXR(uint16_t * values){
 			else
 				*values = pgm_read_word(&(pseudo2Count2[*values - 8192]));
 				
-			if (*values < 100)
-				sum += *values;
+			sum += *values;
 		} else {
 			*values = 0xFFFF;
 		}
@@ -131,6 +130,22 @@ int16_t MpxConvertValuesMXR(uint16_t * values){
 		values++;
 	}
 	return sum;
+}
+
+void sendBlankLine(unsigned int dport, unsigned int sport) {
+	
+	outcomingPacket->data[0] = '\n';
+	outcomingPacket->data[1] = '\n';
+	outcomingPacket->data[2] = '\r';
+	outcomingPacket->data[3] = 0;
+	outcomingPacket->length = 4;
+	csp_sendto(CSP_PRIO_NORM, 1, dport, sport, CSP_O_NONE, outcomingPacket, 1000);
+	vTaskDelay(20);
+}
+
+void interpretRow() {
+	
+	
 }
 
 /* -------------------------------------------------------------------- */
@@ -147,22 +162,16 @@ void mainTask(void *p) {
 	unsigned int source_p;
 	
 	unsigned char incomingBuffer[448];
-	unsigned char overBuffer[64];
+	unsigned char overBuffer[256];
 	uint16_t decodedBuffer[256];
 	
 	int16_t actIncomingPosition = 0;
 	
 	char measuringProceeding = 0;
 	
-	int16_t pocitacRadku = 0;
-	
-	char firstRow = 0;
-	
-	char temp[20];
+	char temp[40];
 	
 	char inChar;
-	
-	int16_t baf;
 	
 	int16_t rowByteIdx;
 	
@@ -213,69 +222,117 @@ void mainTask(void *p) {
 			
 			// pocka az nastartuje
 			
+			sendBlankLine(dest_p, source_p);
+			
 			vTaskDelay(2000);
+			while (usartBufferGetByte(medipix_usart_buffer, &inChar, 2000)) {
+				
+				if (inChar == '\r')
+				inChar = '<';
+				
+				if (inChar == '\n')
+				inChar = '_';
+				
+				outcomingPacket->data[0] = inChar;
+				outcomingPacket->data[1] = 0;
+				outcomingPacket->length = 2;
+				csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+				vTaskDelay(20);
+			}
 			
-			usartBufferPutByte(medipix_usart_buffer, 'o', 10);
+			// vytiskne mezeru
 			
-			vTaskDelay(1000);
+			sendBlankLine(dest_p, source_p);
 			
-			usartBufferPutByte(medipix_usart_buffer, 'c', 10);
+			// pošle o
+			usartBufferPutByte(medipix_usart_buffer, 'o', 1000);
 			
 			vTaskDelay(10);
-						
-			// send 'm'
-			usartBufferPutByte(medipix_usart_buffer, 'm', 10);
-						
-			// skip over the dummy byte
-			while (usartBufferGetByte(medipix_usart_buffer, &inChar, 100)) {break;};
-				
-			firstRow = 1;
-			actIncomingPosition = 0;
-			pocitacRadku = 0;
 			
-			while (usartBufferGetByte(medipix_usart_buffer, &inChar, 100)) {
+			usartBufferPutByte(medipix_usart_buffer, 'c', 1000);
 				
-				if (actIncomingPosition < 448)
-					incomingBuffer[actIncomingPosition++] = inChar;
-				else
-					overBuffer[actIncomingPosition++ - 448] = inChar;
+			while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {
 					
-				if (firstRow == 1 && actIncomingPosition == 256) {
+				if (inChar == '\r')
+				inChar = '<';
 					
-					usartBufferPutByte(medipix_usart_buffer, 'i', 10);
-					firstRow = 0;	
-				} else if (firstRow == 0 && actIncomingPosition == 320) {
-					usartBufferPutByte(medipix_usart_buffer, 'i', 10);
+				if (inChar == '\n')
+				inChar = '_';
+					
+				outcomingPacket->data[0] = inChar;
+				outcomingPacket->data[1] = '|';
+				outcomingPacket->data[2] = 0;
+				outcomingPacket->length = 3;
+				csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+				vTaskDelay(30);
+			}
+						
+			sendBlankLine(dest_p, source_p);
+			
+			usartBufferPutByte(medipix_usart_buffer, 'm', 1000);
+			
+			while (usartBufferGetByte(medipix_usart_buffer, &inChar, 100)) {break;}
+			while (usartBufferGetByte(medipix_usart_buffer, &inChar, 100)) {break;}
+					
+			int16_t bytesInBuffer = 0;
+			int16_t bytesInOverBuffer = 0;
+			char bufferFull = 0;
+			int16_t receivedBytes = 2;
+			int16_t rowsReceived = 0;
+			
+			while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {
+				
+				receivedBytes++;
+				
+				if (!bufferFull) {
+					incomingBuffer[bytesInBuffer++] = inChar;
+					
+					if (bytesInBuffer == 448)
+						bufferFull = 1;
+						
+				} else {
+					overBuffer[bytesInOverBuffer++] = inChar;
 				}
 				
-				if (actIncomingPosition == 512) {
+				if (receivedBytes == 256 || (rowsReceived == 255 && bufferFull && receivedBytes == 36)) {
 					
-					actIncomingPosition = 64;
-					pocitacRadku++;	
-					
-					rowByteIdx = 32*13;
-					MpxBitStream2DataSingleMXR(&incomingBuffer, &decodedBuffer, &rowByteIdx);
-										
-					baf = MpxConvertValuesMXR(&decodedBuffer);
-					
-					memcpy(incomingBuffer, overBuffer, sizeof(uint16_t)*64);
-					
-					sprintf(temp, "%d %d %d\n\r", pocitacRadku, baf, decodedBuffer[0]);
-					
-					strcpy(outcomingPacket->data, temp);
-					
-					// memcpy(outcomingPacket->data, (char*) &decodedBuffer, 20);
-					outcomingPacket->length = strlen(temp);
-					csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
-					
-					if (pocitacRadku < 256)
-						usartBufferPutByte(medipix_usart_buffer, 'o', 10);
-					
-					if (pocitacRadku == 256) {
+					receivedBytes = 0;
+				
+					if (!bufferFull) {
 						
-						pwrOffMedipix();
-						measuringProceeding = 0;
-						break;
+						usartBufferPutByte(medipix_usart_buffer, 'i', 1000);	
+					} else {
+						
+						// decode the message
+						
+						rowByteIdx = 32*13;
+						
+						MpxBitStream2DataSingleMXR(&incomingBuffer, &decodedBuffer, &rowByteIdx);
+						
+						int16_t rowSum = MpxConvertValuesMXR(&decodedBuffer);
+						
+						// copy overbuffer to main buffer
+						memcpy(incomingBuffer, overBuffer, bytesInOverBuffer);
+						bytesInBuffer = bytesInOverBuffer;
+						bytesInOverBuffer = 0;
+						bufferFull = 0;
+						rowsReceived++;
+						
+						sprintf(temp, "Row %d, sum %d, first %d\n\r", rowsReceived, rowSum, decodedBuffer[0]);
+						strcpy(outcomingPacket->data, temp);
+						outcomingPacket->length = strlen(temp);
+						csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+						
+						if (rowsReceived == 256) {
+							
+							vTaskDelay(50);
+							memcpy(outcomingPacket->data, overBuffer+32, 2);
+							outcomingPacket->length = 2;
+							csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+
+							measuringProceeding = 0;
+						} else
+							usartBufferPutByte(medipix_usart_buffer, 'i', 1000);
 					}
 				}
 			}
