@@ -312,18 +312,19 @@
 </package>
 <package name="R0805">
 <description>&lt;b&gt;0805 package&lt;/b&gt;</description>
-<wire x1="-0.41" y1="0.635" x2="0.41" y2="0.635" width="0.1524" layer="51"/>
-<wire x1="-0.41" y1="-0.635" x2="0.41" y2="-0.635" width="0.1524" layer="51"/>
 <wire x1="-1.973" y1="0.983" x2="1.973" y2="0.983" width="0.0508" layer="39"/>
 <wire x1="1.973" y1="0.983" x2="1.973" y2="-0.983" width="0.0508" layer="39"/>
 <wire x1="1.973" y1="-0.983" x2="-1.973" y2="-0.983" width="0.0508" layer="39"/>
 <wire x1="-1.973" y1="-0.983" x2="-1.973" y2="0.983" width="0.0508" layer="39"/>
 <smd name="1" x="-0.85" y="0" dx="1.3" dy="1.5" layer="1"/>
 <smd name="2" x="0.85" y="0" dx="1.3" dy="1.5" layer="1"/>
-<text x="-0.762" y="1.016" size="1.27" layer="25">&gt;NAME</text>
-<rectangle x1="0.4064" y1="-0.6985" x2="1.0564" y2="0.7015" layer="51"/>
-<rectangle x1="-1.0668" y1="-0.6985" x2="-0.4168" y2="0.7015" layer="51"/>
+<text x="-1.524" y="1.016" size="0.6096" layer="25">&gt;NAME</text>
 <rectangle x1="-0.1999" y1="-0.5001" x2="0.1999" y2="0.5001" layer="35"/>
+<wire x1="-1.651" y1="-0.889" x2="-1.651" y2="0.889" width="0.127" layer="51"/>
+<wire x1="-1.651" y1="0.889" x2="1.651" y2="0.889" width="0.127" layer="51"/>
+<wire x1="1.651" y1="0.889" x2="1.651" y2="-0.889" width="0.127" layer="51"/>
+<wire x1="1.651" y1="-0.889" x2="-1.651" y2="-0.889" width="0.127" layer="51"/>
+<text x="0" y="0" size="0.8128" layer="27" align="center">&gt;Value</text>
 </package>
 <package name="D">
 <description>7,3 x 4,3 mm</description>
@@ -444,10 +445,10 @@
 <rectangle x1="-4.1999" y1="4.95" x2="-3.8001" y2="6.1001" layer="51"/>
 </package>
 <package name="MEDIPIX_CONNECTOR">
-<pad name="5V" x="7.62" y="0" drill="1" diameter="1.8" shape="square"/>
-<pad name="GND" x="5.08" y="0" drill="1" diameter="1.8"/>
-<pad name="P$3" x="2.54" y="0" drill="1" diameter="1.8"/>
-<pad name="P$4" x="0" y="0" drill="1" diameter="1.8"/>
+<pad name="5V" x="7.62" y="0" drill="0.8" diameter="2" shape="square"/>
+<pad name="GND" x="5.08" y="0" drill="0.8" diameter="2"/>
+<pad name="P$3" x="2.54" y="0" drill="0.8" diameter="2"/>
+<pad name="P$4" x="0" y="0" drill="0.8" diameter="2"/>
 <wire x1="-1.27" y1="1.27" x2="-1.27" y2="-3.81" width="0.127" layer="21"/>
 <wire x1="-1.27" y1="-3.81" x2="8.89" y2="-3.81" width="0.127" layer="21"/>
 <wire x1="8.89" y1="-3.81" x2="8.89" y2="1.27" width="0.127" layer="21"/>
@@ -506,6 +507,16 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <rectangle x1="-1.75" y1="-1.1" x2="-1.55" y2="1.1" layer="51"/>
 <rectangle x1="1.55" y1="-1.1" x2="1.75" y2="1.1" layer="51" rot="R180"/>
 <rectangle x1="-1.6" y1="-1.35" x2="-0.95" y2="1.35" layer="51"/>
+</package>
+<package name="THERM">
+<pad name="GND" x="0" y="0" drill="0.8" diameter="1.5" shape="long" rot="R90"/>
+<pad name="VCC" x="-1.778" y="0" drill="0.8" diameter="1.5" shape="long" rot="R90"/>
+<pad name="SDA" x="-3.556" y="0" drill="0.8" diameter="1.5" shape="long" rot="R90"/>
+<pad name="SCL" x="-5.334" y="0" drill="0.8" diameter="1.5" shape="long" rot="R90"/>
+<text x="0" y="1.778" size="0.4064" layer="25" align="bottom-center">GND</text>
+<text x="-3.556" y="1.778" size="0.4064" layer="25" align="bottom-center">SDA</text>
+<text x="-1.778" y="1.778" size="0.4064" layer="25" align="bottom-center">VCC</text>
+<text x="-5.334" y="1.778" size="0.4064" layer="25" align="bottom-center">SCL</text>
 </package>
 </packages>
 <symbols>
@@ -1275,6 +1286,16 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <wire x1="-10.16" y1="-12.7" x2="-10.16" y2="-17.78" width="0.254" layer="94"/>
 <wire x1="-10.16" y1="-17.78" x2="2.54" y2="-17.78" width="0.254" layer="94"/>
 </symbol>
+<symbol name="THERM">
+<pin name="VCC" x="-10.16" y="2.54" length="middle"/>
+<pin name="SDA" x="-10.16" y="0" length="middle"/>
+<pin name="SCL" x="-10.16" y="-2.54" length="middle"/>
+<pin name="GND" x="-10.16" y="-5.08" length="middle"/>
+<wire x1="-5.08" y1="-7.62" x2="-5.08" y2="5.08" width="0.254" layer="94"/>
+<wire x1="-5.08" y1="5.08" x2="2.54" y2="5.08" width="0.254" layer="94"/>
+<wire x1="2.54" y1="5.08" x2="2.54" y2="-7.62" width="0.254" layer="94"/>
+<wire x1="2.54" y1="-7.62" x2="-5.08" y2="-7.62" width="0.254" layer="94"/>
+</symbol>
 </symbols>
 <devicesets>
 <deviceset name="H1">
@@ -1665,6 +1686,24 @@ Source: www.farnell.com/datasheets/247.pdf</description>
 <connect gate="G$1" pin="G2" pad="4"/>
 <connect gate="G$1" pin="S1" pad="1"/>
 <connect gate="G$1" pin="S2" pad="3"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="THERM">
+<gates>
+<gate name="G$1" symbol="THERM" x="5.08" y="-5.08"/>
+</gates>
+<devices>
+<device name="" package="THERM">
+<connects>
+<connect gate="G$1" pin="GND" pad="GND"/>
+<connect gate="G$1" pin="SCL" pad="SCL"/>
+<connect gate="G$1" pin="SDA" pad="SDA"/>
+<connect gate="G$1" pin="VCC" pad="VCC"/>
 </connects>
 <technologies>
 <technology name=""/>
@@ -2066,8 +2105,6 @@ USE AT YOUR OWN RISK!&lt;p&gt;
 <part name="DATA" library="medipix" deviceset="PIN" device="" value="DATA"/>
 <part name="GND" library="medipix" deviceset="PIN" device="" value="GND"/>
 <part name="GND1" library="medipix" deviceset="PIN" device="" value="GND"/>
-<part name="TXD0" library="medipix" deviceset="PIN" device="" value="TX"/>
-<part name="RXD0" library="medipix" deviceset="PIN" device="" value="RX"/>
 <part name="+3.3V1" library="medipix" deviceset="+3.3V" device=""/>
 <part name="GND3" library="medipix" deviceset="GND" device=""/>
 <part name="GND5" library="medipix" deviceset="GND" device=""/>
@@ -2146,15 +2183,20 @@ USE AT YOUR OWN RISK!&lt;p&gt;
 <part name="+3.3V10" library="medipix" deviceset="+3.3V" device=""/>
 <part name="R34" library="medipix" deviceset="RESISTOR" device="0805" value="1k"/>
 <part name="R35" library="medipix" deviceset="RESISTOR" device="0805" value="1k"/>
-<part name="P3" library="con-molex-picoblade" deviceset="53398-0510" device=""/>
-<part name="P1" library="con-molex-picoblade" deviceset="53398-0310" device=""/>
-<part name="P2" library="con-molex-picoblade" deviceset="53398-0310" device=""/>
+<part name="P3" library="con-molex-picoblade" deviceset="53398-0510" device="" value="PICOBLADE"/>
+<part name="P1" library="con-molex-picoblade" deviceset="53398-0310" device="" value="PICOBLADE"/>
+<part name="P2" library="con-molex-picoblade" deviceset="53398-0310" device="" value="PICOBLADE"/>
 <part name="U18" library="medipix" deviceset="IRF7319" device=""/>
 <part name="R36" library="medipix" deviceset="RESISTOR" device="0805" value="100k"/>
 <part name="R37" library="medipix" deviceset="RESISTOR" device="0805" value="100k"/>
 <part name="GND27" library="medipix" deviceset="GND" device=""/>
 <part name="TXD1" library="medipix" deviceset="PIN" device="" value="IN"/>
 <part name="TXD2" library="medipix" deviceset="PIN" device="" value="OUT"/>
+<part name="U$1" library="medipix" deviceset="THERM" device=""/>
+<part name="GND2" library="medipix" deviceset="GND" device=""/>
+<part name="+3.3V8" library="medipix" deviceset="+3.3V" device=""/>
+<part name="GND28" library="medipix" deviceset="PIN" device="" value="+5"/>
+<part name="GND25" library="medipix" deviceset="PIN" device="" value="+3.3"/>
 </parts>
 <sheets>
 <sheet>
@@ -2230,8 +2272,6 @@ USE AT YOUR OWN RISK!&lt;p&gt;
 <instance part="DATA" gate="A" x="11.43" y="172.72" rot="R180"/>
 <instance part="GND" gate="A" x="12.7" y="151.13" rot="R180"/>
 <instance part="GND1" gate="A" x="12.7" y="147.32" rot="R180"/>
-<instance part="TXD0" gate="A" x="111.76" y="106.68"/>
-<instance part="RXD0" gate="A" x="111.76" y="114.3"/>
 <instance part="+3.3V1" gate="G$1" x="2.54" y="124.46"/>
 <instance part="GND3" gate="1" x="25.4" y="132.08"/>
 <instance part="GND5" gate="1" x="2.54" y="109.22"/>
@@ -2320,6 +2360,11 @@ USE AT YOUR OWN RISK!&lt;p&gt;
 <instance part="GND27" gate="1" x="121.92" y="-25.4"/>
 <instance part="TXD1" gate="A" x="130.81" y="-48.26" rot="R270"/>
 <instance part="TXD2" gate="A" x="175.26" y="-27.94" rot="R90"/>
+<instance part="U$1" gate="G$1" x="139.7" y="139.7"/>
+<instance part="GND2" gate="1" x="127" y="129.54"/>
+<instance part="+3.3V8" gate="G$1" x="127" y="149.86"/>
+<instance part="GND28" gate="A" x="12.7" y="90.932"/>
+<instance part="GND25" gate="A" x="12.7" y="80.772"/>
 </instances>
 <busses>
 </busses>
@@ -2359,6 +2404,11 @@ USE AT YOUR OWN RISK!&lt;p&gt;
 <wire x1="-86.36" y1="63.5" x2="-88.9" y2="63.5" width="0.1524" layer="91"/>
 <pinref part="+5V-IN4" gate="G$1" pin="+5V-IN"/>
 <junction x="-88.9" y="63.5"/>
+</segment>
+<segment>
+<wire x1="7.62" y1="90.932" x2="7.62" y2="93.98" width="0.1524" layer="91"/>
+<pinref part="GND28" gate="A" pin="D"/>
+<label x="7.62" y="93.98" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="+3.3V-IN" class="0">
@@ -2401,6 +2451,11 @@ USE AT YOUR OWN RISK!&lt;p&gt;
 <wire x1="-86.36" y1="43.18" x2="-88.9" y2="43.18" width="0.1524" layer="91"/>
 <pinref part="+3.3V4" gate="G$1" pin="+3.3V-IN"/>
 <junction x="-88.9" y="43.18"/>
+</segment>
+<segment>
+<pinref part="GND25" gate="A" pin="D"/>
+<wire x1="7.62" y1="83.82" x2="7.62" y2="80.772" width="0.1524" layer="91"/>
+<label x="7.62" y="83.82" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="I2C-SCL-OBC" class="0">
@@ -2988,6 +3043,12 @@ USE AT YOUR OWN RISK!&lt;p&gt;
 <wire x1="226.06" y1="88.9" x2="220.98" y2="88.9" width="0.1524" layer="91"/>
 <junction x="220.98" y="88.9"/>
 </segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="VCC"/>
+<wire x1="129.54" y1="142.24" x2="127" y2="142.24" width="0.1524" layer="91"/>
+<wire x1="127" y1="142.24" x2="127" y2="147.32" width="0.1524" layer="91"/>
+<pinref part="+3.3V8" gate="G$1" pin="+3.3V"/>
+</segment>
 </net>
 <net name="N$8" class="0">
 <segment>
@@ -3442,23 +3503,6 @@ USE AT YOUR OWN RISK!&lt;p&gt;
 <label x="-12.7" y="-38.1" size="1.778" layer="95" ratio="1" xref="yes"/>
 </segment>
 </net>
-<net name="N$10" class="0">
-<segment>
-<pinref part="IC1" gate="G$1" pin="PD3"/>
-<wire x1="93.98" y1="109.22" x2="101.6" y2="109.22" width="0.1524" layer="91"/>
-<wire x1="101.6" y1="109.22" x2="101.6" y2="106.68" width="0.1524" layer="91"/>
-<pinref part="TXD0" gate="A" pin="D"/>
-<wire x1="101.6" y1="106.68" x2="106.68" y2="106.68" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$11" class="0">
-<segment>
-<pinref part="IC1" gate="G$1" pin="PD2"/>
-<pinref part="RXD0" gate="A" pin="D"/>
-<wire x1="93.98" y1="111.76" x2="106.68" y2="111.76" width="0.1524" layer="91"/>
-<wire x1="106.68" y1="111.76" x2="106.68" y2="114.3" width="0.1524" layer="91"/>
-</segment>
-</net>
 <net name="PA0" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="PA0"/>
@@ -3682,6 +3726,28 @@ USE AT YOUR OWN RISK!&lt;p&gt;
 <junction x="248.92" y="162.56"/>
 <wire x1="204.47" y1="152.4" x2="186.69" y2="152.4" width="0.1524" layer="91"/>
 <wire x1="186.69" y1="152.4" x2="186.69" y2="129.54" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$12" class="0">
+<segment>
+<pinref part="IC1" gate="G$1" pin="PC1"/>
+<pinref part="U$1" gate="G$1" pin="SCL"/>
+<wire x1="93.98" y1="137.16" x2="129.54" y2="137.16" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$13" class="0">
+<segment>
+<pinref part="IC1" gate="G$1" pin="PC0"/>
+<pinref part="U$1" gate="G$1" pin="SDA"/>
+<wire x1="93.98" y1="139.7" x2="129.54" y2="139.7" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="GND" class="0">
+<segment>
+<pinref part="U$1" gate="G$1" pin="GND"/>
+<wire x1="129.54" y1="134.62" x2="127" y2="134.62" width="0.1524" layer="91"/>
+<wire x1="127" y1="134.62" x2="127" y2="132.08" width="0.1524" layer="91"/>
+<pinref part="GND2" gate="1" pin="GND"/>
 </segment>
 </net>
 </nets>
