@@ -1,0 +1,14 @@
+Partlist
+
+Exported from thermo_board.brd at 19.3.2015 9:47:04
+
+EAGLE Version 6.5.0 Copyright (c) 1988-2013 CadSoft
+
+Assembly variant: 
+
+Part     Value             Package         Library    Position (inch)       Orientation
+
+C1       10nF              R0402           thermo_lib (0.295 0.23)          R270
+R1       10k               R0402           thermo_lib (0.205 0.265)         R0
+R2       10k               R0402           thermo_lib (0.065 0.265)         R180
+U1       ADT7420           LFCSP16         thermo_lib (0.19 0.16)           R0
