@@ -14,18 +14,6 @@
 #include "cspTask.h"
 #include "medipixTask.h"
 
-// Blinking RTOS task, just for debugging
-void blink(void *p) {
-	
-	vTaskDelay(1000);
-	
-	while (1) {
-				
-		led_yellow_toggle();
-		vTaskDelay(500);
-	}
-}
-
 int main(void) {
 	
 	// initialize the xMega peripherals
@@ -45,11 +33,6 @@ int main(void) {
 					
 	// Start router task
 	csp_route_start_task(CSP_ROUTER_STACK, CSP_ROUTER_PRIORITY);
-				
-	/* -------------------------------------------------------------------- */
-	/*	Starts blinking task - only for debug								*/
-	/* -------------------------------------------------------------------- */
-	xTaskCreate(blink, (signed char*) "blink", 128, NULL, configNORMAL_PRIORITY, NULL);
 		
 	/* -------------------------------------------------------------------- */
 	/*	Starts task that handles incoming communication		 				*/
@@ -59,7 +42,7 @@ int main(void) {
 	/* -------------------------------------------------------------------- */
 	/*	Starts task that handles outgoing communication		 				*/
 	/* -------------------------------------------------------------------- */
-	xTaskCreate(mainTask, (signed char*) "mainTask", 2048, NULL, configNORMAL_PRIORITY, NULL);
+	xTaskCreate(mainTask, (signed char*) "mainTask", 1200, NULL, configNORMAL_PRIORITY, NULL);
 	
 	/* -------------------------------------------------------------------- */
 	/*	Starts the scheduler and all previously created tasks				*/

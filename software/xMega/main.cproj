@@ -223,6 +223,9 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="equalization.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="config.h">
       <SubType>compile</SubType>
     </Compile>
@@ -296,6 +299,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="FreeRTOS\user_board.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="equalization.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="libscp\include\csp\arch\csp_clock.h">

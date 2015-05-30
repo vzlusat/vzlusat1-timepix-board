@@ -11,6 +11,10 @@
 #include "system.h"
 
 extern xQueueHandle * xCSPEventQueue;
+csp_packet_t * outcomingPacket;
+
+unsigned int dest_p;
+unsigned int source_p;
 
 void mainTask(void *p);
 
