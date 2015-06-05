@@ -190,7 +190,7 @@ void MpxBitStream2DataSingleMXR(uint8_t * byteStream, uint16_t * data) {
 
 	for (j = 255; j >= 0; j--) {                                                 // Loop for 256 pixels of i-th row
 		
-		byteIdx = (j>>3);                                            // index of first byte in bytestream which contains data bits for [i,j] element in data matrix
+		byteIdx = 32*13 + (j>>3);                                            // index of first byte in bytestream which contains data bits for [i,j] element in data matrix
 		bitMsk = 1 << ((~j) & 0x7);                                                // mask of bit for [i,j] element in byte on byteIdx, bits are in reverse order (=> ~j instead of j)
 		for (k=0, *data=0, valMsk=1; k<14; k++, valMsk <<=1, byteIdx-=32)         // Loop for 13 bits of j-th pixel in i-th row
 		if (*(byteStream + byteIdx) & bitMsk)
@@ -206,15 +206,15 @@ void MpxData2BitStreamSingleMXR(uint16_t * data, uint8_t * byteStream) {
 	int16_t byteIdx;
 	uint16_t bitMsk, valMsk;
 	
-	memset(byteStream, 0, 448);
+	memset(byteStream, 0, 447);
 
-	for (j = 255; j >= 0; j--){        
-		                                         // Loop for 256 pixels of i-th row
-		byteIdx = (j>>3);                                            // index of first byte in bytestream which contains data bits for [i,j] element in data matrix
+	for (j = 255; j >= 0; j--) {        
+																					// Loop for 256 pixels of i-th row
+		byteIdx = 32*13 + (j>>3);															// index of first byte in bytestream which contains data bits for [i,j] element in data matrix
 		bitMsk = 1 << ((~j) & 0x7);                                               // mask of bit for [i,j] element in byte on byteIdx, bits are in reverse order (=> ~j instead of j)
 		for (k=0, valMsk=1; k<14; k++, valMsk <<=1, byteIdx-=32)                  // Loop for 13 bits of j-th pixel in i-th row
 		if ((*data) & valMsk)
-			*(byteStream + byteIdx) |= bitMsk;
+			byteStream[byteIdx] |= bitMsk;
 		
 		data++;
 	}
@@ -392,12 +392,12 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 			
 			//*Mask = val.maskBit | ((!val.testBit) << 9) | ((val.lowTh  & 0x01) << 7) | ((val.lowTh & 0x02) << 5) | ((val.lowTh  & 0x04) << 6) | ((val.highTh  & 0x01) << 12) | ((val.highTh  & 0x02) << 9) | ((val.highTh  & 0x04) << 9);
 			
-			*Mask = 0xEEEE;
+			*Mask = 543;
 			
 			Mask++;
 		}
 		
-		// MpxData2BitStreamSingleMXR(&dataBuffer, &ioBuffer);
+		MpxData2BitStreamSingleMXR(&dataBuffer, &ioBuffer);
 		
 		outcomingPacket->data[0] = 'X';
 		outcomingPacket->data[1] = 0;
@@ -407,7 +407,7 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 				
 		for (k = 0; k < 448; k++) {
 			
-			usartBufferPutByte(medipix_usart_buffer, 0xDD, 1000);
+			usartBufferPutByte(medipix_usart_buffer, ioBuffer[k], 1000);
 		}
 	}
 	
@@ -484,7 +484,7 @@ void readMatrix() {
 			
 			MpxBitStream2DataSingleMXR(&ioBuffer, &dataBuffer);
 			
-			MpxConvertValuesMXR(&dataBuffer);
+			// MpxConvertValuesMXR(&dataBuffer);
 			
 			// pøenese pøevis z tempBufferu do ioBufferu
 			memcpy(ioBuffer, tempBuffer, bytesInOverBuffer);
@@ -497,7 +497,7 @@ void readMatrix() {
 			bufferFull = 0;
 			
 			// výpis
-			sprintf(temp, "Row %d, %d %d %d\n\r", rowsReceived, ioBuffer[0], ioBuffer[1], ioBuffer[2]);
+			sprintf(temp, "Row %d, %d %d %d\n\r", rowsReceived, dataBuffer[0], dataBuffer[1], dataBuffer[2]);
 			strcpy(outcomingPacket->data, temp);
 			outcomingPacket->length = strlen(temp);
 			csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
