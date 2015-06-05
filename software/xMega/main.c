@@ -42,7 +42,7 @@ int main(void) {
 	/* -------------------------------------------------------------------- */
 	/*	Starts task that handles outgoing communication		 				*/
 	/* -------------------------------------------------------------------- */
-	xTaskCreate(mainTask, (signed char*) "mainTask", 1200, NULL, configNORMAL_PRIORITY, NULL);
+	xTaskCreate(mainTask, (signed char*) "mainTask", 1500, NULL, configNORMAL_PRIORITY, NULL);
 	
 	/* -------------------------------------------------------------------- */
 	/*	Starts the scheduler and all previously created tasks				*/

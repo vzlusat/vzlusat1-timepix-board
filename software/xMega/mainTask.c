@@ -94,9 +94,35 @@ void sendBlankLine(unsigned int dport, unsigned int sport) {
 	vTaskDelay(20);
 }
 
-void interpretRow() {
+void measure() {
 	
+	char inChar;
 	
+	pwrOnMedipix();
+
+	sendBlankLine(15, 16);
+	
+	medipixInit();
+	
+	sendBlankLine(15, 16);
+	
+	loadEqualization(&dataBuffer, &ioBuffer);
+	
+	sendBlankLine(15, 16);
+			
+	readMatrix();
+	
+	sendBlankLine(15, 16);
+	
+	openShutter();
+	
+	vTaskDelay(1);
+	
+	closeShutter();
+	
+	readMatrix();
+	
+	pwrOffMedipix();
 }
 
 /* -------------------------------------------------------------------- */
@@ -113,101 +139,39 @@ void mainTask(void *p) {
 					
 	// infinite while loop of the program 
 	while (1) {
-
-		//if (measuringProceeding == 0) {
 			
-			if (xQueueReceive(xCSPEventQueue, &xReceivedEvent, 1)) {
+		if (xQueueReceive(xCSPEventQueue, &xReceivedEvent, 1)) {
 		
-				switch( xReceivedEvent.eEventType ) {
+			switch( xReceivedEvent.eEventType ) {
 		
-					// Echo back the whole packet
-					// incoming port => outcoming
-					case echoBackEvent :
+				// Echo back the whole packet
+				// incoming port => outcoming
+				case echoBackEvent :
 				
-						echoBack(xReceivedEvent.pvData);
+					echoBack(xReceivedEvent.pvData);
 			
-					break;
+				break;
 			
-					// sends the info about the system
-					case housKeepingEvent :
+				// sends the info about the system
+				case housKeepingEvent :
 				
-						houseKeeping(xReceivedEvent.pvData);
+					houseKeeping(xReceivedEvent.pvData);
 			
-					break;
+				break;
 				
-					// sends the info about the system
-					case medipixEvent :
+				// sends the info about the system
+				case medipixEvent :
 					
-						dest_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.sport;
-						source_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.dport;
+					dest_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.sport;
+					source_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.dport;
 				
-						pwrOnMedipix();			
-					break;
+					measure();		
+				break;
 		
-					default :
-						/* Should not get here. */
-					break;
-				}
+				default :
+					/* Should not get here. */
+				break;
 			}
-			/*
-		} else {
-			
-			// nastartuje medipix
-			pwrOnMedipix();
-			
-			// vytiskne mezeru
-			
-			sendBlankLine(dest_p, source_p);
-			
-			vTaskDelay(2000);
-			while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {
-				
-				if (inChar == '\r')
-				inChar = '<';
-				
-				if (inChar == '\n')
-				inChar = '_';
-				
-				outcomingPacket->data[0] = inChar;
-				outcomingPacket->data[1] = 0;
-				outcomingPacket->length = 2;
-				csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
-				vTaskDelay(20);
-			}
-						
-			measuringProceeding = 0;
-			
-			// pošle o
-			//usartBufferPutByte(medipix_usart_buffer, 'o', 1000);
-			
-			vTaskDelay(10);
-			
-			//usartBufferPutByte(medipix_usart_buffer, 'c', 1000);
-			/
-			while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {
-					
-				if (inChar == '\r')
-				inChar = '<';
-					
-				if (inChar == '\n')
-				inChar = '_';
-					
-				outcomingPacket->data[0] = inChar;
-				outcomingPacket->data[1] = '|';
-				outcomingPacket->data[2] = 0;
-				outcomingPacket->length = 3;
-				csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
-				vTaskDelay(30);
-			}
-						
-			sendBlankLine(dest_p, source_p);
-						
-			usartBufferPutByte(medipix_usart_buffer, 'm', 1000);
-			
-			while (usartBufferGetByte(medipix_usart_buffer, &inChar, 100)) {break;}
-			while (usartBufferGetByte(medipix_usart_buffer, &inChar, 100)) {break;}
-					
 		}
-		*/
 	}
 }

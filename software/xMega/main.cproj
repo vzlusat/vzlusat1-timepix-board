@@ -238,6 +238,9 @@
     <Compile Include="csp_interface.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="equalization2.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="FreeRTOS\FreeRTOSConfig.h">
       <SubType>compile</SubType>
     </Compile>

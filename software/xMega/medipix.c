@@ -15,7 +15,7 @@
 // 0 if medipix is turned off
 char medipixOnline;
 
-const uint16_t DefaultDacValsTimepix[15] = {1  ,127,255,127,127,  0,450,7,130,128, 80, 85,128,128,  0};
+const uint16_t DefaultDacValsTimepix[15] = {1, 100, 255, 127, 127, 0, 314, 7, 130, 128, 80, 85, 128, 128, 0};
 
 volatile Mpx_DAC DAC;
 
@@ -72,7 +72,7 @@ void MpxSetDACs() {
 			vTaskDelay(5);
 	}
 	
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 2000)) {
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {
 		
 		if (inChar == '\r')
 		inChar = '<';
@@ -176,17 +176,13 @@ char medipixPowered() {
 	return medipixOnline;
 }
 
-// Number of bytes in stream containing one MXR row
-#define MPXMXR_ROW_BYTES (32*14)
-
 // Deserialization of data stream from one MXR chip
-// No dummy byte is expected:
-
 void MpxBitStream2DataSingleMXR(uint8_t * byteStream, uint16_t * data) {
 	
 	int16_t j, k;
 	int16_t byteIdx;
 	uint16_t bitMsk, valMsk;
+	memset(data, 0, 256*sizeof(uint16_t));
 
 	for (j = 255; j >= 0; j--) {                                                 // Loop for 256 pixels of i-th row
 		
@@ -206,7 +202,7 @@ void MpxData2BitStreamSingleMXR(uint16_t * data, uint8_t * byteStream) {
 	int16_t byteIdx;
 	uint16_t bitMsk, valMsk;
 	
-	memset(byteStream, 0, 447);
+	memset(byteStream, 0, 448*sizeof(uint8_t));
 
 	for (j = 255; j >= 0; j--) {        
 																					// Loop for 256 pixels of i-th row
@@ -223,25 +219,91 @@ void MpxData2BitStreamSingleMXR(uint16_t * data, uint8_t * byteStream) {
 // Derandomization for MXR:
 void MpxConvertValuesMXR(uint16_t * values){
 
-	int i;
-	int16_t sum = 0;
+	uint16_t i;
+	uint16_t tempInt;
 	
 	for (i = 0; i < 256; i++) {
 		
 		if (*values < 16384) {
 			
-			if (*values < 8192)
-				*values = pgm_read_word(&(pseudo2Count1[*values]));
-			else
-				*values = pgm_read_word(&(pseudo2Count2[*values - 8192]));
-			
-				sum += *values;
+			if (*values < 8192) {
+				
+				tempInt = *values;
+				*values = pgm_read_word(&(pseudo2Count1[tempInt]));
 			} else {
-				*values = 0xFFFF;
+				
+				tempInt = *values;
+				tempInt -= 8192;
+				*values = pgm_read_word(&(pseudo2Count2[tempInt]));
+			}
+				
+		} else {
+			*values = 0xFFFF;
 		}
-		
 		values++;
 	}
+}
+
+uint8_t getEqualizationRaw(uint16_t idx) {
+	
+#if MEDIPIX_VERSION == FLIGHT
+
+	if (idx < 8192) {
+
+		return pgm_read_byte(&(equalization1[idx]));
+	} else if (idx < 2*8192) {
+
+		return pgm_read_byte(&(equalization2[idx - 8192]));
+	} else if (idx < 3*8192) {
+
+		return pgm_read_byte(&(equalization3[idx - 2*8192]));
+	} else if (idx < 4*8192) {
+
+		return pgm_read_byte(&(equalization4[idx - 3*8192]));
+	} else if (idx < 5*8192) {
+
+		return pgm_read_byte(&(equalization5[idx - 4*8192]));
+	} else if (idx < 6*8192) {
+
+		return pgm_read_byte(&(equalization6[idx - 5*8192]));
+	} else if (idx < 7*8192) {
+
+		return pgm_read_byte(&(equalization7[idx - 6*8192]));
+	} else {
+
+		return pgm_read_byte(&(equalization8[idx - 7*8192]));
+	}
+		
+#elif MEDIPIX_VERSION == EQM
+	
+	if (idx < 8192) {
+
+		return pgm_read_byte(&(equalization21[idx]));
+	} else if (idx < 2*8192) {
+
+		return pgm_read_byte(&(equalization22[idx - 8192]));
+	} else if (idx < 3*8192) {
+
+		return pgm_read_byte(&(equalization23[idx - 2*8192]));
+	} else if (idx < 4*8192) {
+
+		return pgm_read_byte(&(equalization24[idx - 3*8192]));
+	} else if (idx < 5*8192) {
+
+		return pgm_read_byte(&(equalization25[idx - 4*8192]));
+	} else if (idx < 6*8192) {
+
+		return pgm_read_byte(&(equalization26[idx - 5*8192]));
+	} else if (idx < 7*8192) {
+
+		return pgm_read_byte(&(equalization27[idx - 6*8192]));
+	} else {
+
+		return pgm_read_byte(&(equalization28[idx - 7*8192]));
+	}
+
+#endif
+
 }
 
 void pwrOnMedipix() {
@@ -253,8 +315,8 @@ void pwrOnMedipix() {
 
 	sendBlankLine(15, 16);
 	
+	// prijme uvitaci zpravu
 	char inChar;
-	
 	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 4000)) {
 	
 		if (inChar == '\r')
@@ -269,54 +331,6 @@ void pwrOnMedipix() {
 		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
 		vTaskDelay(20);
 	}
-
-	sendBlankLine(15, 16);
-
-	medipixInit();
-	
-	sendBlankLine(15, 16);
-	
-	loadEqualization(&dataBuffer, &ioBuffer);
-	
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 4000)) {
-		
-		if (inChar == '\r')
-		inChar = '<';
-		
-		if (inChar == '\n')
-		inChar = '_';
-		
-		outcomingPacket->data[0] = inChar;
-		outcomingPacket->data[1] = 0;
-		outcomingPacket->length = 2;
-		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-		vTaskDelay(20);
-	}
-	
-	sendBlankLine(15, 16);
-	
-	/*
-	
-	loadEqualization(&dataBuffer, &ioBuffer);
-	
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {
-		
-		if (inChar == '\r')
-		inChar = '<';
-		
-		if (inChar == '\n')
-		inChar = '_';
-		
-		outcomingPacket->data[0] = inChar;
-		outcomingPacket->data[1] = 0;
-		outcomingPacket->length = 2;
-		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-		vTaskDelay(20);
-	}
-	
-	*/
-
-	readMatrix();
 }
 
 void pwrOffMedipix() {
@@ -337,41 +351,82 @@ void pwrToggleMedipix() {
 	}
 }
 
-// Derandomization for MXR:
-uint8_t getEqualizationRaw(uint16_t idx){
-
-	if (idx < 8192) {
-		
-		return pgm_read_word(&(equalization1[idx]));
-	} else if (idx < 2*8192) {
-
-		return pgm_read_word(&(equalization2[idx]));
-	} else if (idx < 3*8192) {
-
-		return pgm_read_word(&(equalization3[idx]));
-	} else if (idx < 4*8192) {
-
-		return pgm_read_word(&(equalization4[idx]));
-	} else if (idx < 5*8192) {
-
-		return pgm_read_word(&(equalization5[idx]));
-	} else if (idx < 6*8192) {
-
-		return pgm_read_word(&(equalization6[idx]));
-	} else if (idx < 7*8192) {
-
-		return pgm_read_word(&(equalization7[idx]));
-	} else if (idx < 8*8192) {
-
-		return pgm_read_word(&(equalization8[idx]));
-	}
+void openShutter() {
 	
-	return 1;
+	usartBufferPutByte(medipix_usart_buffer, 'o', 1000);
+	
+	sendBlankLine(15, 16);
+	
+	// prijme uvitaci zpravu
+	char inChar;
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 500)) {
+		
+		if (inChar == '\r')
+		inChar = '<';
+		
+		if (inChar == '\n')
+		inChar = '_';
+		
+		outcomingPacket->data[0] = inChar;
+		outcomingPacket->data[1] = 0;
+		outcomingPacket->length = 2;
+		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
+		vTaskDelay(20);
+	}
+}
+
+void closeShutter() {
+	
+	usartBufferPutByte(medipix_usart_buffer, 'c', 1000);
+	
+	sendBlankLine(15, 16);
+	
+	// prijme uvitaci zpravu
+	char inChar;
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 500)) {
+		
+		if (inChar == '\r')
+		inChar = '<';
+		
+		if (inChar == '\n')
+		inChar = '_';
+		
+		outcomingPacket->data[0] = inChar;
+		outcomingPacket->data[1] = 0;
+		outcomingPacket->length = 2;
+		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
+		vTaskDelay(20);
+	}
+}
+
+void eraseMatrix() {
+	
+	usartBufferPutByte(medipix_usart_buffer, 'e', 1000);
+	
+	sendBlankLine(15, 16);
+	
+	// prijme uvitaci zpravu
+	char inChar;
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 500)) {
+		
+		if (inChar == '\r')
+		inChar = '<';
+		
+		if (inChar == '\n')
+		inChar = '_';
+		
+		outcomingPacket->data[0] = inChar;
+		outcomingPacket->data[1] = 0;
+		outcomingPacket->length = 2;
+		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
+		vTaskDelay(20);
+	}
 }
 
 uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 	
-	uint16_t i, j, k;
+	uint16_t i, j;
+	uint16_t k;
 	PixelCfg val;
 	
 	uint8_t * valPoint = (uint8_t *) &val;
@@ -384,17 +439,15 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 	
 	for (i = 0; i < 256; i++) {
 		
-		Mask = data;
+		Mask = dataBuffer;
 		
 		for (j = 0; j < 256; j++) {
 			
-			*valPoint = getEqualizationRaw(256*i+j);
+			*valPoint = getEqualizationRaw(256*i + j);
 			
-			//*Mask = val.maskBit | ((!val.testBit) << 9) | ((val.lowTh  & 0x01) << 7) | ((val.lowTh & 0x02) << 5) | ((val.lowTh  & 0x04) << 6) | ((val.highTh  & 0x01) << 12) | ((val.highTh  & 0x02) << 9) | ((val.highTh  & 0x04) << 9);
-			
-			*Mask = 543;
-			
-			Mask++;
+			*(Mask+j) = val.maskBit | ((!val.testBit) << 9) | ((val.lowTh  & 0x01) << 7) | ((val.lowTh & 0x02) << 5) | ((val.lowTh  & 0x04) << 6) | ((val.highTh  & 0x01) << 12) | ((val.highTh  & 0x02) << 9) | ((val.highTh  & 0x04) << 9);
+		
+			// *(Mask+j) = getEqualizationRaw(256*i + j);
 		}
 		
 		MpxData2BitStreamSingleMXR(&dataBuffer, &ioBuffer);
@@ -407,7 +460,7 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 				
 		for (k = 0; k < 448; k++) {
 			
-			usartBufferPutByte(medipix_usart_buffer, ioBuffer[k], 1000);
+			usartBufferPutByte(medipix_usart_buffer, ioBuffer[k], 1000);	
 		}
 	}
 	
@@ -416,7 +469,22 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 		usartBufferPutByte(medipix_usart_buffer, 'A', 1000);
 	}
 	
-	vTaskDelay(100);
+	char inChar;
+	
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {
+		
+		if (inChar == '\r')
+		inChar = '<';
+		
+		if (inChar == '\n')
+		inChar = '_';
+		
+		outcomingPacket->data[0] = inChar;
+		outcomingPacket->data[1] = 0;
+		outcomingPacket->length = 2;
+		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
+		vTaskDelay(20);
+	}
 	
 	return 0;
 }
@@ -438,10 +506,11 @@ void readMatrix() {
 	uint8_t bufferFull = 0;
 	int16_t receivedBytes = 0;
 	int16_t rowsReceived = 0;
+	int16_t i;
 	
 	memset(ioBuffer, 0, 448);
-	memset(dataBuffer, 0, 512);
 	memset(tempBuffer, 0, 256);
+	memset(dataBuffer, 0, 512);
 	
 	usartBufferPutByte(medipix_usart_buffer, 'm', 1000);
 	
@@ -451,7 +520,7 @@ void readMatrix() {
 				
 		receivedBytes++; // poèet bajtù pøijatých "tento øádek"
 			 
-		if (!bufferFull) { // pokud nemáme plný ioBuffer
+		if (bufferFull == 0) { // pokud nemáme plný ioBuffer
 			
 			ioBuffer[bytesInBuffer++] = inChar; // pøidá pøijatý bajt do ioBuffer
 					
@@ -484,23 +553,28 @@ void readMatrix() {
 			
 			MpxBitStream2DataSingleMXR(&ioBuffer, &dataBuffer);
 			
-			// MpxConvertValuesMXR(&dataBuffer);
-			
-			// pøenese pøevis z tempBufferu do ioBufferu
-			memcpy(ioBuffer, tempBuffer, bytesInOverBuffer);
+			MpxConvertValuesMXR(&dataBuffer);
 			
 			// pøemístí ukazovátko na správné místo v tempBufferu
+			
+			// výpis
+			sprintf(temp, "Row %d: %d %d %d %d \n\r", rowsReceived, dataBuffer[0], dataBuffer[1], dataBuffer[2], dataBuffer[3]);
+			strcpy(outcomingPacket->data, temp);
+			outcomingPacket->length = strlen(temp);
+			csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+
+			sprintf(temp, "\n\r");
+			strcpy(outcomingPacket->data, temp);
+			outcomingPacket->length = strlen(temp);
+			csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+			
+			memcpy(ioBuffer, tempBuffer, bytesInOverBuffer*sizeof(uint8_t));
+		
 			bytesInBuffer = bytesInOverBuffer;
 			receivedBytes = 0;
 			bytesInOverBuffer = 0;
 			rowsReceived++;
 			bufferFull = 0;
-			
-			// výpis
-			sprintf(temp, "Row %d, %d %d %d\n\r", rowsReceived, dataBuffer[0], dataBuffer[1], dataBuffer[2]);
-			strcpy(outcomingPacket->data, temp);
-			outcomingPacket->length = strlen(temp);
-			csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 			
 			usartBufferPutByte(medipix_usart_buffer, 'i', 1000);
 		}

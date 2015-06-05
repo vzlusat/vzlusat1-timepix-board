@@ -10,6 +10,11 @@
 
 #include "twi_master_driver.h"
 
+// define different versions of timepix
+#define EQM		0
+#define FLIGHT	1
+#define MEDIPIX_VERSION	EQM
+
 // Address of the local CSP node
 // #define CSP_MY_ADDRESS	2	// Deska EPS
 // #define CSP_MY_ADDRESS	3	// Deska Measure

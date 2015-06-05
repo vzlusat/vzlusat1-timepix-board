@@ -17,7 +17,7 @@ int main()
     FILE * pFile;
 				pFile = fopen ("myfile.txt","w");
 				FILE * inFile;
-				inFile = fopen ("equalization","rb");
+				inFile = fopen ("equalization2","rb");
 
 				uint8_t val;
 

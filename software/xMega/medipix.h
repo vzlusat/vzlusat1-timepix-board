@@ -10,12 +10,13 @@
 #define MEDIPIX_H_
 
 char medipixPowered();
-
 void pwrOffMedipix();
-
 void pwrOnMedipix();
-
 void pwrToggleMedipix();
+
+void eraseMatrix();
+void closeShutter();
+void openShutter();
 
 void medipixInit();
 
@@ -83,5 +84,9 @@ typedef struct {
 	uint8_t testBit: 1;        // test bit (1 bit, low (0) is ACTIVE)
 	uint8_t maskBit: 1;        // mask bit (1 bit, low (0) is ACTIVE)
 } PixelCfg;
+
+volatile uint8_t ioBuffer[448];
+volatile uint8_t tempBuffer[256];
+volatile uint16_t dataBuffer[256];
 
 #endif /* MEDIPIX_H_ */
