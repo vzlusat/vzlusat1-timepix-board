@@ -21,6 +21,11 @@ const uint8_t equalization6[8192] PROGMEM;
 const uint8_t equalization7[8192] PROGMEM;
 const uint8_t equalization8[8192] PROGMEM;
 
+const uint8_t pseudoCount1low[8192] PROGMEM;
+const uint8_t pseudoCount1high[8192] PROGMEM;
+const uint8_t pseudoCount2low[8192] PROGMEM;
+const uint8_t pseudoCount2high[8192] PROGMEM;
+
 #elif MEDIPIX_VERSION == EQM
 
 const uint8_t equalization21[8192] PROGMEM;
@@ -31,6 +36,11 @@ const uint8_t equalization25[8192] PROGMEM;
 const uint8_t equalization26[8192] PROGMEM;
 const uint8_t equalization27[8192] PROGMEM;
 const uint8_t equalization28[8192] PROGMEM;
+
+const uint8_t pseudo2Count1low[8192] PROGMEM;
+const uint8_t pseudo2Count1high[8192] PROGMEM;
+const uint8_t pseudo2Count2low[8192] PROGMEM;
+const uint8_t pseudo2Count2high[8192] PROGMEM;
 
 #endif
 

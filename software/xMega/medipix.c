@@ -9,7 +9,6 @@
 #include "medipix.h"
 #include "equalization.h"
 #include "mainTask.h"
-#include "pseudoTables.h"
 
 // 1 if medipix is powered
 // 0 if medipix is turned off
@@ -18,6 +17,8 @@ char medipixOnline;
 const uint16_t DefaultDacValsTimepix[15] = {1, 100, 255, 127, 127, 0, 314, 7, 130, 128, 80, 85, 128, 128, 0};
 
 volatile Mpx_DAC DAC;
+
+volatile uint8_t medipixMode = MODE_MEDIPIX; 
 
 volatile uint8_t ioBuffer[448];
 volatile uint8_t tempBuffer[256];
@@ -41,8 +42,7 @@ void MpxSetDACs() {
 	// nejdøív zapsat s jednièkama tady poslat první byte ze streamu
 	for (i = 0; i < 34; i++) {
 		usartBufferPutByte(medipix_usart_buffer, stream[i], 1000);
-		if (i == 0)
-			vTaskDelay(5);
+		vTaskDelay(5);
 	}
 
 	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {
@@ -68,8 +68,7 @@ void MpxSetDACs() {
 	// nejdøív zapsat s jednièkama tady poslat první byte ze streamu
 	for (i = 0; i < 34; i++) {
 		usartBufferPutByte(medipix_usart_buffer, stream[i], 1000);
-		if (i == 0)
-			vTaskDelay(5);
+		vTaskDelay(5);
 	}
 	
 	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {
@@ -121,24 +120,24 @@ void MpxDACstreamTimepix(uint8_t * buff) {
 	// Fill by dac values chip by chip:
 	single=(DACsTimepix*) buff;
 
-	// DACs:
-	single->ikrum       = DAC.dacVals[MPX_DAC_TPX_IKRUM];
-	single->disc        = DAC.dacVals[MPX_DAC_TPX_DISC];
-	single->preamp      = DAC.dacVals[MPX_DAC_TPX_PREAMP];
-	single->buffALow4b  = DAC.dacVals[MPX_DAC_TPX_BUFFA] & 0x000f;
-	single->buffAHigh4b = DAC.dacVals[MPX_DAC_TPX_BUFFA] >> 4;
-	single->buffBLow5b  = DAC.dacVals[MPX_DAC_TPX_BUFFB] & 0x001f;
-	single->buffBHigh3b = DAC.dacVals[MPX_DAC_TPX_BUFFB] >> 5;
-	single->hist        = DAC.dacVals[MPX_DAC_TPX_HIST];
-	single->thlFine     = DAC.dacVals[MPX_DAC_TPX_THLFINE];
-	single->thlCoarse   = DAC.dacVals[MPX_DAC_TPX_THLCOARSE];
-	single->vCas        = DAC.dacVals[MPX_DAC_TPX_VCAS];
-	single->fbkLow1b    = DAC.dacVals[MPX_DAC_TPX_FBK] & 0x0001;
-	single->fbkHigh7b   = DAC.dacVals[MPX_DAC_TPX_FBK] >> 1;
-	single->gnd         = DAC.dacVals[MPX_DAC_TPX_GND];
-	single->ths         = DAC.dacVals[MPX_DAC_TPX_THS];
-	single->biasLvds    = DAC.dacVals[MPX_DAC_TPX_BIASLVDS];
-	single->refLvds     = DAC.dacVals[MPX_DAC_TPX_REFLVDS];
+    // DACs:
+    single->ikrum       = DAC.dacVals[MPX_DAC_TPX_IKRUM];
+    single->disc        = DAC.dacVals[MPX_DAC_TPX_DISC];
+    single->preamp      = DAC.dacVals[MPX_DAC_TPX_PREAMP];
+    single->buffALow4b  = DAC.dacVals[MPX_DAC_TPX_BUFFA] & 0x000f;
+    single->buffAHigh4b = DAC.dacVals[MPX_DAC_TPX_BUFFA] >> 4;
+    single->buffBLow5b  = DAC.dacVals[MPX_DAC_TPX_BUFFB] & 0x001f;
+    single->buffBHigh3b = DAC.dacVals[MPX_DAC_TPX_BUFFB] >> 5;
+    single->hist        = DAC.dacVals[MPX_DAC_TPX_HIST];
+    single->thlFine     = DAC.dacVals[MPX_DAC_TPX_THLFINE];
+    single->thlCoarse   = DAC.dacVals[MPX_DAC_TPX_THLCOARSE];
+    single->vCas        = DAC.dacVals[MPX_DAC_TPX_VCAS];
+    single->fbkLow1b    = DAC.dacVals[MPX_DAC_TPX_FBK] & 0x0001;
+    single->fbkHigh7b   = DAC.dacVals[MPX_DAC_TPX_FBK] >> 1;
+    single->gnd         = DAC.dacVals[MPX_DAC_TPX_GND];
+    single->ths         = DAC.dacVals[MPX_DAC_TPX_THS];
+    single->biasLvds    = DAC.dacVals[MPX_DAC_TPX_BIASLVDS];
+    single->refLvds     = DAC.dacVals[MPX_DAC_TPX_REFLVDS];
 
 	// Test pulse:
 	single->ctprLow17b  = DAC.TestPulseConfig;
@@ -158,6 +157,8 @@ void MpxDACstreamTimepix(uint8_t * buff) {
 	}
 	// Try to shift by 1 bit:
 	bitShift(buff, 32, -1);
+	
+	buff+=32;
 }
 
 void medipixInit() {
@@ -220,28 +221,58 @@ void MpxData2BitStreamSingleMXR(uint16_t * data, uint8_t * byteStream) {
 void MpxConvertValuesMXR(uint16_t * values){
 
 	uint16_t i;
-	uint16_t tempInt;
 	
 	for (i = 0; i < 256; i++) {
 		
 		if (*values < 16384) {
 			
-			if (*values < 8192) {
-				
-				tempInt = *values;
-				*values = pgm_read_word(&(pseudo2Count1[tempInt]));
-			} else {
-				
-				tempInt = *values;
-				tempInt -= 8192;
-				*values = pgm_read_word(&(pseudo2Count2[tempInt]));
-			}
+			*values = getRntRaw(*values);
 				
 		} else {
 			*values = 0xFFFF;
 		}
 		values++;
 	}
+}
+
+uint16_t getRntRaw(uint16_t idx) {
+	
+	uint16_t output;
+	uint8_t * tempPtr = (uint8_t *) &output;
+	
+#if MEDIPIX_VERSION == FLIGHT
+	
+	if (idx < 8192) {
+		
+		*tempPtr = pgm_read_byte(&(pseudoCount1low[idx]));
+		tempPtr++;
+		*tempPtr = pgm_read_byte(&(pseudoCount1high[idx]));
+		
+	} else {
+		
+		*tempPtr = pgm_read_byte(&(pseudoCount2low[idx - 8192]));
+		tempPtr++;
+		*tempPtr = pgm_read_byte(&(pseudoCount2high[idx - 8192]));
+	}
+	
+#else
+
+	if (idx < 8192) {
+		
+		*tempPtr = pgm_read_byte(&(pseudo2Count1low[idx]));
+		tempPtr++;
+		*tempPtr = pgm_read_byte(&(pseudo2Count1high[idx]));
+		
+	} else {
+		
+		*tempPtr = pgm_read_byte(&(pseudo2Count2low[idx - 8192]));
+		tempPtr++;
+		*tempPtr = pgm_read_byte(&(pseudo2Count2high[idx - 8192]));
+	}
+
+#endif
+	
+	return output;
 }
 
 uint8_t getEqualizationRaw(uint16_t idx) {
@@ -325,6 +356,31 @@ void pwrOnMedipix() {
 		if (inChar == '\n')
 		inChar = '_';
 	
+		outcomingPacket->data[0] = inChar;
+		outcomingPacket->data[1] = 0;
+		outcomingPacket->length = 2;
+		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
+		vTaskDelay(20);
+	}
+}
+
+void setBias(uint8_t bias) {
+	
+	usartBufferPutByte(medipix_usart_buffer, 'b', 1000);
+	usartBufferPutByte(medipix_usart_buffer, bias, 1000);
+	
+	sendBlankLine(15, 16);
+	
+	// prijme uvitaci zpravu
+	char inChar;
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 500)) {
+		
+		if (inChar == '\r')
+		inChar = '<';
+		
+		if (inChar == '\n')
+		inChar = '_';
+		
 		outcomingPacket->data[0] = inChar;
 		outcomingPacket->data[1] = 0;
 		outcomingPacket->length = 2;
@@ -447,6 +503,9 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 			
 			*(Mask+j) = val.maskBit | ((!val.testBit) << 9) | ((val.lowTh  & 0x01) << 7) | ((val.lowTh & 0x02) << 5) | ((val.lowTh  & 0x04) << 6) | ((val.highTh  & 0x01) << 12) | ((val.highTh  & 0x02) << 9) | ((val.highTh  & 0x04) << 9);
 		
+			// set the pixel mode			
+			*(Mask+j) = (*(Mask+j) & 0x3dbf) | (medipixMode << 6) | (medipixMode << 9);
+		
 			// *(Mask+j) = getEqualizationRaw(256*i + j);
 		}
 		
@@ -497,7 +556,7 @@ void readMatrix() {
 	
 	char measuringProceeding = 0;
 	
-	char temp[40];
+	char temp[50];
 	
 	int16_t rowByteIdx = 0;
 		
@@ -505,7 +564,7 @@ void readMatrix() {
 	int16_t bytesInOverBuffer = 0;
 	uint8_t bufferFull = 0;
 	int16_t receivedBytes = 0;
-	int16_t rowsReceived = 0;
+	uint16_t rowsReceived = 0;
 	int16_t i;
 	
 	memset(ioBuffer, 0, 448);
@@ -558,7 +617,7 @@ void readMatrix() {
 			// pøemístí ukazovátko na správné místo v tempBufferu
 			
 			// výpis
-			sprintf(temp, "Row %d: %d %d %d %d \n\r", rowsReceived, dataBuffer[0], dataBuffer[1], dataBuffer[2], dataBuffer[3]);
+			sprintf(temp, "R%d: %d %d %d %d %d %d\n\r", rowsReceived, dataBuffer[0], dataBuffer[1], dataBuffer[2], dataBuffer[3], dataBuffer[4], dataBuffer[5]);
 			strcpy(outcomingPacket->data, temp);
 			outcomingPacket->length = strlen(temp);
 			csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);

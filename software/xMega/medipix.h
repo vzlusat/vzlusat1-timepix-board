@@ -20,9 +20,13 @@ void openShutter();
 
 void medipixInit();
 
+uint16_t getRntRaw(uint16_t idx);
 uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream);
 
 void readMatrix();
+
+#define MODE_MEDIPIX	0
+#define MODE_TIMEPIX	1
 
 // Order of Timepix DACs
 enum MPX_DACS_ORDER_TIMEPIX {

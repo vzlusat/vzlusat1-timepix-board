@@ -102,21 +102,23 @@ void measure() {
 
 	sendBlankLine(15, 16);
 	
+	loadEqualization(&dataBuffer, &ioBuffer);
+	
 	medipixInit();
 	
 	sendBlankLine(15, 16);
 	
-	loadEqualization(&dataBuffer, &ioBuffer);
+	setBias(100);
 	
 	sendBlankLine(15, 16);
-			
+				
 	readMatrix();
 	
 	sendBlankLine(15, 16);
 	
 	openShutter();
 	
-	vTaskDelay(1);
+	vTaskDelay(2000);
 	
 	closeShutter();
 	

@@ -514,12 +514,6 @@
     <Compile Include="MyDrivers\usart_driver_RTOS.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="pseudoTables.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="pseudoTables.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="system.c">
       <SubType>compile</SubType>
     </Compile>
