@@ -94,35 +94,53 @@ void sendBlankLine(unsigned int dport, unsigned int sport) {
 	vTaskDelay(20);
 }
 
-void measure() {
+void sendString(char * in) {
 	
-	char inChar;
-	
+	strcpy(outcomingPacket->data, in);
+	outcomingPacket->length = strlen(in);
+	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+}
+
+void medipixInit() {
+		
 	pwrOnMedipix();
 
-	sendBlankLine(15, 16);
-	
 	loadEqualization(&dataBuffer, &ioBuffer);
 	
-	medipixInit();
+	eraseMatrix();
 	
+	#if DEBUG_OUTPUT == 1
 	sendBlankLine(15, 16);
+	#endif
 	
-	setBias(100);
-	
+	sendString("Medipix ON\n\r");
+
+	#if DEBUG_OUTPUT == 1
 	sendBlankLine(15, 16);
-				
-	readMatrix();
+	#endif
+}
+
+void measure(uint16_t thr, uint8_t time, uint8_t bias) {
+		
+	if (!medipixPowered()) {
+		
+		medipixInit();
+	}
 	
-	sendBlankLine(15, 16);
+	setDACs(thr);
+	
+	setBias(bias);
 	
 	openShutter();
 	
-	vTaskDelay(2000);
+	vTaskDelay(time);
 	
 	closeShutter();
 	
 	readMatrix();
+}
+
+medipixStop() {
 	
 	pwrOffMedipix();
 }
@@ -167,7 +185,9 @@ void mainTask(void *p) {
 					dest_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.sport;
 					source_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.dport;
 				
-					measure();		
+					measure(250, 10, 70);
+					
+					medipixStop();		
 				break;
 		
 				default :

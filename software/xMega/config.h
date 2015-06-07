@@ -15,6 +15,9 @@
 #define FLIGHT	1
 #define MEDIPIX_VERSION	EQM
 
+#define DEBUG_OUTPUT 0
+#define MATLAB_OUTPUT 1
+
 // Address of the local CSP node
 // #define CSP_MY_ADDRESS	2	// Deska EPS
 // #define CSP_MY_ADDRESS	3	// Deska Measure

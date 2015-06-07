@@ -9,7 +9,7 @@
 #ifndef MEDIPIX_H_
 #define MEDIPIX_H_
 
-char medipixPowered();
+uint8_t medipixPowered();
 void pwrOffMedipix();
 void pwrOnMedipix();
 void pwrToggleMedipix();
@@ -18,7 +18,7 @@ void eraseMatrix();
 void closeShutter();
 void openShutter();
 
-void medipixInit();
+void setDACs();
 
 uint16_t getRntRaw(uint16_t idx);
 uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream);
