@@ -728,6 +728,7 @@ void proceedeLine(uint16_t * data) {
 		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
 		vTaskDelay(7);
 	}
+	vTaskDelay(50);
 }
 
 void readMatrix() {
