@@ -129,14 +129,9 @@ void medipixInit() {
 	#endif
 }
 
-void measure(uint16_t thr, uint8_t time, uint8_t bias, uint8_t mode) {
+void measure(uint16_t thr, uint16_t time, uint8_t bias, uint8_t mode) {
 		
 	medipixMode = mode;
-		
-	if (!medipixPowered()) {
-		
-		medipixInit();
-	}
 	
 	setDACs(thr);
 	
@@ -144,7 +139,7 @@ void measure(uint16_t thr, uint8_t time, uint8_t bias, uint8_t mode) {
 		
 	openShutter();
 	
-	vTaskDelay(time*10);
+	vTaskDelay(time);
 	
 	closeShutter();
 		
@@ -156,7 +151,7 @@ void measure(uint16_t thr, uint8_t time, uint8_t bias, uint8_t mode) {
 	
 	// výpis
 	char temp[40];
-	if (medipixMode = MODE_MEDIPIX)
+	if (medipixMode == MODE_MEDIPIX)
 		sprintf(temp, "Tht %d Exp %d Bia %d Mode Mpx\r\n", thr, time, bias);
 	else
 		sprintf(temp, "Tht %d Exp %d Bia %d Mode Tpx\r\n", thr, time, bias);
