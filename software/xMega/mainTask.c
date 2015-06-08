@@ -10,12 +10,15 @@
 #include "system.h"
 #include "medipix.h"
 #include "equalization.h"
+#include "ADT7420.h"
 
 csp_packet_t * outcomingPacket;
 xQueueHandle * xCSPEventQueue;
 
 unsigned int dest_p;
 unsigned int source_p;
+
+char temp[40];
 
 /* -------------------------------------------------------------------- */
 /*	Reply the free heap space in human readable form					*/
@@ -135,14 +138,30 @@ void measure(uint16_t thr, uint16_t time, uint8_t bias, uint8_t mode) {
 	
 	setDACs(thr);
 	
+	sendString("Dacs set\r\n");
+	
 	setBias(bias);
+	
+	sendString("Bias set\r\n");
+	
+	vTaskDelay(20);
+
+	sendString("Shutter opened\r\n");
 		
 	openShutter();
 	
 	vTaskDelay(time);
 	
 	closeShutter();
+	
+	sendString("Shutter closed\r\n");
 		
+	vTaskDelay(20);
+	
+	sendString("Readout started\r\n");
+		
+	vTaskDelay(20);	
+	
 	readMatrix();
 	
 	sendString("Measuring done\r\n");
@@ -150,11 +169,11 @@ void measure(uint16_t thr, uint16_t time, uint8_t bias, uint8_t mode) {
 	vTaskDelay(20);
 	
 	// výpis
-	char temp[40];
+	char temp[50];
 	if (medipixMode == MODE_MEDIPIX)
-		sprintf(temp, "Tht %d Exp %d Bia %d Mode Mpx\r\n", thr, time, bias);
+		sprintf(temp, "Tht %d Exp %d Bia %d Mode Mpx Temp %d\r\n", thr, time, bias, (int) (((float) ADT_get_temperature())/128));
 	else
-		sprintf(temp, "Tht %d Exp %d Bia %d Mode Tpx\r\n", thr, time, bias);
+		sprintf(temp, "Tht %d Exp %d Bia %d Mode Tpx Temp %d\r\n", thr, time, bias, (int) (((float) ADT_get_temperature())/128));
 	strcpy(outcomingPacket->data, temp);
 	outcomingPacket->length = strlen(temp);
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
@@ -236,6 +255,13 @@ void mainTask(void *p) {
 						modeIn = ((csp_packet_t *) xReceivedEvent.pvData)->data[6];
 																	
 						measure(thrIn, timeIn, biasIn, modeIn);
+						
+					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 4) {
+											
+						sprintf(temp, "Temperature %d\r\n", (int) (((float) ADT_get_temperature())/128));
+						strcpy(outcomingPacket->data, temp);
+						outcomingPacket->length = strlen(temp);
+						csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 					}
 							
 				break;

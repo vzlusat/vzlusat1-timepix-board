@@ -9,6 +9,7 @@
  #include "system.h"
  #include "TC_driver.h"
  #include "medipixTask.h"
+ #include "ADT7420.h"
  
  volatile uint32_t milisecondsTimer;
  volatile uint32_t secondsTimer;
@@ -73,6 +74,11 @@ void boardInit() {
 	/*	Setup UART															*/
 	/* -------------------------------------------------------------------- */
 	medipix_usart_buffer = usartBufferInitialize(&MPX_USART, MPX_USART_BAUDRATE, MPX_USART_BUFFERSIZE);
+	
+	/* -------------------------------------------------------------------- */
+	/*	Initialize ADT sensor												*/
+	/* -------------------------------------------------------------------- */
+	ADT_init();
 }
 
 /* -------------------------------------------------------------------- */

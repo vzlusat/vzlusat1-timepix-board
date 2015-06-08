@@ -64,4 +64,11 @@
 
 #define MPX_USART_BUFFERSIZE	128	
 
+// definitions for ADT7420 thermometer IC
+#define ADT_I2C_INTERFACE	TWIC
+#define ADT_I2C_TWIM		TWIC_TWIM_vect
+#define ADT_I2C_BAUDRATE	400000
+#define ADT_I2C_BAUDSETTING TWI_BAUD(F_CPU, ADT_I2C_BAUDRATE)
+#define ADT_I2C_ADDRESS		0x48
+
 #endif /* CONFIG_H_ */
