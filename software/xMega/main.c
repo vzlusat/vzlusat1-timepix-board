@@ -33,7 +33,7 @@ int main(void) {
 					
 	// Start router task
 	csp_route_start_task(CSP_ROUTER_STACK, CSP_ROUTER_PRIORITY);
-		
+			
 	/* -------------------------------------------------------------------- */
 	/*	Starts task that handles incoming communication		 				*/
 	/* -------------------------------------------------------------------- */

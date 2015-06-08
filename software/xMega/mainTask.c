@@ -9,6 +9,7 @@
 #include "cspTask.h"
 #include "system.h"
 #include "medipix.h"
+#include "equalization.h"
 
 csp_packet_t * outcomingPacket;
 xQueueHandle * xCSPEventQueue;
@@ -102,8 +103,16 @@ void sendString(char * in) {
 }
 
 void medipixInit() {
+	
+	/*
+	char temp[40];
+	sprintf(temp, "%d\r\n", pgm_read_byte_far(GET_FAR_ADDRESS(pseudo2Count2high) + 8192));
+	strcpy(outcomingPacket->data, temp);
+	outcomingPacket->length = strlen(temp);
+	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	*/
 		
-	pwrOnMedipix();
+	pwrOnMedipix();	
 
 	loadEqualization(&dataBuffer, &ioBuffer);
 	
@@ -113,14 +122,16 @@ void medipixInit() {
 	sendBlankLine(15, 16);
 	#endif
 	
-	sendString("Medipix ON\n\r");
+	sendString("Medipix ON\r\n");
 
 	#if DEBUG_OUTPUT == 1
 	sendBlankLine(15, 16);
 	#endif
 }
 
-void measure(uint16_t thr, uint8_t time, uint8_t bias) {
+void measure(uint16_t thr, uint8_t time, uint8_t bias, uint8_t mode) {
+		
+	medipixMode = mode;
 		
 	if (!medipixPowered()) {
 		
@@ -130,14 +141,26 @@ void measure(uint16_t thr, uint8_t time, uint8_t bias) {
 	setDACs(thr);
 	
 	setBias(bias);
-	
+		
 	openShutter();
 	
-	vTaskDelay(time);
+	vTaskDelay(time*10);
 	
 	closeShutter();
-	
+		
 	readMatrix();
+	
+	sendString("Measuring done\r\n");
+	
+	// výpis
+	char temp[40];
+	if (medipixMode == MEDIPIX_VERSION)
+		sprintf(temp, "Thr %d Exp %d Bia %d Mode Mpx\n\r", thr, time, bias, mode);
+	else
+		sprintf(temp, "Thr %d Exp %d Bia %d Mode Tpx\n\r", thr, time, bias, mode);
+	strcpy(outcomingPacket->data, temp);
+	outcomingPacket->length = strlen(temp);
+	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
 medipixStop() {
@@ -156,6 +179,13 @@ void mainTask(void *p) {
 	outcomingPacket = csp_buffer_get(CSP_PACKET_SIZE);
 	
 	char inChar;
+	
+	uint16_t thrIn = 290;
+	uint16_t timeIn = 10;
+	uint8_t biasIn = 203;
+	uint8_t modeIn = 0;
+	
+	uint8_t * ptr;
 					
 	// infinite while loop of the program 
 	while (1) {
@@ -184,10 +214,35 @@ void mainTask(void *p) {
 					
 					dest_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.sport;
 					source_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.dport;
-				
-					measure(250, 10, 70);
 					
-					medipixStop();		
+					if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 1) {
+						
+						medipixInit();
+						
+					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 2) {
+						
+						medipixStop();
+						
+					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 3) {
+						
+						/*
+						ptr = &thrIn;
+						*(ptr++) = data[1];
+						*ptr = data[2];
+						
+						ptr = &timeIn;
+						*(ptr++) = data[3];
+						*ptr = data[4];
+						
+						ptr = &biasIn;
+						*ptr = data[5];
+						
+						modeIn = data[6];
+						*/
+						
+						measure(thrIn, timeIn, biasIn, modeIn);
+					}
+							
 				break;
 		
 				default :

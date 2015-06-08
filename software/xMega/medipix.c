@@ -297,30 +297,30 @@ uint16_t getRntRaw(uint16_t idx) {
 	
 	if (idx < 8192) {
 		
-		*tempPtr = pgm_read_byte(&(pseudoCount1low[idx]));
+		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudoCount1low) + idx);
 		tempPtr++;
-		*tempPtr = pgm_read_byte(&(pseudoCount1high[idx]));
+		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudoCount1high) + idx);
 		
 	} else {
 		
-		*tempPtr = pgm_read_byte(&(pseudoCount2low[idx - 8192]));
+		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudoCount2low) + idx - 8192);
 		tempPtr++;
-		*tempPtr = pgm_read_byte(&(pseudoCount2high[idx - 8192]));
+		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudoCount2high) + idx - 8192);
 	}
 	
 #else
 
 	if (idx < 8192) {
 		
-		*tempPtr = pgm_read_byte(&(pseudo2Count1low[idx]));
+		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudo2Count1low) + idx);
 		tempPtr++;
-		*tempPtr = pgm_read_byte(&(pseudo2Count1high[idx]));
+		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudo2Count1high) + idx);
 		
 	} else {
 		
-		*tempPtr = pgm_read_byte(&(pseudo2Count2low[idx - 8192]));
+		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudo2Count2low) + idx - 8192);
 		tempPtr++;
-		*tempPtr = pgm_read_byte(&(pseudo2Count2high[idx - 8192]));
+		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudo2Count2high) + idx - 8192);
 	}
 
 #endif
@@ -458,6 +458,7 @@ void pwrOffMedipix() {
 	
 	ioport_set_pin_level(MEDIPIX_PWR, false);
 	medipixOnline = 0;
+	sendString("Medipix OFF\r\n");
 }
 
 void pwrToggleMedipix() {
@@ -640,8 +641,14 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 		
 			// set the pixel mode			
 			*(Mask+j) = (*(Mask+j) & 0x3dbf) | (medipixMode << 6) | (medipixMode << 9);
-		
-			// *(Mask+j) = getEqualizationRaw(256*i + j);
+			
+			/*
+			// save test pattern
+			if ((i % 2) == 0)
+				*(Mask+j) = j;
+			else
+				*(Mask+j) = 255-j;
+			*/
 		}
 		
 		MpxData2BitStreamSingleMXR(&dataBuffer, &ioBuffer);
@@ -700,19 +707,26 @@ void proceedeLine(uint16_t * data) {
 		
 		for (i = 0; i < 32; i++) {
 			
+			if (medipixMode == MODE_TIMEPIX) {
+
+				*(data + ((pCounter*32) + i)) = *(data + ((pCounter*32) + i)) / 256;
+			}
+
 			// saturace na byte
 			if (*(data + ((pCounter*32) + i)) > 255) {
-				
+	
 				outcomingPacket->data[i] = 255;
 			} else {
-				
+	
 				outcomingPacket->data[i] = (uint8_t) (*(data + ((pCounter*32) + i)));
 			}
 		}
 		
-		outcomingPacket->length = 32;
+		outcomingPacket->data[32] = '\r';
+		outcomingPacket->data[33] = '\n';
+		outcomingPacket->length = 34;
 		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-		vTaskDelay(5);
+		vTaskDelay(7);
 	}
 }
 
@@ -802,6 +816,18 @@ void readMatrix() {
 			outcomingPacket->length = strlen(temp);
 			csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 			#endif
+			
+			/* 
+			// plot out test pattern
+			int q;
+			for (q = 0; q < 256; q++) {
+				
+				if ((rowsReceived % 2) == 0)
+					dataBuffer[q] = q;
+				else
+					dataBuffer[q] = 255-q;
+			}
+			*/
 			
 			#if MATLAB_OUTPUT
 			proceedeLine(&dataBuffer);
