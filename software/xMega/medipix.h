@@ -25,6 +25,8 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream);
 
 void readMatrix();
 
+volatile uint8_t medipixMode;
+
 #define MODE_MEDIPIX	0
 #define MODE_TIMEPIX	1
 

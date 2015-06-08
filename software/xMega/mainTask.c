@@ -152,12 +152,14 @@ void measure(uint16_t thr, uint8_t time, uint8_t bias, uint8_t mode) {
 	
 	sendString("Measuring done\r\n");
 	
+	vTaskDelay(20);
+	
 	// výpis
 	char temp[40];
-	if (medipixMode == MEDIPIX_VERSION)
-		sprintf(temp, "Thr %d Exp %d Bia %d Mode Mpx\n\r", thr, time, bias, mode);
+	if (medipixMode = MODE_MEDIPIX)
+		sprintf(temp, "Tht %d Exp %d Bia %d Mode Mpx\r\n", thr, time, bias);
 	else
-		sprintf(temp, "Thr %d Exp %d Bia %d Mode Tpx\n\r", thr, time, bias, mode);
+		sprintf(temp, "Tht %d Exp %d Bia %d Mode Tpx\r\n", thr, time, bias);
 	strcpy(outcomingPacket->data, temp);
 	outcomingPacket->length = strlen(temp);
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
@@ -224,22 +226,20 @@ void mainTask(void *p) {
 						medipixStop();
 						
 					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 3) {
-						
-						/*
+
 						ptr = &thrIn;
-						*(ptr++) = data[1];
-						*ptr = data[2];
+						*(ptr++) = ((csp_packet_t *) xReceivedEvent.pvData)->data[1];
+						*ptr = ((csp_packet_t *) xReceivedEvent.pvData)->data[2];
 						
 						ptr = &timeIn;
-						*(ptr++) = data[3];
-						*ptr = data[4];
+						*(ptr++) = ((csp_packet_t *) xReceivedEvent.pvData)->data[3];
+						*ptr = ((csp_packet_t *) xReceivedEvent.pvData)->data[4];
 						
 						ptr = &biasIn;
-						*ptr = data[5];
+						*ptr = ((csp_packet_t *) xReceivedEvent.pvData)->data[5];
 						
-						modeIn = data[6];
-						*/
-						
+						modeIn = ((csp_packet_t *) xReceivedEvent.pvData)->data[6];
+																	
 						measure(thrIn, timeIn, biasIn, modeIn);
 					}
 							
