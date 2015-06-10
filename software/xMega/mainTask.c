@@ -132,9 +132,7 @@ void medipixInit() {
 	#endif
 }
 
-void measure(uint16_t thr, uint16_t time, uint8_t bias, uint8_t mode) {
-		
-	medipixMode = mode;
+void measure(uint16_t thr, uint16_t time, uint8_t bias) {
 	
 	setDACs(thr);
 	
@@ -179,9 +177,37 @@ void measure(uint16_t thr, uint16_t time, uint8_t bias, uint8_t mode) {
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
-medipixStop() {
+void medipixStop() {
 	
 	pwrOffMedipix();
+}
+
+void changeMode () {
+	
+	char temp[50];
+	
+	if (medipixMode == MODE_MEDIPIX) {
+		
+		medipixMode = MODE_TIMEPIX;
+		
+		loadEqualization(&dataBuffer, &ioBuffer);
+	
+		sprintf(temp, "Mode changed to TPX\r\n");
+	
+	} else if (medipixMode == MODE_TIMEPIX) {
+		
+		medipixMode = MODE_MEDIPIX;
+		
+		loadEqualization(&dataBuffer, &ioBuffer);
+		
+		sprintf(temp, "Mode changed to MPX\r\n");
+	}
+	
+	vTaskDelay(50);
+	
+	strcpy(outcomingPacket->data, temp);
+	outcomingPacket->length = strlen(temp);
+	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
 /* -------------------------------------------------------------------- */
@@ -199,7 +225,6 @@ void mainTask(void *p) {
 	uint16_t thrIn = 290;
 	uint16_t timeIn = 10;
 	uint8_t biasIn = 203;
-	uint8_t modeIn = 0;
 	
 	uint8_t * ptr;
 					
@@ -251,19 +276,21 @@ void mainTask(void *p) {
 						
 						ptr = &biasIn;
 						*ptr = ((csp_packet_t *) xReceivedEvent.pvData)->data[5];
-						
-						modeIn = ((csp_packet_t *) xReceivedEvent.pvData)->data[6];
 																	
-						measure(thrIn, timeIn, biasIn, modeIn);
+						measure(thrIn, timeIn, biasIn);
 						
 					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 4) {
+
+						changeMode();
+						
+					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 5) {
 											
 						sprintf(temp, "Temperature %d\r\n", (int) (((float) ADT_get_temperature())/128));
 						strcpy(outcomingPacket->data, temp);
 						outcomingPacket->length = strlen(temp);
 						csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 						
-					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 5) {
+					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 6) {
 					
 						fram_unprotect();
 					
@@ -278,7 +305,7 @@ void mainTask(void *p) {
 						
 						fram_protect();
 						
-					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 6) {
+					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 7) {
 						
 						fram_unprotect();
 						
