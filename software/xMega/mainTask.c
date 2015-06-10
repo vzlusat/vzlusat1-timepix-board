@@ -262,6 +262,32 @@ void mainTask(void *p) {
 						strcpy(outcomingPacket->data, temp);
 						outcomingPacket->length = strlen(temp);
 						csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+						
+					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 5) {
+					
+						fram_unprotect();
+					
+						 unsigned int baf = 333;
+					
+						spi_mem_write_word(20, baf);
+
+						sprintf(temp, "To Memory %d\r\n", baf);
+						strcpy(outcomingPacket->data, temp);
+						outcomingPacket->length = strlen(temp);
+						csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+						
+						fram_protect();
+						
+					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 6) {
+						
+						fram_unprotect();
+						
+						sprintf(temp, "From Memory %d\r\n", spi_mem_read_word(20));
+						strcpy(outcomingPacket->data, temp);
+						outcomingPacket->length = strlen(temp);
+						csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+						
+						fram_protect();
 					}
 							
 				break;

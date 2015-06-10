@@ -10,6 +10,7 @@
  #include "TC_driver.h"
  #include "medipixTask.h"
  #include "ADT7420.h"
+ #include "spi_memory_FM25.h"
  
  volatile uint32_t milisecondsTimer;
  volatile uint32_t secondsTimer;
@@ -31,6 +32,12 @@ void boardInit() {
 	
 	// clock init & enable system clock to all peripheral modules
 	sysclk_init();
+	
+	/* -------------------------------------------------------------------- */
+	/*	Initialize FRAM memory												*/
+	/* -------------------------------------------------------------------- */
+	spi_mem_init();
+	
 	sysclk_enable_module(SYSCLK_PORT_GEN, 0xff);
 	sysclk_enable_module(SYSCLK_PORT_A, 0xff);
 	sysclk_enable_module(SYSCLK_PORT_B, 0xff);
@@ -38,6 +45,11 @@ void boardInit() {
 	sysclk_enable_module(SYSCLK_PORT_D, 0xff);
 	sysclk_enable_module(SYSCLK_PORT_E, 0xff);
 	sysclk_enable_module(SYSCLK_PORT_F, 0xff);
+	
+	/* -------------------------------------------------------------------- */
+	/*	Initialize ADT sensor												*/
+	/* -------------------------------------------------------------------- */
+	ADT_init();
 		
 	/* -------------------------------------------------------------------- */
 	/*	Timer for RTC														*/
@@ -74,11 +86,6 @@ void boardInit() {
 	/*	Setup UART															*/
 	/* -------------------------------------------------------------------- */
 	medipix_usart_buffer = usartBufferInitialize(&MPX_USART, MPX_USART_BAUDRATE, MPX_USART_BUFFERSIZE);
-	
-	/* -------------------------------------------------------------------- */
-	/*	Initialize ADT sensor												*/
-	/* -------------------------------------------------------------------- */
-	ADT_init();
 }
 
 /* -------------------------------------------------------------------- */
