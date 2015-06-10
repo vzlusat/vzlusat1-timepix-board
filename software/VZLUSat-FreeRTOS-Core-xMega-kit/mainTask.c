@@ -20,7 +20,6 @@ int16_t timediff;
 uint16_t thr = 270;
 uint16_t time = 1;
 uint8_t bias = 109;
-uint8_t mode = 0;
 uint8_t * ptr;
 
 /* -------------------------------------------------------------------- */
@@ -102,9 +101,17 @@ void mainTask(void *p) {
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
 				break;
 				
-				// measure
+				// turn off medipix
 				case '3':
 					outcomingPacket->data[0] = 3;
+					outcomingPacket->length = 1;
+					pingSent = milisecondsTimer;
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+				break;
+				
+				// measure
+				case '4':
+					outcomingPacket->data[0] = 4;
 					
 					ptr = &thr;
 					outcomingPacket->data[1] = *(ptr++);
@@ -117,10 +124,7 @@ void mainTask(void *p) {
 					ptr = &bias;
 					outcomingPacket->data[5] = *ptr;
 					
-					ptr = &mode;
-					outcomingPacket->data[6] = *ptr;
-					
-					outcomingPacket->length = 7;
+					outcomingPacket->length = 6;
 					pingSent = milisecondsTimer;
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
 				break;
@@ -130,9 +134,26 @@ void mainTask(void *p) {
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 17, 15, CSP_O_NONE,  outcomingPacket, 10);
 				break;
 				
-				// measure temperature
-				case '4':
-					outcomingPacket->data[0] = 4;
+				// change mode
+				case '5':
+					outcomingPacket->data[0] = 5;
+					outcomingPacket->length = 1;
+					pingSent = milisecondsTimer;
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+				break;
+
+				// change mode
+				case '6':
+					outcomingPacket->data[0] = 6;
+					outcomingPacket->length = 1;
+					pingSent = milisecondsTimer;
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+				break;
+
+
+				// change mode
+				case '7':
+					outcomingPacket->data[0] = 7;
 					outcomingPacket->length = 1;
 					pingSent = milisecondsTimer;
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);

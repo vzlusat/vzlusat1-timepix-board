@@ -33,11 +33,6 @@ void boardInit() {
 	// clock init & enable system clock to all peripheral modules
 	sysclk_init();
 	
-	/* -------------------------------------------------------------------- */
-	/*	Initialize FRAM memory												*/
-	/* -------------------------------------------------------------------- */
-	spi_mem_init();
-	
 	sysclk_enable_module(SYSCLK_PORT_GEN, 0xff);
 	sysclk_enable_module(SYSCLK_PORT_A, 0xff);
 	sysclk_enable_module(SYSCLK_PORT_B, 0xff);
@@ -86,6 +81,11 @@ void boardInit() {
 	/*	Setup UART															*/
 	/* -------------------------------------------------------------------- */
 	medipix_usart_buffer = usartBufferInitialize(&MPX_USART, MPX_USART_BAUDRATE, MPX_USART_BUFFERSIZE);
+
+	/* -------------------------------------------------------------------- */
+	/*	Initialize FRAM memory												*/
+	/* -------------------------------------------------------------------- */
+	spi_mem_init();
 }
 
 /* -------------------------------------------------------------------- */

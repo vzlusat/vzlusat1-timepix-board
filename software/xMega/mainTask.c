@@ -162,10 +162,26 @@ void measure(uint16_t thr, uint16_t time, uint8_t bias) {
 	
 	readMatrix();
 	
+	uint8_t * tempPtr;
+	tempPtr = &thr;
+	spi_mem_write_byte((unsigned long) 100000, *(tempPtr++));
+	spi_mem_write_byte((unsigned long) 100001, *(tempPtr++));
+	
+	tempPtr = &time;
+	spi_mem_write_byte((unsigned long) 100002, *(tempPtr++));
+	spi_mem_write_byte((unsigned long) 100003, *(tempPtr++));
+	
+	tempPtr = &bias;
+	spi_mem_write_byte((unsigned long) 100004, *(tempPtr++));
+	
+	tempPtr = &medipixMode;
+	spi_mem_write_byte((unsigned long) 100005, *(tempPtr++));
+	
 	sendString("Measuring done\r\n");
 	
 	vTaskDelay(20);
 	
+	/*
 	// výpis
 	char temp[50];
 	if (medipixMode == MODE_MEDIPIX)
@@ -175,6 +191,7 @@ void measure(uint16_t thr, uint16_t time, uint8_t bias) {
 	strcpy(outcomingPacket->data, temp);
 	outcomingPacket->length = strlen(temp);
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	*/
 }
 
 void medipixStop() {
@@ -182,7 +199,7 @@ void medipixStop() {
 	pwrOffMedipix();
 }
 
-void changeMode () {
+void changeMode() {
 	
 	char temp[50];
 	
@@ -205,6 +222,63 @@ void changeMode () {
 	
 	vTaskDelay(50);
 	
+	strcpy(outcomingPacket->data, temp);
+	outcomingPacket->length = strlen(temp);
+	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+}
+
+void sendMatrix() {
+	
+	uint16_t i, j = 0;
+	unsigned long address = 0;
+	
+	for (i = 0; i < 2048; i++) {
+		
+		for (j = 0; j < 32; j++) {
+			
+			outcomingPacket->data[j] = spi_mem_read_byte((unsigned long) address);
+			address++;
+		}
+		
+		outcomingPacket->data[32] = '\r';
+		outcomingPacket->data[33] = '\n';
+		outcomingPacket->length = 34;
+		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
+		vTaskDelay(15);
+	}
+
+	sendString("Matrix complete\r\n");
+	
+	vTaskDelay(20);
+	
+	int16_t usedThr;
+	int16_t usedTime;
+	int8_t usedBias;
+	int8_t usedMode;
+	int8_t * tempPtr;
+	
+	tempPtr = &usedThr;
+	*tempPtr = spi_mem_read_byte((unsigned long) 100000);
+	tempPtr++;
+	*tempPtr = spi_mem_read_byte((unsigned long) 100001);
+	
+	tempPtr = &usedTime;
+	*tempPtr = spi_mem_read_byte((unsigned long) 100002);
+	tempPtr++;
+	*tempPtr = spi_mem_read_byte((unsigned long) 100003);
+	
+	tempPtr = &usedBias;
+	*tempPtr = spi_mem_read_byte((unsigned long) 100004);
+	
+	tempPtr = &usedMode;
+	*tempPtr = spi_mem_read_byte((unsigned long) 100005);
+	
+	// výpis
+	char temp[50];
+	if (usedMode == MODE_MEDIPIX)
+		sprintf(temp, "Tht %d Exp %d Bia %d Mode Mpx Temp %d\r\n", usedThr, usedTime, usedBias, (int) (((float) ADT_get_temperature())/128));
+	else
+		sprintf(temp, "Tht %d Exp %d Bia %d Mode Tpx Temp %d\r\n", usedThr, usedTime, usedBias, (int) (((float) ADT_get_temperature())/128));
 	strcpy(outcomingPacket->data, temp);
 	outcomingPacket->length = strlen(temp);
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
@@ -266,6 +340,10 @@ void mainTask(void *p) {
 						
 					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 3) {
 
+						changeMode();
+						
+					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 4) {
+						
 						ptr = &thrIn;
 						*(ptr++) = ((csp_packet_t *) xReceivedEvent.pvData)->data[1];
 						*ptr = ((csp_packet_t *) xReceivedEvent.pvData)->data[2];
@@ -276,45 +354,19 @@ void mainTask(void *p) {
 						
 						ptr = &biasIn;
 						*ptr = ((csp_packet_t *) xReceivedEvent.pvData)->data[5];
-																	
-						measure(thrIn, timeIn, biasIn);
 						
-					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 4) {
-
-						changeMode();
+						measure(thrIn, timeIn, biasIn);
 						
 					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 5) {
 											
-						sprintf(temp, "Temperature %d\r\n", (int) (((float) ADT_get_temperature())/128));
-						strcpy(outcomingPacket->data, temp);
-						outcomingPacket->length = strlen(temp);
-						csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+						sendMatrix();
 						
 					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 6) {
-					
-						fram_unprotect();
-					
-						 unsigned int baf = 333;
-					
-						spi_mem_write_word(20, baf);
-
-						sprintf(temp, "To Memory %d\r\n", baf);
-						strcpy(outcomingPacket->data, temp);
-						outcomingPacket->length = strlen(temp);
-						csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 						
-						fram_protect();
 						
 					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 7) {
 						
-						fram_unprotect();
-						
-						sprintf(temp, "From Memory %d\r\n", spi_mem_read_word(20));
-						strcpy(outcomingPacket->data, temp);
-						outcomingPacket->length = strlen(temp);
-						csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
-						
-						fram_protect();
+
 					}
 							
 				break;

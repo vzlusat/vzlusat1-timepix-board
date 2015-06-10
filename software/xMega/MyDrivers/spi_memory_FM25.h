@@ -5,8 +5,6 @@
 #ifndef SPI_MEMORY
 #define SPI_MEMORY
 
-#define	FRAM_WP				IOPORT_CREATE_PIN(PORTB, 1)
-
 typedef struct               // one point is 8 bytes large
 {
 	long real;
@@ -22,28 +20,15 @@ typedef struct
 	
 } spi_command;
 
-
-void spi_mem_write_page(unsigned long address, char * data , unsigned int no_pages);
-void spi_mem_write_word(unsigned long address, unsigned int data);
-void spi_mem_write_byte(unsigned long address, unsigned char data);
-void spi_mem_write_complex(unsigned long address, complex data);
-void spi_mem_write_long(unsigned long address, long data);
+void spi_mem_write_byte(unsigned long address, uint8_t data);
 void spi_mem_write_command(uint8_t command);
 
-void spi_mem_read_page(unsigned long address, char * readed_data,  unsigned char no_pages);
-unsigned int spi_mem_read_word(unsigned long address);
-char spi_mem_read_byte(unsigned long address);
-complex spi_mem_read_complex(unsigned long address);
-long spi_mem_read_long(unsigned long address);
+uint8_t spi_mem_read_byte(unsigned long address);
 
-
-unsigned char memory_read_status(void);
-bool memory_ready_write(void);
-void memory_unprotect(void);
 void spi_mem_init(void);
 void fram_unprotect(void);
 void fram_protect(void);
-char spi_mem_read_status(void);
+void memory_unprotect(void);
 
 // definition of opcodes for SPI memory
 #define SPI_READ 0x03		// read data from memory

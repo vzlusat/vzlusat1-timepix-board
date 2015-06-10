@@ -7,7 +7,7 @@ end
 clear all
 
 s = serial('COM25');
-s.BaudRate = 57600;
+s.BaudRate = 230400;
 s.BytesAvailableFcnMode = 'terminator';
 s.Terminator = 'CR/LF';
 s.DataBits = 8;

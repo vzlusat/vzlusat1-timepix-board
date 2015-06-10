@@ -709,7 +709,7 @@ void proceedeLine(uint16_t * data) {
 			
 			if (medipixMode == MODE_TIMEPIX) {
 
-				*(data + ((pCounter*32) + i)) = *(data + ((pCounter*32) + i)) / 256;
+				*(data + ((pCounter*32) + i)) = *(data + ((pCounter*32) + i)) / 46;
 			}
 
 			// saturace na byte
@@ -730,6 +730,34 @@ void proceedeLine(uint16_t * data) {
 	}
 	
 	vTaskDelay(50);
+}
+
+void saveLine(int8_t row, uint16_t * data) {
+	
+	uint16_t i;
+	uint8_t newPixelValue;
+	unsigned long address;
+	
+	for (i = 0; i < 256; i++) {
+		
+		if (medipixMode == MODE_TIMEPIX) {
+
+			*(data + i) = *(data + i) / 46;	
+		}
+
+		// saturace na byte
+		if (*(data + i) > 255) {
+				
+			newPixelValue = 255;
+		} else {
+				
+			newPixelValue = (uint8_t) (*(data + i));
+		}
+		
+		address = ((unsigned long) row)*256 + ((unsigned long) i);
+		spi_mem_write_byte((unsigned long) address, newPixelValue);
+	}
+	vTaskDelay(5);
 }
 
 void readMatrix() {
@@ -819,7 +847,6 @@ void readMatrix() {
 			csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 			#endif
 			
-			/* 
 			// plot out test pattern
 			int q;
 			for (q = 0; q < 256; q++) {
@@ -829,10 +856,10 @@ void readMatrix() {
 				else
 					dataBuffer[q] = 255-q;
 			}
-			*/
 			
 			#if MATLAB_OUTPUT
-			proceedeLine(&dataBuffer);
+			// proceedeLine(&dataBuffer);
+			saveLine(rowsReceived, &dataBuffer);
 			#endif
 			
 			// skompíruje overBuffer do ioBufferu
