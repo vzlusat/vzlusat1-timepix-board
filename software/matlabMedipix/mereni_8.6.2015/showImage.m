@@ -8,9 +8,11 @@ function [] = showImage( name )
     
     im.image = im.image - mask.image;
     
-    maximum = max(im.image);
+    maximum = max(max(im.image, [], 1));
     
-    imshow(im.image./255, [0, maximum(1)/255]);
+    imshow(im.image./255, [0, maximum(1)/255], 'InitialMagnification', 'fit');
+    
+    disp(im.params);
 
 end
 
