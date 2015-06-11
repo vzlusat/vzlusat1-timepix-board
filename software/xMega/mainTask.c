@@ -244,12 +244,14 @@ void sendMatrix() {
 		outcomingPacket->data[33] = '\n';
 		outcomingPacket->length = 34;
 		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-		vTaskDelay(15);
+		vTaskDelay(12);
 	}
+	
+	vTaskDelay(50);
 
 	sendString("Matrix complete\r\n");
 	
-	vTaskDelay(20);
+	vTaskDelay(50);
 	
 	int16_t usedThr;
 	int16_t usedTime;
@@ -276,9 +278,19 @@ void sendMatrix() {
 	// vıpis
 	char temp[50];
 	if (usedMode == MODE_MEDIPIX)
-		sprintf(temp, "Tht %d Exp %d Bia %d Mode Mpx Temp %d\r\n", usedThr, usedTime, usedBias, (int) (((float) ADT_get_temperature())/128));
+		sprintf(temp, "Thr %d Exp %d Bia %d Mode Mpx Temp %d\r\n", usedThr, usedTime, usedBias, (int) (((float) ADT_get_temperature())/128));
 	else
-		sprintf(temp, "Tht %d Exp %d Bia %d Mode Tpx Temp %d\r\n", usedThr, usedTime, usedBias, (int) (((float) ADT_get_temperature())/128));
+		sprintf(temp, "Thr %d Exp %d Bia %d Mode Tpx Temp %d\r\n", usedThr, usedTime, usedBias, (int) (((float) ADT_get_temperature())/128));
+	strcpy(outcomingPacket->data, temp);
+	outcomingPacket->length = strlen(temp);
+	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+}
+
+void measureTemp() {
+	
+	// vıpis
+	char temp[50];
+	sprintf(temp, "Temperature %d\r\n", ADT_get_temperature());
 	strcpy(outcomingPacket->data, temp);
 	outcomingPacket->length = strlen(temp);
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
@@ -357,16 +369,38 @@ void mainTask(void *p) {
 						
 						measure(thrIn, timeIn, biasIn);
 						
+					// posle matici z pameti
 					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 5) {
 											
 						sendMatrix();
 						
+					// testovaci zapis do pameti
 					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 6) {
 						
+						uint16_t i, j;
+						unsigned long address;
+						
+						for (i = 0; i < 256; i++) {
+							
+							for (j = 0; j < 256; j++) {
+								
+								address = ((unsigned long) i)*256 + ((unsigned long) j);
+								
+								if ((i % 2) == 1) {
+									
+									spi_mem_write_byte(address, j);	
+								} else {
+									
+									spi_mem_write_byte(address, 255-j);
+								}
+							}
+						}
+						
+						sendString("Matrix written\r\n");
 						
 					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 7) {
 						
-
+						measureTemp();
 					}
 							
 				break;

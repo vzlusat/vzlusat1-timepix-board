@@ -9,6 +9,8 @@
 #include "ADT7420.h"
 #include "config.h"
 #include <math.h>
+#include "medipix.h"
+#include "system.h"
 
 TWI_Master_t twi_adt_master;		/*!< TWI slave module. */
 char adt_write_buffer[8];
@@ -22,8 +24,8 @@ void ADT_init(void)
 	TWI_MasterWriteRead(&twi_adt_master,ADT_I2C_ADDRESS,&adt_write_buffer,2,0);
 }
 
-int16_t ADT_get_temperature(void)
-{
+int ADT_get_temperature(void) {
+	
 	int16_t temp;
 
 	adt_write_buffer[0] = ADT_REG_TEMPERATURE;

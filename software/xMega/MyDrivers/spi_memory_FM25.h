@@ -5,6 +5,13 @@
 #ifndef SPI_MEMORY
 #define SPI_MEMORY
 
+// #define FRAM_CS		IOPORT_CREATE_PIN(PORTD, 4)		// prototyp
+#define FRAM_CS		IOPORT_CREATE_PIN(PORTC, 4)			// letovy
+
+#define	FRAM_WP		IOPORT_CREATE_PIN(PORTB, 1)
+
+#define NUMBER_OF_NOOPS	10
+
 typedef struct               // one point is 8 bytes large
 {
 	long real;

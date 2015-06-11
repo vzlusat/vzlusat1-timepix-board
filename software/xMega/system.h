@@ -18,8 +18,8 @@
 #include "csp_if_i2c.h"
 
 // LEDs
-#define	YELLOW	IOPORT_CREATE_PIN(PORTA, 7)
-#define	RED		IOPORT_CREATE_PIN(PORTA, 6)
+#define	YELLOW			IOPORT_CREATE_PIN(PORTA, 7)
+#define	RED				IOPORT_CREATE_PIN(PORTA, 6)
 #define	MEDIPIX_PWR		IOPORT_CREATE_PIN(PORTD, 1)
 	
 /* -------------------------------------------------------------------- */

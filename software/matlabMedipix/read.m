@@ -6,7 +6,7 @@ end
 
 clear all
 
-s = serial('COM25');
+s = serial('COM29');
 s.BaudRate = 230500;
 s.BytesAvailableFcnMode = 'terminator';
 s.Terminator = 'CR/LF';
@@ -57,11 +57,13 @@ end
 
 params = fgets(s);
 
-disp(params);
+sprintf(['Parameters: ' params])
 
 fclose(s);
 
-imshow(image./255);
+maximum = max(max(image, [], 1));
+
+imshow(image./255, [0, maximum(1)/255], 'InitialMagnification', 'fit');
 
 im = struct('params', params, 'image', image);
 

@@ -16,18 +16,13 @@ s.StopBits = 1;
 
 fopen(s);
 
-image = zeros(256, 256);
-
-% pozadej o mereni    
-fprintf(s, '%c', '4');
-
-for i=1:6
-
-% wait for last line data       
+% pozadej o zapnuti mpx      
+fprintf(s, '%c', '6');
+    
+% wait for data       
 while (s.BytesAvailable <= 0)
 end
 
 disp(fgets(s));
-  
-end
-    
+
+fclose(s);

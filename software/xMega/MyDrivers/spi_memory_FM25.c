@@ -2,11 +2,9 @@
 #include "config.h"
 //#include "spi.h"
 #include "spi_master.h"
+#include "avr/cpufunc.h"
 
 uint8_t buffer_memory[68];		// buffer for saving and loading data from SPI memory
-
-#define FRAM_CS		IOPORT_CREATE_PIN(PORTC, 4)
-#define	FRAM_WP		IOPORT_CREATE_PIN(PORTB, 1)
 
 inline fram_select(void) {
 	
@@ -60,7 +58,12 @@ void spi_mem_write_byte(unsigned long address, uint8_t data) {
 	fram_deselect();
 	fram_protect();
 	led_red_toggle();
-	vTaskDelay(10);
+	
+	uint8_t i;
+	for (i = 0; i < NUMBER_OF_NOOPS; i++) {
+		
+		_NOP();
+	}
 }
 
 uint8_t spi_mem_read_byte(unsigned long address) {
@@ -81,6 +84,12 @@ uint8_t spi_mem_read_byte(unsigned long address) {
 	fram_protect();
 	
 	led_yellow_toggle();
+	
+	uint8_t i;
+	for (i = 0; i < NUMBER_OF_NOOPS; i++) {
+		
+		_NOP();
+	}
 	
 	return buffer_memory[0];
 }

@@ -1,3 +1,4 @@
+
 /*
  * equalization.c
  * EQUALIZACE PRO POZEMSKY KUS

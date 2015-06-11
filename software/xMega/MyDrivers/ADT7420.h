@@ -30,11 +30,11 @@ enum ADT_commands_enum {
 	ADT_REG_SW_RESET			= 0x2F
 
 	
-}ADT_commands ;
+} ADT_commands ;
 
 
 void ADT_init(void);
-int16_t ADT_get_temperature(void);
+int ADT_get_temperature(void);
 static inline float ADT_temperature_16b(int temperature);
 
 #endif /* ADT7420_H_ */

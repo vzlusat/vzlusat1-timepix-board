@@ -72,7 +72,14 @@
 #define ADT_I2C_ADDRESS		0x48
 
 // definition for SPI memory - interface, CS pin must be edited in spi_memory_23lcxx.c
+// letovy kus
 #define SPI_MEM_INTERFACE	SPIC
 #define SPI_PORT			PORTC
+
+/*
+// prototyp
+#define SPI_MEM_INTERFACE	SPID
+#define SPI_PORT			PORTD
+*/
 
 #endif /* CONFIG_H_ */

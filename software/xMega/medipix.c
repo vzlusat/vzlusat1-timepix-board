@@ -732,7 +732,7 @@ void proceedeLine(uint16_t * data) {
 	vTaskDelay(50);
 }
 
-void saveLine(int8_t row, uint16_t * data) {
+void saveLine(uint8_t row, uint16_t * data) {
 	
 	uint16_t i;
 	uint8_t newPixelValue;
@@ -757,7 +757,6 @@ void saveLine(int8_t row, uint16_t * data) {
 		address = ((unsigned long) row)*256 + ((unsigned long) i);
 		spi_mem_write_byte((unsigned long) address, newPixelValue);
 	}
-	vTaskDelay(5);
 }
 
 void readMatrix() {
@@ -847,8 +846,9 @@ void readMatrix() {
 			csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 			#endif
 			
+			/*
 			// plot out test pattern
-			int q;
+			uint16_t q;
 			for (q = 0; q < 256; q++) {
 				
 				if ((rowsReceived % 2) == 0)
@@ -856,6 +856,7 @@ void readMatrix() {
 				else
 					dataBuffer[q] = 255-q;
 			}
+			*/
 			
 			#if MATLAB_OUTPUT
 			// proceedeLine(&dataBuffer);
