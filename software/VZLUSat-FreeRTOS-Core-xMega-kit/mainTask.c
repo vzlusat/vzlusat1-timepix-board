@@ -18,7 +18,7 @@ uint32_t pingSent;
 int16_t timediff;
 
 uint16_t thr = 250;
-uint16_t time = 10000;
+uint16_t time = 1000;
 uint8_t bias = 109;
 uint8_t * ptr;
 
