@@ -6,7 +6,7 @@ end
 
 clear all
 
-s = serial('COM29');
+s = serial('COM25');
 s.BaudRate = 230500;
 s.BytesAvailableFcnMode = 'terminator';
 s.Terminator = 'CR/LF';
@@ -60,6 +60,10 @@ params = fgets(s);
 sprintf(['Parameters: ' params])
 
 fclose(s);
+
+mask = load('mask.mat');
+
+image = image - mask.image;
 
 maximum = max(max(image, [], 1));
 

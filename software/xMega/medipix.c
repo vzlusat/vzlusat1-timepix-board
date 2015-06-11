@@ -640,7 +640,10 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 			*(Mask+j) = val.maskBit | ((!val.testBit) << 9) | ((val.lowTh  & 0x01) << 7) | ((val.lowTh & 0x02) << 5) | ((val.lowTh  & 0x04) << 6) | ((val.highTh  & 0x01) << 12) | ((val.highTh  & 0x02) << 9) | ((val.highTh  & 0x04) << 9);
 		
 			// set the pixel mode			
-			*(Mask+j) = (*(Mask+j) & 0x3dbf) | (medipixMode << 6) | (medipixMode << 9);
+			if (medipixMode == MODE_MEDIPIX)
+				*(Mask+j) = (*(Mask+j) & 0x3dbf) | (0 << 6) | (0 << 9);
+			else
+				*(Mask+j) = (*(Mask+j) & 0x3dbf) | (0 << 6) | (1 << 9);
 			
 			/*
 			// save test pattern

@@ -208,6 +208,10 @@ void changeMode() {
 		medipixMode = MODE_TIMEPIX;
 		
 		loadEqualization(&dataBuffer, &ioBuffer);
+		
+		vTaskDelay(10);
+		
+		eraseMatrix();
 	
 		sprintf(temp, "Mode changed to TPX\r\n");
 	
@@ -216,6 +220,10 @@ void changeMode() {
 		medipixMode = MODE_MEDIPIX;
 		
 		loadEqualization(&dataBuffer, &ioBuffer);
+		
+		vTaskDelay(10);
+		
+		eraseMatrix();
 		
 		sprintf(temp, "Mode changed to MPX\r\n");
 	}
