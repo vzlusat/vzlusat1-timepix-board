@@ -94,6 +94,55 @@ uint8_t spi_mem_read_byte(unsigned long address) {
 	return buffer_memory[0];
 }
 
+void spi_mem_write_uint16(unsigned long address, uint16_t value) {
+	
+	uint8_t * tempPtr;
+	tempPtr = (uint8_t *) (&value);
+	
+	// write the first byte of the uint16t
+	spi_mem_write_byte(address, *tempPtr);
+	
+	// write the second byte of the uint16t
+	spi_mem_write_byte(address+1, *(tempPtr + 1));	
+}
+
+uint16_t spi_mem_read_uint16t(unsigned long address) {
+	
+	// the return value
+	uint16_t tempValue;
+	
+	uint8_t * tempPtr;
+	tempPtr = (uint8_t *) (&tempValue);
+	
+	// read the first byte of the uint16t
+	*tempPtr = spi_mem_read_byte(address);
+	
+	// read the second byte of the uint16t
+	*(tempPtr + 1) = spi_mem_read_byte(address+1);
+}
+
+// save a blob of data (max 256B) to spi memory
+void spi_mem_write_blob(unsigned long address, uint8_t * data, uint8_t size) {
+	
+	uint16_t i;
+	
+	for (i = 0; i < size; i++) {
+		
+		spi_mem_write_byte(address+i, *(data+i));
+	}
+}
+
+// read the blob of data from the spi memory
+void spi_mem_read_blob(unsigned long address, uint8_t * data, uint8_t size) {
+
+	uint16_t i;
+	
+	for (i = 0; i < size; i++) {
+		
+		*(data + i) = spi_mem_read_byte(address+i);
+	}
+}
+
 void spi_mem_write_command(uint8_t command){
 
 	fram_select();
@@ -111,4 +160,14 @@ void fram_unprotect() {
 	
 	ioport_set_pin_level(FRAM_WP, true);
 	spi_mem_write_command(SPI_WREN);
+}
+
+void spi_mem_clear_all() {
+	
+	unsigned long i;
+	
+	for (i = 0; i < 1024*256*8; i++) {
+		
+		spi_mem_write_byte(i, 0);
+	}
 }

@@ -9,6 +9,7 @@
 #include "medipix.h"
 #include "equalization.h"
 #include "mainTask.h"
+#include "imageProcessing.h"
 
 // 1 if medipix is powered
 // 0 if medipix is turned off
@@ -18,7 +19,7 @@ uint16_t DefaultDacValsTimepix[15] = {1, 100, 255, 127, 127, 0, 314, 7, 130, 128
 
 volatile Mpx_DAC DAC;
 
-volatile uint8_t medipixMode = MODE_MEDIPIX; 
+volatile imageParameters_t imageParameters;
 
 volatile uint8_t ioBuffer[448];
 volatile uint8_t tempBuffer[256];
@@ -640,7 +641,7 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 			*(Mask+j) = val.maskBit | ((!val.testBit) << 9) | ((val.lowTh  & 0x01) << 7) | ((val.lowTh & 0x02) << 5) | ((val.lowTh  & 0x04) << 6) | ((val.highTh  & 0x01) << 12) | ((val.highTh  & 0x02) << 9) | ((val.highTh  & 0x04) << 9);
 		
 			// set the pixel mode			
-			if (medipixMode == MODE_MEDIPIX)
+			if (imageParameters.mode == MODE_MEDIPIX)
 				*(Mask+j) = (*(Mask+j) & 0x3dbf) | (0 << 6) | (0 << 9);
 			else
 				*(Mask+j) = (*(Mask+j) & 0x3dbf) | (0 << 6) | (1 << 9);
@@ -710,7 +711,7 @@ void proceedeLine(uint16_t * data) {
 		
 		for (i = 0; i < 32; i++) {
 			
-			if (medipixMode == MODE_TIMEPIX) {
+			if (imageParameters.mode == MODE_TIMEPIX) {
 
 				*(data + ((pCounter*32) + i)) = *(data + ((pCounter*32) + i)) / 46;
 			}
@@ -739,11 +740,10 @@ void saveLine(uint8_t row, uint16_t * data) {
 	
 	uint16_t i;
 	uint8_t newPixelValue;
-	unsigned long address;
 	
 	for (i = 0; i < 256; i++) {
 		
-		if (medipixMode == MODE_TIMEPIX) {
+		if (imageParameters.mode == MODE_TIMEPIX) {
 
 			*(data + i) = *(data + i) / 46;	
 		}
@@ -757,8 +757,7 @@ void saveLine(uint8_t row, uint16_t * data) {
 			newPixelValue = (uint8_t) (*(data + i));
 		}
 		
-		address = ((unsigned long) row)*256 + ((unsigned long) i);
-		spi_mem_write_byte((unsigned long) address, newPixelValue);
+		setRawPixel(row, i, newPixelValue);
 	}
 }
 

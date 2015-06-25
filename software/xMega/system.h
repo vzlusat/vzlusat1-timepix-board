@@ -53,4 +53,6 @@ xQueueHandle * medipixActionQueue;
 /* -------------------------------------------------------------------- */
 void boardInit();
 
+uint16_t getBootCount();
+
 #endif /* SYSTEM_H_ */

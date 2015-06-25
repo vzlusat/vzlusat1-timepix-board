@@ -5,7 +5,6 @@
  *  Author: klaxalk
  */ 
 
-
 #ifndef MEDIPIX_H_
 #define MEDIPIX_H_
 
@@ -24,8 +23,6 @@ uint16_t getRntRaw(uint16_t idx);
 uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream);
 
 void readMatrix();
-
-volatile uint8_t medipixMode;
 
 #define MODE_MEDIPIX	0
 #define MODE_TIMEPIX	1
@@ -91,8 +88,49 @@ typedef struct {
 	uint8_t maskBit: 1;        // mask bit (1 bit, low (0) is ACTIVE)
 } PixelCfg;
 
+// structure that hold all parameters of the measurement
+typedef struct {
+	
+	// 0 -> 65535
+	uint16_t imageId;
+	
+	// 0 -> TPX
+	// 1 -> TOT
+	uint8_t mode;
+	
+	uint16_t threshold;
+	
+	uint8_t bias;
+	
+	uint16_t exposure;
+	
+	// 0 -> off
+	// 1 -> on
+	uint8_t filtering;
+	
+	// 0 -> 1 binning
+	// 1 -> 8 binning
+	// 2 -> 16 binning
+	// 3 -> 32 binning
+	uint8_t outputForm;
+	
+	// number of non-zero pixels in the image
+	uint16_t nonZeroPixels;
+	
+	// minimal (nonzero) and maximal value of the pixel
+	uint8_t maxValue;
+	uint8_t minValue;
+	
+	// TBD attitude
+	
+	// TBD timestamp
+	
+} imageParameters_t;
+
 volatile uint8_t ioBuffer[448];
 volatile uint8_t tempBuffer[256];
 volatile uint16_t dataBuffer[256];
+
+volatile imageParameters_t imageParameters;
 
 #endif /* MEDIPIX_H_ */

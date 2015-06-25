@@ -11,6 +11,8 @@
 #include "medipix.h"
 #include "equalization.h"
 #include "ADT7420.h"
+#include "imageProcessing.h"
+#include "fram_mapping.h"
 
 csp_packet_t * outcomingPacket;
 xQueueHandle * xCSPEventQueue;
@@ -162,20 +164,7 @@ void measure(uint16_t thr, uint16_t time, uint8_t bias) {
 	
 	readMatrix();
 	
-	uint8_t * tempPtr;
-	tempPtr = &thr;
-	spi_mem_write_byte((unsigned long) 100000, *(tempPtr++));
-	spi_mem_write_byte((unsigned long) 100001, *(tempPtr++));
-	
-	tempPtr = &time;
-	spi_mem_write_byte((unsigned long) 100002, *(tempPtr++));
-	spi_mem_write_byte((unsigned long) 100003, *(tempPtr++));
-	
-	tempPtr = &bias;
-	spi_mem_write_byte((unsigned long) 100004, *(tempPtr++));
-	
-	tempPtr = &medipixMode;
-	spi_mem_write_byte((unsigned long) 100005, *(tempPtr++));
+	spi_mem_write_blob(IMAGE_PARAMETERS_ADDRESS, &imageParameters, sizeof(imageParameters_t));
 	
 	sendString("Measuring done\r\n");
 	
@@ -203,9 +192,9 @@ void changeMode() {
 	
 	char temp[50];
 	
-	if (medipixMode == MODE_MEDIPIX) {
+	if (imageParameters.mode == MODE_MEDIPIX) {
 		
-		medipixMode = MODE_TIMEPIX;
+		imageParameters.mode = MODE_TIMEPIX;
 		
 		loadEqualization(&dataBuffer, &ioBuffer);
 		
@@ -215,9 +204,9 @@ void changeMode() {
 	
 		sprintf(temp, "Mode changed to TPX\r\n");
 	
-	} else if (medipixMode == MODE_TIMEPIX) {
+	} else if (imageParameters.mode == MODE_TIMEPIX) {
 		
-		medipixMode = MODE_MEDIPIX;
+		imageParameters.mode = MODE_MEDIPIX;
 		
 		loadEqualization(&dataBuffer, &ioBuffer);
 		
@@ -244,7 +233,7 @@ void sendMatrix() {
 		
 		for (j = 0; j < 32; j++) {
 			
-			outcomingPacket->data[j] = spi_mem_read_byte((unsigned long) address);
+			outcomingPacket->data[j] = spi_mem_read_byte((unsigned long) address + RAW_IMAGE_START_ADDRESS);
 			address++;
 		}
 		
@@ -261,34 +250,53 @@ void sendMatrix() {
 	
 	vTaskDelay(50);
 	
-	int16_t usedThr;
-	int16_t usedTime;
-	int8_t usedBias;
-	int8_t usedMode;
-	int8_t * tempPtr;
-	
-	tempPtr = &usedThr;
-	*tempPtr = spi_mem_read_byte((unsigned long) 100000);
-	tempPtr++;
-	*tempPtr = spi_mem_read_byte((unsigned long) 100001);
-	
-	tempPtr = &usedTime;
-	*tempPtr = spi_mem_read_byte((unsigned long) 100002);
-	tempPtr++;
-	*tempPtr = spi_mem_read_byte((unsigned long) 100003);
-	
-	tempPtr = &usedBias;
-	*tempPtr = spi_mem_read_byte((unsigned long) 100004);
-	
-	tempPtr = &usedMode;
-	*tempPtr = spi_mem_read_byte((unsigned long) 100005);
+	spi_mem_read_blob(IMAGE_PARAMETERS_ADDRESS, &imageParameters, sizeof(imageParameters_t));
 	
 	// výpis
 	char temp[50];
-	if (usedMode == MODE_MEDIPIX)
-		sprintf(temp, "Thr %d Exp %d Bia %d Mode Mpx Temp %d\r\n", usedThr, usedTime, usedBias, (int) (((float) ADT_get_temperature())/128));
+	if (imageParameters.mode == MODE_MEDIPIX)
+		sprintf(temp, "Thr %d Exp %d Bia %d Mode Mpx Temp %d\r\n", imageParameters.threshold, imageParameters.exposure, imageParameters.bias, (int) (((float) ADT_get_temperature())/128));
 	else
-		sprintf(temp, "Thr %d Exp %d Bia %d Mode Tpx Temp %d\r\n", usedThr, usedTime, usedBias, (int) (((float) ADT_get_temperature())/128));
+		sprintf(temp, "Thr %d Exp %d Bia %d Mode Tpx Temp %d\r\n", imageParameters.threshold, imageParameters.exposure, imageParameters.bias, (int) (((float) ADT_get_temperature())/128));
+	strcpy(outcomingPacket->data, temp);
+	outcomingPacket->length = strlen(temp);
+	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+}
+
+void sendFilteredMatrix() {
+	
+	uint16_t i, j = 0;
+	unsigned long address = 0;
+	
+	for (i = 0; i < 2048; i++) {
+		
+		for (j = 0; j < 32; j++) {
+			
+			outcomingPacket->data[j] = spi_mem_read_byte((unsigned long) address + FILTERED_IMAGE_START_ADDRESS);
+			address++;
+		}
+		
+		outcomingPacket->data[32] = '\r';
+		outcomingPacket->data[33] = '\n';
+		outcomingPacket->length = 34;
+		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
+		vTaskDelay(12);
+	}
+	
+	vTaskDelay(50);
+
+	sendString("Matrix complete\r\n");
+	
+	vTaskDelay(50);
+	
+	spi_mem_read_blob(IMAGE_PARAMETERS_ADDRESS, &imageParameters, sizeof(imageParameters_t));
+	
+	// výpis
+	char temp[50];
+	if (imageParameters.mode == MODE_MEDIPIX)
+	sprintf(temp, "Thr %d Exp %d Bia %d Mode Mpx Temp %d\r\n", imageParameters.threshold, imageParameters.exposure, imageParameters.bias, (int) (((float) ADT_get_temperature())/128));
+	else
+	sprintf(temp, "Thr %d Exp %d Bia %d Mode Tpx Temp %d\r\n", imageParameters.threshold, imageParameters.exposure, imageParameters.bias, (int) (((float) ADT_get_temperature())/128));
 	strcpy(outcomingPacket->data, temp);
 	outcomingPacket->length = strlen(temp);
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
@@ -364,15 +372,15 @@ void mainTask(void *p) {
 						
 					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 4) {
 						
-						ptr = &thrIn;
+						ptr = &imageParameters.threshold;
 						*(ptr++) = ((csp_packet_t *) xReceivedEvent.pvData)->data[1];
 						*ptr = ((csp_packet_t *) xReceivedEvent.pvData)->data[2];
 						
-						ptr = &timeIn;
+						ptr = &imageParameters.exposure;
 						*(ptr++) = ((csp_packet_t *) xReceivedEvent.pvData)->data[3];
 						*ptr = ((csp_packet_t *) xReceivedEvent.pvData)->data[4];
 						
-						ptr = &biasIn;
+						ptr = &imageParameters.bias;
 						*ptr = ((csp_packet_t *) xReceivedEvent.pvData)->data[5];
 						
 						measure(thrIn, timeIn, biasIn);
@@ -385,26 +393,7 @@ void mainTask(void *p) {
 					// testovaci zapis do pameti
 					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 6) {
 						
-						uint16_t i, j;
-						unsigned long address;
-						
-						for (i = 0; i < 256; i++) {
-							
-							for (j = 0; j < 256; j++) {
-								
-								address = ((unsigned long) i)*256 + ((unsigned long) j);
-								
-								if ((i % 2) == 1) {
-									
-									spi_mem_write_byte(address, j);	
-								} else {
-									
-									spi_mem_write_byte(address, 255-j);
-								}
-							}
-						}
-						
-						sendString("Matrix written\r\n");
+						sendFilteredMatrix();
 						
 					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 7) {
 						

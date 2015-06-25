@@ -258,6 +258,9 @@
     <Compile Include="equalization2.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="fram_mapping.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="FreeRTOS\FreeRTOSConfig.h">
       <SubType>compile</SubType>
     </Compile>
@@ -322,6 +325,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="equalization.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="imageProcessing.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="imageProcessing.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="libscp\include\csp\arch\csp_clock.h">

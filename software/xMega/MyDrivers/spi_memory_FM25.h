@@ -27,15 +27,23 @@ typedef struct
 	
 } spi_command;
 
-void spi_mem_write_byte(unsigned long address, uint8_t data);
 void spi_mem_write_command(uint8_t command);
 
 uint8_t spi_mem_read_byte(unsigned long address);
+void spi_mem_write_byte(unsigned long address, uint8_t data);
+
+void spi_mem_write_uint16(unsigned long address, uint16_t value);
+uint16_t spi_mem_read_uint16t(unsigned long address);
+
+void spi_mem_write_blob(unsigned long address, uint8_t * data, uint8_t size);
+void spi_mem_read_blob(unsigned long address, uint8_t * data, uint8_t size);
 
 void spi_mem_init(void);
 void fram_unprotect(void);
 void fram_protect(void);
 void memory_unprotect(void);
+
+void spi_mem_clear_all();
 
 // definition of opcodes for SPI memory
 #define SPI_READ 0x03		// read data from memory
