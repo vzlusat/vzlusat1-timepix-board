@@ -25,7 +25,7 @@ void setFilteredPixel(uint8_t row, uint8_t col, uint8_t value);
 uint8_t getRawPixel(uint8_t row, uint8_t col);
 
 // get the value of the pixel in the filtered image
-uint8_t getFiltered(uint8_t row, uint8_t col);
+uint8_t getFilteredPixel(uint8_t row, uint8_t col);
 
 // copy the raw image into the filtered image
 // remove the non-one pixel events

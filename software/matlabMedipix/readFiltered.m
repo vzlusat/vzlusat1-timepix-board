@@ -16,12 +16,12 @@ s.StopBits = 1;
 
 fopen(s);
 
-figure(1);
+figure(2);
 
 image = zeros(256, 256);
 
 % pozadej o mereni    
-fprintf(s, '%c', '5');
+fprintf(s, '%c', '6');
     
 % precti 256 radku
 for i=1:256

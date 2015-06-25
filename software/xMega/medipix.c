@@ -757,7 +757,7 @@ void saveLine(uint8_t row, uint16_t * data) {
 			newPixelValue = (uint8_t) (*(data + i));
 		}
 		
-		setRawPixel(row, i, newPixelValue);
+		setRawPixel(row, (uint8_t) i, newPixelValue);
 	}
 }
 

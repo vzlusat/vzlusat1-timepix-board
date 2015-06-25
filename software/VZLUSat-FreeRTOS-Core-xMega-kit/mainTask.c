@@ -18,8 +18,11 @@ uint32_t pingSent;
 int16_t timediff;
 
 uint16_t thr = 250;
-uint16_t time = 10000;
+uint16_t time = 5000;
 uint8_t bias = 109;
+uint8_t filtering = 1;
+uint8_t mode = 0;
+
 uint8_t * ptr;
 
 /* -------------------------------------------------------------------- */
@@ -124,7 +127,13 @@ void mainTask(void *p) {
 					ptr = &bias;
 					outcomingPacket->data[5] = *ptr;
 					
-					outcomingPacket->length = 6;
+					ptr = &filtering;
+					outcomingPacket->data[6] = *ptr;
+					
+					ptr = &mode;
+					outcomingPacket->data[7] = *ptr;
+					
+					outcomingPacket->length = 8;
 					pingSent = milisecondsTimer;
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
 				break;

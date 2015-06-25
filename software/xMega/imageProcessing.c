@@ -36,8 +36,8 @@ uint16_t getImageID() {
 void setRawPixel(uint8_t row, uint8_t col, uint8_t value) {
 	
 	// prepare the adress of the pixel
-	unsigned long address;
-	address = ((unsigned long) row)*256 + ((unsigned long) col) + RAW_IMAGE_START_ADDRESS;
+	unsigned long address = RAW_IMAGE_START_ADDRESS;
+	address += ((unsigned long) row)*256 + ((unsigned long) col);
 	
 	// write the data
 	spi_mem_write_byte(address, value);
@@ -47,8 +47,8 @@ void setRawPixel(uint8_t row, uint8_t col, uint8_t value) {
 void setFilteredPixel(uint8_t row, uint8_t col, uint8_t value) {
 	
 	// prepare the adress of the pixel
-	unsigned long address;
-	address = ((unsigned long) row)*256 + ((unsigned long) col) + FILTERED_IMAGE_START_ADDRESS;
+	unsigned long address = FILTERED_IMAGE_START_ADDRESS;
+	address += ((unsigned long) row)*256 + ((unsigned long) col);
 	
 	// write the data
 	spi_mem_write_byte(address, value);
@@ -58,18 +58,18 @@ void setFilteredPixel(uint8_t row, uint8_t col, uint8_t value) {
 uint8_t getRawPixel(uint8_t row, uint8_t col) {
 	
 	// prepare the adress of the pixel
-	unsigned long address;
-	address = ((unsigned long) row)*256 + ((unsigned long) col) + RAW_IMAGE_START_ADDRESS;
+	unsigned long address = RAW_IMAGE_START_ADDRESS;
+	address += ((unsigned long) row)*256 + ((unsigned long) col);
 	
 	return spi_mem_read_byte(address);
 }
 
 // get the value of the pixel in the filtered image
-uint8_t getFiltered(uint8_t row, uint8_t col) {
+uint8_t getFilteredPixel(uint8_t row, uint8_t col) {
 	
 	// prepare the adress of the pixel
-	unsigned long address;
-	address = ((unsigned long) row)*256 + ((unsigned long) col) + FILTERED_IMAGE_START_ADDRESS;
+	unsigned long address = FILTERED_IMAGE_START_ADDRESS;
+	address += ((unsigned long) row)*256 + ((unsigned long) col);
 	
 	// get the value
 	return spi_mem_read_byte(address);
@@ -111,7 +111,7 @@ uint8_t hasNeighbourUp(uint8_t col, uint8_t * currentRow, uint8_t * previousRow)
 	if (*(currentRow + col) == 0)
 		return 0;
 		
-	if (*(previousRow + col) == 1)
+	if (*(previousRow + col) > 0)
 		return 1;
 		
 	return 0;
@@ -197,11 +197,16 @@ void filterOnePixelEvents() {
 				setFilteredPixel(row, col, *(currentRow + col));
 			}
 			
-			// delete the pixel in the currentRow that have a neighbour
+			// delete the pixel in the currentRow that has a neighbour
 			for (col = 0; col < 256; col++) {
 				
 				// if the pixel has a neighbour, delete it from the filtered image
 				if (hasNeighbour(col, currentRow, previousRow)) {
+					
+					if (hasNeighbourUp(col, currentRow, previousRow)) {
+						
+						setFilteredPixel(row-1, col, 0);
+					}
 					
 					setFilteredPixel(row, col, 0);
 				}

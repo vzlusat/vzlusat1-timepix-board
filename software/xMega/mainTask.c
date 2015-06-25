@@ -102,6 +102,8 @@ void sendBlankLine(unsigned int dport, unsigned int sport) {
 
 void sendString(char * in) {
 	
+	vTaskDelay(30);
+	
 	strcpy(outcomingPacket->data, in);
 	outcomingPacket->length = strlen(in);
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
@@ -155,8 +157,6 @@ void measure(uint16_t thr, uint16_t time, uint8_t bias) {
 	closeShutter();
 	
 	sendString("Shutter closed\r\n");
-		
-	vTaskDelay(20);
 	
 	sendString("Readout started\r\n");
 		
@@ -233,7 +233,7 @@ void sendMatrix() {
 		
 		for (j = 0; j < 32; j++) {
 			
-			outcomingPacket->data[j] = spi_mem_read_byte((unsigned long) address + RAW_IMAGE_START_ADDRESS);
+			outcomingPacket->data[j] = getRawPixel(address/256, address % 256);
 			address++;
 		}
 		
@@ -272,7 +272,7 @@ void sendFilteredMatrix() {
 		
 		for (j = 0; j < 32; j++) {
 			
-			outcomingPacket->data[j] = spi_mem_read_byte((unsigned long) address + FILTERED_IMAGE_START_ADDRESS);
+			outcomingPacket->data[j] = getFilteredPixel(address/256, address % 256);
 			address++;
 		}
 		
@@ -306,7 +306,17 @@ void measureTemp() {
 	
 	// výpis
 	char temp[50];
-	sprintf(temp, "Temperature %d\r\n", ADT_get_temperature());
+	
+	sprintf(temp, "%d\r\n", getRawPixel(2, 2));
+	strcpy(outcomingPacket->data, temp);
+	outcomingPacket->length = strlen(temp);
+	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	
+	setRawPixel(2, 2, 10);
+	
+	vTaskDelay(30);
+	
+	sprintf(temp, "%d\r\n", getRawPixel(2, 2));
 	strcpy(outcomingPacket->data, temp);
 	outcomingPacket->length = strlen(temp);
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
@@ -323,10 +333,6 @@ void mainTask(void *p) {
 	outcomingPacket = csp_buffer_get(CSP_PACKET_SIZE);
 	
 	char inChar;
-	
-	uint16_t thrIn = 290;
-	uint16_t timeIn = 10;
-	uint8_t biasIn = 203;
 	
 	uint8_t * ptr;
 					
@@ -383,7 +389,20 @@ void mainTask(void *p) {
 						ptr = &imageParameters.bias;
 						*ptr = ((csp_packet_t *) xReceivedEvent.pvData)->data[5];
 						
-						measure(thrIn, timeIn, biasIn);
+						ptr = &imageParameters.filtering;
+						*ptr = ((csp_packet_t *) xReceivedEvent.pvData)->data[6];
+						
+						ptr = &imageParameters.mode;
+						*ptr = ((csp_packet_t *) xReceivedEvent.pvData)->data[7];
+						
+						measure(imageParameters.threshold, imageParameters.exposure, imageParameters.bias);
+						
+						setRawPixel(255, 2, 1);
+						setRawPixel(254, 2, 1);			
+						
+						filterOnePixelEvents();
+						
+						sendString("Filtering done\r\n");
 						
 					// posle matici z pameti
 					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 5) {
