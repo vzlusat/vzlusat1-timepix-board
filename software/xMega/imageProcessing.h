@@ -39,4 +39,11 @@ void createHistograms();
 
 void prepareOutput();
 
+// count number of active pixel in the filtered/output image
+void computeImageStatistics();
+
+void loadImageParametersFromFram();
+
+void saveImageParametersToFram();
+
 #endif /* IMAGEPROCESSING_H_ */

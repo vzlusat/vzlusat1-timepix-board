@@ -164,7 +164,7 @@ void measure(uint16_t thr, uint16_t time, uint8_t bias) {
 	
 	readMatrix();
 	
-	spi_mem_write_blob(IMAGE_PARAMETERS_ADDRESS, &imageParameters, sizeof(imageParameters_t));
+	loadImageParametersFromFram();
 	
 	sendString("Measuring done\r\n");
 	
@@ -304,22 +304,24 @@ void sendFilteredMatrix() {
 
 void measureTemp() {
 	
-	// výpis
-	char temp[50];
+}
+
+void sendImageInfo() {
 	
-	sprintf(temp, "%d\r\n", getRawPixel(2, 2));
-	strcpy(outcomingPacket->data, temp);
-	outcomingPacket->length = strlen(temp);
-	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	// 'A' means the first packet of the image message
+	outcomingPacket->data[0] = 'A';
 	
-	setRawPixel(2, 2, 10);
+	// load current info from fram
+	spi_mem_read_blob(IMAGE_PARAMETERS_ADDRESS, &imageParameters, sizeof(imageParameters_t));
 	
-	vTaskDelay(30);
+	// save current info to the packet
+	memcpy(outcomingPacket->data+1, &imageParameters, sizeof(imageParameters));
 	
-	sprintf(temp, "%d\r\n", getRawPixel(2, 2));
-	strcpy(outcomingPacket->data, temp);
-	outcomingPacket->length = strlen(temp);
-	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	// set the size of the packet
+	outcomingPacket->length = 1+sizeof(imageParameters);
+	
+	// send the final packet
+	csp_sendto(CSP_PRIO_NORM, 1, 17, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
 /* -------------------------------------------------------------------- */
@@ -395,12 +397,11 @@ void mainTask(void *p) {
 						ptr = &imageParameters.mode;
 						*ptr = ((csp_packet_t *) xReceivedEvent.pvData)->data[7];
 						
-						measure(imageParameters.threshold, imageParameters.exposure, imageParameters.bias);
-						
-						setRawPixel(255, 2, 1);
-						setRawPixel(254, 2, 1);			
+						measure(imageParameters.threshold, imageParameters.exposure, imageParameters.bias);		
 						
 						filterOnePixelEvents();
+						
+						computeImageStatistics();
 						
 						sendString("Filtering done\r\n");
 						
@@ -414,9 +415,9 @@ void mainTask(void *p) {
 						
 						sendFilteredMatrix();
 						
-					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 7) {
+					} else if (((csp_packet_t *) xReceivedEvent.pvData)->data[0] == 'r') {
 						
-						measureTemp();
+						sendImageInfo();
 					}
 							
 				break;

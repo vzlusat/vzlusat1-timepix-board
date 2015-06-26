@@ -16,6 +16,7 @@ typedef enum {
 	generalCommEvent = 1,
 	pingReceivedEvent = 2,
 	matlabOutputEvent = 3,
+	dataPacketEvent = 4,
 	
 } eCSPEvent_t;
 

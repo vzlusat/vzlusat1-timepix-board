@@ -757,6 +757,17 @@ void saveLine(uint8_t row, uint16_t * data) {
 			newPixelValue = (uint8_t) (*(data + i));
 		}
 		
+		// count statistic of the original image
+		if (newPixelValue > 0) {
+			
+			imageParameters.nonZeroPixelsOriginal++;
+			if (newPixelValue < imageParameters.minValueOriginal)
+				imageParameters.minValueOriginal = newPixelValue;
+			
+			if (newPixelValue > imageParameters.maxValueOriginal)
+				imageParameters.maxValueOriginal = newPixelValue;
+		}
+		
 		setRawPixel(row, (uint8_t) i, newPixelValue);
 	}
 }
@@ -783,6 +794,10 @@ void readMatrix() {
 	memset(ioBuffer, 0, 448);
 	memset(tempBuffer, 0, 256);
 	memset(dataBuffer, 0, 512);
+	
+	imageParameters.nonZeroPixelsOriginal = 0;
+	imageParameters.minValueOriginal = 255;
+	imageParameters.maxValueOriginal = 0;
 
 	#if DEBUG_OUTPUT == 1
 	sendBlankLine(15, 16);

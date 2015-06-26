@@ -75,6 +75,52 @@ uint8_t getFilteredPixel(uint8_t row, uint8_t col) {
 	return spi_mem_read_byte(address);
 }
 
+// get the value of the pixel in the downscaled image
+uint8_t getBinnedPixel(uint8_t row, uint8_t col) {
+	
+	unsigned long address = WORKING_SPACE_START_ADDRESS;
+	
+	switch (imageParameters.outputForm) {
+		
+		case BINNING_8:
+			address += ((unsigned long) row)*8 + ((unsigned long) col);
+		break;
+		
+		case BINNING_16:
+			address += ((unsigned long) row)*16 + ((unsigned long) col);
+		break;
+		
+		case BINNING_32:
+			address += ((unsigned long) row)*32 + ((unsigned long) col);
+		break;
+	}
+	
+	return spi_mem_read_byte(address);
+}
+
+// set the value in the pixel of the downscaled image
+uint8_t setBinnedPixel(uint8_t row, uint8_t col, uint8_t value) {
+	
+	unsigned long address = WORKING_SPACE_START_ADDRESS;
+	
+	switch (imageParameters.outputForm) {
+		
+		case BINNING_8:
+			address += ((unsigned long) row)*8 + ((unsigned long) col);
+		break;
+		
+		case BINNING_16:
+			address += ((unsigned long) row)*16 + ((unsigned long) col);
+		break;
+		
+		case BINNING_32:
+			address += ((unsigned long) row)*32 + ((unsigned long) col);
+		break;
+	}
+	
+	spi_mem_write_byte(address, value);
+}
+
 // returns 1 if the pixel is active and has a nonzero left neighbour
 uint8_t hasNeighboutLeft(uint8_t col, uint8_t * row) {
 	
@@ -125,6 +171,16 @@ uint8_t hasNeighbour(uint8_t col, uint8_t * currentRow, uint8_t * previousRow) {
 	return 0;
 }
 
+void loadImageParametersFromFram() {
+	
+	spi_mem_write_blob(IMAGE_PARAMETERS_ADDRESS, (uint8_t *) &imageParameters, sizeof(imageParameters_t));	
+}
+
+void saveImageParametersToFram() {
+	
+	spi_mem_write_blob(IMAGE_PARAMETERS_ADDRESS, (uint8_t *) (&imageParameters), sizeof(imageParameters_t));
+}
+
 // copy the raw image into the filtered image
 // remove the non-one pixel events
 void filterOnePixelEvents() {
@@ -132,9 +188,9 @@ void filterOnePixelEvents() {
 	uint16_t row, col;
 	uint8_t tempPxl;
 	
-	imageParameters.nonZeroPixels = 0;
-	imageParameters.minValue = 255;
-	imageParameters.maxValue = 0;
+	imageParameters.nonZeroPixelsFiltered = 0;
+	imageParameters.minValueFiltered = 255;
+	imageParameters.maxValueFiltered = 0;
 	
 	// no filtering, just copy the matrix and count the number of events
 	if (imageParameters.filtering == 0) {
@@ -150,31 +206,10 @@ void filterOnePixelEvents() {
 				
 				// set it in the "filtered image"
 				setFilteredPixel(row, col, tempPxl);
-				
-				// if the value is nonzero
-				if (tempPxl > 0) {
-					
-					imageParameters.nonZeroPixels++;
-					
-					// set the minValue
-					if (tempPxl < imageParameters.minValue)
-						imageParameters.minValue = tempPxl;
-						
-					// set the maxValue
-					if (tempPxl > imageParameters.maxValue)
-						imageParameters.maxValue = tempPxl;
-				}
 			}
 		}
 		
-		// if the image is clean, set the min and max value to 0
-		if (imageParameters.nonZeroPixels == 0) {
-			
-			imageParameters.minValue = 0;
-			imageParameters.maxValue = 0;
-		}
-		
-		spi_mem_write_blob(IMAGE_PARAMETERS_ADDRESS, (uint8_t *) (&imageParameters), sizeof(imageParameters_t));
+		saveImageParametersToFram();
 		
 	// filtering on, copy, filter and count the number of events
 	} else if (imageParameters.filtering == 1) {
@@ -194,6 +229,7 @@ void filterOnePixelEvents() {
 			for (col = 0; col < 256; col++) {
 				
 				*(currentRow + col) = getRawPixel(row, col);
+				
 				setFilteredPixel(row, col, *(currentRow + col));
 			}
 			
@@ -203,6 +239,7 @@ void filterOnePixelEvents() {
 				// if the pixel has a neighbour, delete it from the filtered image
 				if (hasNeighbour(col, currentRow, previousRow)) {
 					
+					// if the neighbour is above, delete it
 					if (hasNeighbourUp(col, currentRow, previousRow)) {
 						
 						setFilteredPixel(row-1, col, 0);
@@ -217,7 +254,67 @@ void filterOnePixelEvents() {
 			previousRow = currentRow;
 			currentRow = tempPtr;
 		}
+		
+		saveImageParametersToFram();
 	}
+}
+
+// count number of active pixel in the filtered/output image
+void computeImageStatistics() {
+	
+	uint16_t i, j, numPerLine;
+	
+	uint8_t tempPixel;
+	
+	loadImageParametersFromFram();
+	
+	imageParameters.nonZeroPixelsFiltered = 0;
+	imageParameters.minValueOriginal = 256;
+	
+	uint8_t (*fce)(uint8_t, uint8_t);
+	
+	switch(imageParameters.outputForm) {
+	
+		case BINNING_1:
+			numPerLine = 256;
+			fce = &getFilteredPixel;
+		break;
+		
+		case BINNING_8:
+			numPerLine = 32;
+			fce = &getBinnedPixel;
+		break;
+		
+		case BINNING_16:
+			numPerLine = 16;
+			fce = &getBinnedPixel;
+		break;
+		
+		case BINNING_32:
+			numPerLine = 8;
+			fce = &getBinnedPixel;
+		break;
+	}
+	
+	for (i = 0; i < numPerLine; i++) {
+		
+		for (j = 0; j < numPerLine; j++) {
+			
+			tempPixel = (*fce)(i, j);
+			
+			if (tempPixel > 0) {
+				imageParameters.nonZeroPixelsFiltered++;
+			
+				if (tempPixel < imageParameters.minValueFiltered)
+					imageParameters.minValueFiltered = tempPixel;
+				
+				if (tempPixel > imageParameters.maxValueFiltered)
+					imageParameters.maxValueFiltered = tempPixel;
+			}
+		}
+	}
+	
+	saveImageParametersToFram();
 }
 
 // apply binning

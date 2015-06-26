@@ -18,7 +18,7 @@ uint32_t pingSent;
 int16_t timediff;
 
 uint16_t thr = 250;
-uint16_t time = 5000;
+uint16_t time = 10000;
 uint8_t bias = 109;
 uint8_t filtering = 1;
 uint8_t mode = 0;
@@ -72,6 +72,17 @@ void mainTask(void *p) {
 					usartBufferPutString(pc_usart_buffer, text, 10);
 					usartBufferPutString(pc_usart_buffer, "ms\n\r", 10);
 			
+				break;
+				
+				case dataPacketEvent:
+				
+					// send its content to the uart
+					for (i = 0; i < ((csp_packet_t *) xReceivedEvent.pvData)->length; i++) {
+						usartBufferPutByte(pc_usart_buffer, ((csp_packet_t *) xReceivedEvent.pvData)->data[i], 10);
+					}
+					
+					usartBufferPutString(pc_usart_buffer, "\r\n", 10);
+				
 				break;
 			
 				default:
@@ -159,16 +170,15 @@ void mainTask(void *p) {
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
 				break;
 
-
-				// change mode
-				case '7':
-					outcomingPacket->data[0] = 7;
+				// read the image in the data form
+				case 'r':
+					outcomingPacket->data[0] = 'r';
 					outcomingPacket->length = 1;
 					pingSent = milisecondsTimer;
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 				break;
 			
-				// ask board for status
+				// ping
 				case 'p':	
 					outcomingPacket->data[0] = 0;
 					outcomingPacket->length = 1;
@@ -178,7 +188,6 @@ void mainTask(void *p) {
 			
 				// sends the char and is supposed to receive it back
 				default:
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 15, 15, CSP_O_NONE,  outcomingPacket, 10);
 				break;
 			}
 		}

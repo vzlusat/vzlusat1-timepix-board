@@ -60,6 +60,14 @@ void cspTask(void *p) {
 					newEvent->eEventType = matlabOutputEvent;
 					newEvent->pvData = packet;
 					xQueueSend(xCSPEventQueue, newEvent, 10);
+
+				break;
+
+				case 17:
+				
+					newEvent->eEventType = dataPacketEvent;
+					newEvent->pvData = packet;
+					xQueueSend(xCSPEventQueue, newEvent, 10);
 				
 				break;
 				

@@ -88,6 +88,11 @@ typedef struct {
 	uint8_t maskBit: 1;        // mask bit (1 bit, low (0) is ACTIVE)
 } PixelCfg;
 
+#define	BINNING_1	0
+#define	BINNING_8	1
+#define	BINNING_16	2
+#define	BINNING_32	3
+
 // structure that hold all parameters of the measurement
 typedef struct {
 	
@@ -114,12 +119,19 @@ typedef struct {
 	// 3 -> 32 binning
 	uint8_t outputForm;
 	
-	// number of non-zero pixels in the image
-	uint16_t nonZeroPixels;
+	// number of non-zero pixels in the output image
+	uint16_t nonZeroPixelsFiltered;
 	
-	// minimal (nonzero) and maximal value of the pixel
-	uint8_t maxValue;
-	uint8_t minValue;
+	// number of non-zerou pixel in the original image
+	uint16_t nonZeroPixelsOriginal;
+	
+	// minimal (nonzero) and maximal value of the pixel in the original image
+	uint8_t minValueOriginal;
+	uint8_t maxValueOriginal;
+
+	// minimal (nonzero) and maximal value of the pixel in the filtered image
+	uint8_t minValueFiltered;
+	uint8_t maxValueFiltered;
 	
 	// TBD attitude
 	

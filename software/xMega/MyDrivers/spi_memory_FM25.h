@@ -10,7 +10,7 @@
 
 #define	FRAM_WP		IOPORT_CREATE_PIN(PORTB, 1)
 
-#define NUMBER_OF_NOOPS	10
+#define NUMBER_OF_NOOPS	1
 
 typedef struct               // one point is 8 bytes large
 {
