@@ -299,6 +299,36 @@ uint8_t sendCompressed(uint8_t image) {
 	waitForAck();
 }
 
+void sendPostProcessed() {
+	
+	uint16_t i, j, x, y;
+	
+	uint16_t sum;
+	
+	uint8_t numPerLine;
+	
+	switch (imageParameters.outputForm) {
+		
+		case BINNING_8:
+		numPerLine = 32;
+		break;
+		
+		case BINNING_16:
+		numPerLine = 16;
+		break;
+		
+		case BINNING_32:
+		numPerLine = 8;
+		break;
+	}
+	
+	sendImageInfo();
+	
+	vTaskDelay(50);
+	
+	
+}
+
 /* -------------------------------------------------------------------- */
 /*	The main task														*/
 /* -------------------------------------------------------------------- */
@@ -483,6 +513,8 @@ void mainTask(void *p) {
 						break;
 						
 						case MEDIPIX_SEND_BINNED:
+						
+							sendPostProcessed();
 						
 						break;	
 						
