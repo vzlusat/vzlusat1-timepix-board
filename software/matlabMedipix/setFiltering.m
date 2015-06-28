@@ -16,9 +16,11 @@ s.StopBits = 1;
 
 fopen(s);
 
-% pozadej o zapnuti mpx      
-fprintf(s, '%c', '0');
-    
+filtering = 14;
+
+fprintf(s, '%c', '6');
+fwrite(s, filtering, 'uchar');
+
 % wait for data       
 while (s.BytesAvailable <= 0)
 end

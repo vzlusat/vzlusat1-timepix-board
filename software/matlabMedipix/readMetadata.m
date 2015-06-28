@@ -38,7 +38,7 @@ fopen(s);
 % } imageParameters_t;
 
 % pozadej o zapnuti mpx      
-fprintf(s, '%c', 'r');
+fprintf(s, '%c', 't');
     
 % wait for data       
 while (s.BytesAvailable <= 0)

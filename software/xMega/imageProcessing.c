@@ -121,6 +121,38 @@ uint8_t setBinnedPixel(uint8_t row, uint8_t col, uint8_t value) {
 	spi_mem_write_byte(address, value);
 }
 
+// set histogram1 value
+void setHistogram1(uint8_t idx, uint8_t value) {
+	
+	unsigned long address = WORKING_SPACE_START_ADDRESS;
+	
+	spi_mem_write_byte(address, value);
+}
+
+// set histogram2 value
+void setHistogram2(uint8_t idx, uint8_t value) {
+	
+	unsigned long address = WORKING_SPACE_START_ADDRESS+256;
+	
+	spi_mem_write_byte(address, value);
+}
+
+// get histogram1 value
+uint8_t getHistogram1(uint8_t idx) {
+	
+	unsigned long address = WORKING_SPACE_START_ADDRESS;
+	
+	return spi_mem_read_byte(address);
+}
+
+// get histogram2 value
+uint8_t getHistogram2(uint8_t idx) {
+	
+	unsigned long address = WORKING_SPACE_START_ADDRESS+256;
+	
+	return spi_mem_read_byte(address);
+}
+
 // returns 1 if the pixel is active and has a nonzero left neighbour
 uint8_t hasNeighboutLeft(uint8_t col, uint8_t * row) {
 	
@@ -173,7 +205,7 @@ uint8_t hasNeighbour(uint8_t col, uint8_t * currentRow, uint8_t * previousRow) {
 
 void loadImageParametersFromFram() {
 	
-	spi_mem_write_blob(IMAGE_PARAMETERS_ADDRESS, (uint8_t *) &imageParameters, sizeof(imageParameters_t));	
+	spi_mem_read_blob(IMAGE_PARAMETERS_ADDRESS, (uint8_t *) (&imageParameters), sizeof(imageParameters_t));	
 }
 
 void saveImageParametersToFram() {
@@ -208,8 +240,6 @@ void filterOnePixelEvents() {
 				setFilteredPixel(row, col, tempPxl);
 			}
 		}
-		
-		saveImageParametersToFram();
 		
 	// filtering on, copy, filter and count the number of events
 	} else if (imageParameters.filtering == 1) {
@@ -254,8 +284,6 @@ void filterOnePixelEvents() {
 			previousRow = currentRow;
 			currentRow = tempPtr;
 		}
-		
-		saveImageParametersToFram();
 	}
 }
 
@@ -265,8 +293,6 @@ void computeImageStatistics() {
 	uint16_t i, j, numPerLine;
 	
 	uint8_t tempPixel;
-	
-	loadImageParametersFromFram();
 	
 	imageParameters.nonZeroPixelsFiltered = 0;
 	imageParameters.minValueOriginal = 256;
@@ -313,20 +339,94 @@ void computeImageStatistics() {
 			}
 		}
 	}
-	
-	saveImageParametersToFram();
 }
 
 // apply binning
 void applyBinning() {
 	
+	uint16_t i, j, x, y;
 	
+	uint16_t sum;
+	
+	uint8_t numPerLine;
+	
+	switch (imageParameters.outputForm) {
+		
+		case BINNING_8:
+			numPerLine = 32;
+		break;
+		
+		case BINNING_16:
+			numPerLine = 16;
+		break;
+		
+		case BINNING_32:
+			numPerLine = 8;
+		break;
+	}
+
+	if (imageParameters.outputForm > BINNING_1) {
+		
+		// go through the binned image
+		for (i = 0; i < numPerLine; i++) {
+		
+			for (j = 0; j < numPerLine; j++) {
+			
+				sum = 0;
+			
+				// go through all subpixels of the bin
+				for (x = i*numPerLine; x < (i+1)*numPerLine; x++) {
+				
+					for (y = j*numPerLine; y < (j+1)*numPerLine; y++) {
+					
+						sum += getFilteredPixel(x, y);
+					}
+				}
+			
+				// create the averege
+				sum = sum / (numPerLine*numPerLine);
+			
+				setBinnedPixel(i, j, (uint8_t) sum);
+			}
+		}
+	}
 }
 
 // create histograms from the image
 void createHistograms() {
 	
+	uint16_t i, j;
 	
+	uint16_t sum;
+	
+	for (i = 0; i < 256; i++) {
+		
+		// create historgram 1
+		sum = 0;
+		
+		for (j = 0; j < 256; j++) {
+			
+			sum += getFilteredPixel(i, j);
+		}
+		
+		sum = sum / 256;
+		
+		// downscale to 8bit
+		setHistogram1(i, (uint8_t) sum);
+		
+		// create histogram 2
+		sum = 0;
+		
+		for (j = 0; j < 256; j++) {
+			
+			sum += getFilteredPixel(j, i);
+		}
+		
+		// downscale to 8bit
+		sum = sum / 256;
+		
+		setHistogram2(i, (uint8_t) sum);
+	}
 }
 
 void prepareOutput() {

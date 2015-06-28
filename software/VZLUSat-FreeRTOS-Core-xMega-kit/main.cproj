@@ -466,6 +466,9 @@
     <Compile Include="mainTask.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="medipixHeaders.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="MyDrivers\port_driver.c">
       <SubType>compile</SubType>
     </Compile>

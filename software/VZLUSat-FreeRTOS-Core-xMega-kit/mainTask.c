@@ -10,6 +10,7 @@
 #include "system.h"
 #include "queue.h"
 #include "usart_driver_RTOS.h"
+#include "medipixHeaders.h"
 
 // to save outcomming time of ping
 uint32_t pingSent;
@@ -17,19 +18,22 @@ uint32_t pingSent;
 // for ping time difference
 int16_t timediff;
 
-uint16_t thr = 250;
-uint16_t time = 10000;
-uint8_t bias = 109;
-uint8_t filtering = 1;
-uint8_t mode = 0;
-
 uint8_t * ptr;
+
+newSettings_t settings;
 
 /* -------------------------------------------------------------------- */
 /*	The main task														*/
 /* -------------------------------------------------------------------- */
 void mainTask(void *p) {
 	
+	settings.treshold = 250;
+	settings.exposure = 1000;
+	settings.bias = 109;
+	settings.filtering = FILTERING_ON;
+	settings.mode = MODE_MEDIPIX;
+	settings.outputForm = BINNING_1;
+		
 	// packet used to handle incoming communication
 	csp_packet_t * outcomingPacket = csp_buffer_get(CSP_PACKET_SIZE);
 
@@ -96,94 +100,183 @@ void mainTask(void *p) {
 		
 			outcomingPacket->data[0] = inChar;
 			outcomingPacket->length = 1;
+			uint8_t k;
+			
+			uint8_t * tempPtr = (uint8_t) &settings;
+			unsigned char inChar2;
 		
 			switch (inChar) {
 			
 				// turn on medipix
-				case '1':
-					outcomingPacket->data[0] = 1;
+				case '0':
+					outcomingPacket->data[0] = MEDIPIX_PWR_ON;
 					outcomingPacket->length = 1;
-					pingSent = milisecondsTimer;
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
-				break;
-				
-				// turn off medipix
-				case '2':
-					outcomingPacket->data[0] = 2;
-					outcomingPacket->length = 1;
-					pingSent = milisecondsTimer;
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
-				break;
-				
-				// turn off medipix
-				case '3':
-					outcomingPacket->data[0] = 3;
-					outcomingPacket->length = 1;
-					pingSent = milisecondsTimer;
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
-				break;
-				
-				// measure
-				case '4':
-					outcomingPacket->data[0] = 4;
-					
-					ptr = &thr;
-					outcomingPacket->data[1] = *(ptr++);
-					outcomingPacket->data[2] = *(ptr);
-					
-					ptr = &time;
-					outcomingPacket->data[3] = *(ptr++);
-					outcomingPacket->data[4] = *(ptr);
-					
-					ptr = &bias;
-					outcomingPacket->data[5] = *ptr;
-					
-					ptr = &filtering;
-					outcomingPacket->data[6] = *ptr;
-					
-					ptr = &mode;
-					outcomingPacket->data[7] = *ptr;
-					
-					outcomingPacket->length = 8;
-					pingSent = milisecondsTimer;
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
 				break;
 			
-				// ask board for status
-				case 'h':
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 17, 15, CSP_O_NONE,  outcomingPacket, 10);
+				// power off medipix
+				case '1':
+					outcomingPacket->data[0] = MEDIPIX_PWR_OFF;
+					outcomingPacket->length = 1;
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
 				break;
 				
-				// change mode
+				// set parameters
+				case '2':
+				
+					tempPtr = &settings;
+				
+					// receive the parameters over the uart
+					for (k = 0; k < sizeof(newSettings_t); k++) {
+					
+						if (usartBufferGetByte(pc_usart_buffer, &inChar, 1000)) {
+							
+							*(tempPtr+k) = inChar;
+						}
+					}
+				
+					outcomingPacket->data[0] = MEDIPIX_SET_ALL_PARAMS;
+					
+					memcpy(outcomingPacket->data+1, &settings, sizeof(newSettings_t));
+					
+					outcomingPacket->length = 1+sizeof(newSettings_t);
+					
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+					
+				break;
+				
+				// set treshold
+				case '3':
+				
+					usartBufferGetByte(pc_usart_buffer, outcomingPacket->data+1, 1000);
+					usartBufferGetByte(pc_usart_buffer, outcomingPacket->data+2, 1000);
+											
+					outcomingPacket->data[0] = MEDIPIX_SET_THRESHOLD;
+					
+					outcomingPacket->length = 1+2;
+					
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+				
+				break;
+				
+				// set bias
+				case '4':
+				
+					usartBufferGetByte(pc_usart_buffer, outcomingPacket->data+1, 1000);
+					
+					outcomingPacket->data[0] = MEDIPIX_SET_BIAS;
+					
+					outcomingPacket->length = 1+1;
+					
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+				
+				break;
+				
+				// set exposure
 				case '5':
-					outcomingPacket->data[0] = 5;
-					outcomingPacket->length = 1;
-					pingSent = milisecondsTimer;
+				
+					usartBufferGetByte(pc_usart_buffer, outcomingPacket->data+1, 1000);
+					usartBufferGetByte(pc_usart_buffer, outcomingPacket->data+2, 1000);
+					
+					outcomingPacket->data[0] = MEDIPIX_SET_EXPOSURE;
+					
+					outcomingPacket->length = 1+2;
+					
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+				
 				break;
-
-				// change mode
+				
+				// set filtering
 				case '6':
-					outcomingPacket->data[0] = 6;
-					outcomingPacket->length = 1;
-					pingSent = milisecondsTimer;
+				
+					usartBufferGetByte(pc_usart_buffer, outcomingPacket->data+1, 1000);
+					
+					outcomingPacket->data[0] = MEDIPIX_SET_FILTERING;
+					
+					outcomingPacket->length = 1+1;
+					
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+				
 				break;
+				
+				// set mode
+				case '7':
+				
+					usartBufferGetByte(pc_usart_buffer, outcomingPacket->data+1, 1000);
+					
+					outcomingPacket->data[0] = MEDIPIX_SET_MODE;
+					
+					outcomingPacket->length = 1+1;
+					
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+				
+				break;
+				
+				// set output form
+				case '8':
+				
+					usartBufferGetByte(pc_usart_buffer, outcomingPacket->data+1, 1000);
+					
+					outcomingPacket->data[0] = MEDIPIX_SET_OUTPUT_FORM;
+					
+					outcomingPacket->length = 1+1;
+					
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+				
+				break;
+				
+				// measure 
+				case '9':
+				
+					outcomingPacket->data[0] = MEDIPIX_MEASURE;
+					
+					outcomingPacket->length = 1;
+					
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+					
+				break;
+				
+				// read original image
+				case 'e':
+				
+					outcomingPacket->data[0] = MEDIPIX_SEND_ORIGINAL;
+					
+					outcomingPacket->length = 1;
+					
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 
-				// read the image in the data form
+				break;
+				
+				// read original image
 				case 'r':
-					outcomingPacket->data[0] = 'r';
+				
+					outcomingPacket->data[0] = MEDIPIX_SEND_FILTERED;
+					
+					outcomingPacket->length = 1;
+					
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
+
+				break;
+				
+				// read the image metadata
+				case 't':
+					outcomingPacket->data[0] = MEDIPIX_SEND_METADATA;
 					outcomingPacket->length = 1;
 					pingSent = milisecondsTimer;
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 				break;
-			
+			 
 				// ping
 				case 'p':	
 					outcomingPacket->data[0] = 0;
 					outcomingPacket->length = 1;
 					pingSent = milisecondsTimer;
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 1, 32, CSP_O_NONE, outcomingPacket, 10);
+				break;
+				
+				// ask board for status
+				case 'h':
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 17, 15, CSP_O_NONE,  outcomingPacket, 10);
 				break;
 			
 				// sends the char and is supposed to receive it back

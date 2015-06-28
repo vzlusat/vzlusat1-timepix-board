@@ -21,7 +21,7 @@ figure(1);
 image = zeros(256, 256);
 
 % pozadej o mereni    
-fprintf(s, '%c', 'r');
+fprintf(s, '%c', 'e');
     
 % wait for last line data       
 while (s.BytesAvailable <= 0)
@@ -42,7 +42,7 @@ maxValueOriginal = fread(s, 1, 'uchar')
 minValueFiltered = fread(s, 1, 'uchar')
 maxValueFiltered = fread(s, 1, 'uchar')
 
-fread(s, 1, 'uint16')
+fread(s, 1, 'uint16');
 
 while true
 

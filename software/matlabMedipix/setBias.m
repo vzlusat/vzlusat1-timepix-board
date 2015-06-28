@@ -6,7 +6,7 @@ end
 
 clear all
 
-s = serial('COM25');
+s = serial('COM29');
 s.BaudRate = 230400;
 s.BytesAvailableFcnMode = 'terminator';
 s.Terminator = 'CR/LF';
@@ -16,9 +16,11 @@ s.StopBits = 1;
 
 fopen(s);
 
-% pozadej o zapnuti mpx      
-fprintf(s, '%c', '7');
-    
+bias = 12;
+
+fprintf(s, '%c', '4');
+fwrite(s, bias, 'uchar');
+
 % wait for data       
 while (s.BytesAvailable <= 0)
 end

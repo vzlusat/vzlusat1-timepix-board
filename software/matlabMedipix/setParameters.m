@@ -16,9 +16,22 @@ s.StopBits = 1;
 
 fopen(s);
 
-% pozadej o zapnuti mpx      
-fprintf(s, '%c', '0');
-    
+treshold = 270;
+exposure = 1;
+bias = 109;
+filtering = 1;
+mode = 0;
+outputForm = 0;
+
+fprintf(s, '%c', '2');
+
+fwrite(s, treshold, 'int16');
+fwrite(s, exposure, 'int16');
+fwrite(s, bias, 'uchar');
+fwrite(s, filtering, 'uchar');
+fwrite(s, mode, 'uchar');
+fwrite(s, outputForm, 'uchar');
+
 % wait for data       
 while (s.BytesAvailable <= 0)
 end

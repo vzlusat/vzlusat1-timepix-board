@@ -459,7 +459,6 @@ void pwrOffMedipix() {
 	
 	ioport_set_pin_level(MEDIPIX_PWR, false);
 	medipixOnline = 0;
-	sendString("Medipix OFF\r\n");
 }
 
 void pwrToggleMedipix() {

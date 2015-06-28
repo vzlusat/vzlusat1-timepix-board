@@ -16,18 +16,12 @@ s.StopBits = 1;
 
 fopen(s);
 
-image = zeros(256, 256);
-
 % pozadej o mereni    
-fprintf(s, '%c', '4');
-
-for i=1:7
+fprintf(s, '%c', '9');
 
 % wait for last line data       
 while (s.BytesAvailable <= 0)
 end
 
 disp(fgets(s));
-  
-end
     
