@@ -115,6 +115,8 @@ void replyOk() {
 }
 
 void medipixInit() {
+	
+	loadImageParametersFromFram();
 		
 	pwrOnMedipix();	
 
@@ -136,15 +138,13 @@ void measure() {
 	closeShutter();
 		
 	readMatrix();
-	
-	vTaskDelay(20);
 
 	filterOnePixelEvents();
 
 	computeImageStatistics();
 	
 	// do binning
-	if (imageParameters.outputForm >= BINNING_1 &&imageParameters.outputForm <= BINNING_32) {
+	if (imageParameters.outputForm >= BINNING_1 && imageParameters.outputForm <= BINNING_32) {
 		
 		applyBinning();
 		
@@ -163,15 +163,6 @@ void medipixStop() {
 	pwrOffMedipix();
 }
 
-void updateMedipixMode() {
-			
-	loadEqualization(&dataBuffer, &ioBuffer);
-	
-	vTaskDelay(50);
-		
-	eraseMatrix();
-}
-
 void sendImageInfo() {
 	
 	// 'A' means the first packet of the image message
@@ -188,6 +179,8 @@ void sendImageInfo() {
 	
 	// send the final packet
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	
+	vTaskDelay(50);
 }
 
 void waitForAck() {
@@ -226,10 +219,6 @@ uint8_t sendCompressed(uint8_t image) {
 		getPixel = &getRawPixel;
 	else
 		getPixel = &getFilteredPixel;
-	
-	sendImageInfo();
-	
-	vTaskDelay(50);
 	
 	uint16_t i, j;
 	
@@ -301,32 +290,115 @@ uint8_t sendCompressed(uint8_t image) {
 
 void sendPostProcessed() {
 	
-	uint16_t i, j, x, y;
-	
-	uint16_t sum;
-	
-	uint8_t numPerLine;
+	uint16_t i, j, numPerLine;
 	
 	switch (imageParameters.outputForm) {
 		
 		case BINNING_8:
-		numPerLine = 32;
+			numPerLine = 32;
 		break;
 		
 		case BINNING_16:
-		numPerLine = 16;
+			numPerLine = 16;
 		break;
 		
 		case BINNING_32:
-		numPerLine = 8;
+			numPerLine = 8;
 		break;
 	}
 	
-	sendImageInfo();
-	
-	vTaskDelay(50);
-	
-	
+	// send the histograms
+	if (imageParameters.outputForm == HISTOGRAMS) {
+		
+		// send the 1st histogram
+		// for 4 packets
+		for (i = 0; i < 4; i++) {
+			
+			// it is a first histogram packet [0]
+			outcomingPacket->data[0] = 'h';
+			
+			// save the image ID [1, 2]
+			saveUint16(outcomingPacket->data+1, imageParameters.imageId);
+			
+			// save the number of the packet
+			outcomingPacket->data[3] = i;
+			
+			// fill the packets
+			for (j = 0; j < 64; j++) {
+				
+				outcomingPacket->data[j+4] = getHistogram1(j + i*64);
+			}
+			
+			outcomingPacket->length = 64 + 4;
+			
+			csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+			
+			waitForAck();
+		}
+		
+		// send the 2nd histogram
+		// for 4 packets
+		for (i = 0; i < 4; i++) {
+			
+			// it is a first histogram packet [0]
+			outcomingPacket->data[0] = 'H';
+			
+			// save the image ID [1, 2]
+			saveUint16(outcomingPacket->data+1, imageParameters.imageId);
+			
+			// save the number of the packet
+			outcomingPacket->data[3] = i;
+			
+			// fill the packets
+			for (j = 0; j < 64; j++) {
+				
+				outcomingPacket->data[j+4] = getHistogram2(j + i*64);
+			}
+			
+			outcomingPacket->length = 64 + 4;
+			
+			csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+			
+			waitForAck();
+		}
+		
+	// send the binned content
+	} else if (imageParameters.outputForm >= BINNING_8 && imageParameters.outputForm <= BINNING_32) {
+		
+		uint8_t packetId = 0;
+		uint8_t byteInPacket = 0;
+		
+		// it is a first histogram packet [0]
+		outcomingPacket->data[0] = 'D';
+			
+		// save the image ID [1, 2]
+		saveUint16(outcomingPacket->data+1, imageParameters.imageId);
+		
+		// bytes count
+		outcomingPacket->data[3] = packetId++;
+		
+		for (i = 0; i < numPerLine; i++) {
+			
+			for (j = 0; j < numPerLine; j++) {
+				
+				outcomingPacket->data[4+byteInPacket++] = getBinnedPixel(i, j);
+			
+				// packet is full, send it
+				if (byteInPacket == 64) {
+					
+					outcomingPacket->length = 64 + 4;
+					
+					csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+					
+					waitForAck();
+					
+					byteInPacket = 0;
+					
+					outcomingPacket->data[3] = packetId++;
+				}
+			}
+		}
+	}
 }
 
 /* -------------------------------------------------------------------- */
@@ -450,24 +522,8 @@ void mainTask(void *p) {
 						
 						case MEDIPIX_SET_MODE:
 						
-							loadImageParametersFromFram();
-
-							// medipix was powered, need to reload the equalization							
-							if (medipixPowered() == 1) {
-								
-								// if the mode is different, reload the equalization
-								if (imageParameters.mode != *packetPayload) {
-									
-									updateMedipixMode();
-								}
-							}
-
-							imageParameters.mode = *packetPayload;
-							
-							saveImageParametersToFram();
-							
-							replyOk();
-						
+							// to tu nebude
+													
 						break;
 						
 						case MEDIPIX_SET_OUTPUT_FORM:
@@ -502,18 +558,21 @@ void mainTask(void *p) {
 						
 						case MEDIPIX_SEND_ORIGINAL:
 						
+							sendImageInfo();
 							sendCompressed(0);
 						
 						break;
 						
 						case MEDIPIX_SEND_FILTERED:
 						
+							sendImageInfo();
 							sendCompressed(1);
 						
 						break;
 						
 						case MEDIPIX_SEND_BINNED:
 						
+							sendImageInfo();
 							sendPostProcessed();
 						
 						break;	

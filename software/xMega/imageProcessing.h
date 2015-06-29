@@ -27,6 +27,21 @@ uint8_t getRawPixel(uint8_t row, uint8_t col);
 // get the value of the pixel in the filtered image
 uint8_t getFilteredPixel(uint8_t row, uint8_t col);
 
+// set histogram1 value
+void setHistogram1(uint8_t idx, uint8_t value);
+
+// set histogram2 value
+void setHistogram2(uint8_t idx, uint8_t value);
+
+// get histogram1 value
+uint8_t getHistogram1(uint8_t idx);
+
+// get histogram2 value
+uint8_t getHistogram2(uint8_t idx);
+
+// get pixel in the binned image
+uint8_t getBinnedPixel(uint8_t row, uint8_t col);
+
 // copy the raw image into the filtered image
 // remove the non-one pixel events
 void filterOnePixelEvents();

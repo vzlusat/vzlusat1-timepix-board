@@ -16,7 +16,7 @@ s.StopBits = 1;
 
 fopen(s);
 
-figure(1);
+figure(2);
 
 image = zeros(256, 256);
 

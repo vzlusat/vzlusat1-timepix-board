@@ -16,7 +16,7 @@ s.StopBits = 1;
 
 fopen(s);
 
-filtering = 14;
+filtering = 1;
 
 fprintf(s, '%c', '6');
 fwrite(s, filtering, 'uchar');

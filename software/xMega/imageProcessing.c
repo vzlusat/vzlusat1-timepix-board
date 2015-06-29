@@ -83,7 +83,7 @@ uint8_t getBinnedPixel(uint8_t row, uint8_t col) {
 	switch (imageParameters.outputForm) {
 		
 		case BINNING_8:
-			address += ((unsigned long) row)*8 + ((unsigned long) col);
+			address += ((unsigned long) row)*32 + ((unsigned long) col);
 		break;
 		
 		case BINNING_16:
@@ -91,7 +91,7 @@ uint8_t getBinnedPixel(uint8_t row, uint8_t col) {
 		break;
 		
 		case BINNING_32:
-			address += ((unsigned long) row)*32 + ((unsigned long) col);
+			address += ((unsigned long) row)*8 + ((unsigned long) col);
 		break;
 	}
 	
@@ -106,7 +106,7 @@ uint8_t setBinnedPixel(uint8_t row, uint8_t col, uint8_t value) {
 	switch (imageParameters.outputForm) {
 		
 		case BINNING_8:
-			address += ((unsigned long) row)*8 + ((unsigned long) col);
+			address += ((unsigned long) row)*32 + ((unsigned long) col);
 		break;
 		
 		case BINNING_16:
@@ -114,7 +114,7 @@ uint8_t setBinnedPixel(uint8_t row, uint8_t col, uint8_t value) {
 		break;
 		
 		case BINNING_32:
-			address += ((unsigned long) row)*32 + ((unsigned long) col);
+			address += ((unsigned long) row)*8 + ((unsigned long) col);
 		break;
 	}
 	
@@ -124,7 +124,7 @@ uint8_t setBinnedPixel(uint8_t row, uint8_t col, uint8_t value) {
 // set histogram1 value
 void setHistogram1(uint8_t idx, uint8_t value) {
 	
-	unsigned long address = WORKING_SPACE_START_ADDRESS;
+	unsigned long address = WORKING_SPACE_START_ADDRESS+idx;
 	
 	spi_mem_write_byte(address, value);
 }
@@ -132,7 +132,7 @@ void setHistogram1(uint8_t idx, uint8_t value) {
 // set histogram2 value
 void setHistogram2(uint8_t idx, uint8_t value) {
 	
-	unsigned long address = WORKING_SPACE_START_ADDRESS+256;
+	unsigned long address = WORKING_SPACE_START_ADDRESS+256+idx;
 	
 	spi_mem_write_byte(address, value);
 }
@@ -140,7 +140,7 @@ void setHistogram2(uint8_t idx, uint8_t value) {
 // get histogram1 value
 uint8_t getHistogram1(uint8_t idx) {
 	
-	unsigned long address = WORKING_SPACE_START_ADDRESS;
+	unsigned long address = WORKING_SPACE_START_ADDRESS+idx;
 	
 	return spi_mem_read_byte(address);
 }
@@ -148,7 +148,7 @@ uint8_t getHistogram1(uint8_t idx) {
 // get histogram2 value
 uint8_t getHistogram2(uint8_t idx) {
 	
-	unsigned long address = WORKING_SPACE_START_ADDRESS+256;
+	unsigned long address = WORKING_SPACE_START_ADDRESS+256+idx;
 	
 	return spi_mem_read_byte(address);
 }
@@ -295,8 +295,10 @@ void computeImageStatistics() {
 	uint8_t tempPixel;
 	
 	imageParameters.nonZeroPixelsFiltered = 0;
-	imageParameters.minValueOriginal = 256;
+	imageParameters.minValueFiltered = 255;
+	imageParameters.maxValueFiltered = 0;
 	
+	/*
 	uint8_t (*fce)(uint8_t, uint8_t);
 	
 	switch(imageParameters.outputForm) {
@@ -321,12 +323,13 @@ void computeImageStatistics() {
 			fce = &getBinnedPixel;
 		break;
 	}
+	*/
 	
-	for (i = 0; i < numPerLine; i++) {
+	for (i = 0; i < 256; i++) {
 		
-		for (j = 0; j < numPerLine; j++) {
+		for (j = 0; j < 256; j++) {
 			
-			tempPixel = (*fce)(i, j);
+			tempPixel = getFilteredPixel(i, j);
 			
 			if (tempPixel > 0) {
 				imageParameters.nonZeroPixelsFiltered++;
@@ -344,24 +347,25 @@ void computeImageStatistics() {
 // apply binning
 void applyBinning() {
 	
-	uint16_t i, j, x, y;
+	uint16_t i, j, x, y, sum;
 	
-	uint16_t sum;
-	
-	uint8_t numPerLine;
+	uint8_t numPerLine, numInBin, tempPixel;
 	
 	switch (imageParameters.outputForm) {
 		
 		case BINNING_8:
 			numPerLine = 32;
+			numInBin = 8;
 		break;
 		
 		case BINNING_16:
 			numPerLine = 16;
+			numInBin = 16;
 		break;
 		
 		case BINNING_32:
 			numPerLine = 8;
+			numInBin = 32;
 		break;
 	}
 
@@ -375,16 +379,30 @@ void applyBinning() {
 				sum = 0;
 			
 				// go through all subpixels of the bin
-				for (x = i*numPerLine; x < (i+1)*numPerLine; x++) {
+				for (x = i*numInBin; x < (i+1)*numInBin; x++) {
 				
-					for (y = j*numPerLine; y < (j+1)*numPerLine; y++) {
+					for (y = j*numInBin; y < (j+1)*numInBin; y++) {
 					
-						sum += getFilteredPixel(x, y);
+						tempPixel = getFilteredPixel(x, y);
+					
+						if (tempPixel > 0) {
+							
+							sum++;
+						}
 					}
+				}
+				
+				// pokud binujeme po 32, tak downscale
+				if (imageParameters.outputForm == BINNING_32) {
+					
+					sum = (uint16_t) ((float) sum / (float) 4);
 				}
 			
 				// create the averege
-				sum = sum / (numPerLine*numPerLine);
+				// sum = sum / (numPerLine*numPerLine);
+			
+				// print the test pattern
+				// setBinnedPixel(i, j, i*numPerLine + j);
 			
 				setBinnedPixel(i, j, (uint8_t) sum);
 			}
@@ -395,9 +413,7 @@ void applyBinning() {
 // create histograms from the image
 void createHistograms() {
 	
-	uint16_t i, j;
-	
-	uint16_t sum;
+	uint16_t i, j, sum;
 	
 	for (i = 0; i < 256; i++) {
 		
@@ -406,12 +422,13 @@ void createHistograms() {
 		
 		for (j = 0; j < 256; j++) {
 			
-			sum += getFilteredPixel(i, j);
+			if (getFilteredPixel(i, j) > 0)
+				sum++;
 		}
 		
-		sum = sum / 256;
+		if (sum > 255)
+			sum = 255;
 		
-		// downscale to 8bit
 		setHistogram1(i, (uint8_t) sum);
 		
 		// create histogram 2
@@ -419,14 +436,23 @@ void createHistograms() {
 		
 		for (j = 0; j < 256; j++) {
 			
-			sum += getFilteredPixel(j, i);
+			if (getFilteredPixel(j, i) > 0)
+				sum++;
 		}
 		
-		// downscale to 8bit
-		sum = sum / 256;
+		if (sum > 255)
+			sum = 255;
 		
 		setHistogram2(i, (uint8_t) sum);
 	}
+	
+	/* testing pattern
+	for (i = 0; i < 256; i++) {
+		
+		setHistogram1(i, i);
+		setHistogram2(i, 255-i);
+	}
+	*/
 }
 
 void prepareOutput() {

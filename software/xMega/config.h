@@ -42,10 +42,10 @@
 #define CSP_BUFFER_COUNT	1
 
 // CSP Buffer size in bytes
-#define CSP_BUFFER_SIZE	86
+#define CSP_BUFFER_SIZE	94
 
 // Maximum size of CSP packet, payload + header
-#define CSP_PACKET_SIZE	72
+#define CSP_PACKET_SIZE	80
 
 // Size of CSP router stack in words
 #define CSP_ROUTER_STACK	500

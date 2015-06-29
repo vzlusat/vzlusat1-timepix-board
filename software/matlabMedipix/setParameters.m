@@ -16,12 +16,12 @@ s.StopBits = 1;
 
 fopen(s);
 
-treshold = 270;
+treshold = 250;
 exposure = 1;
 bias = 109;
 filtering = 1;
 mode = 0;
-outputForm = 0;
+outputForm = 1;
 
 fprintf(s, '%c', '2');
 

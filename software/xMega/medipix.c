@@ -68,26 +68,12 @@ void MpxSetDACs() {
 	
 	// nejdøív zapsat s jednièkama
 	for (i = 0; i < 34; i++) {
+		
 		usartBufferPutByte(medipix_usart_buffer, stream[i], 1000);
 		vTaskDelay(5);
 	}
 
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {
-		
-		#if DEBUG_OUTPUT == 1
-		if (inChar == '\r')
-		inChar = '<';
-		
-		if (inChar == '\n')
-		inChar = '_';
-		
-		outcomingPacket->data[0] = inChar;
-		outcomingPacket->data[1] = 0;
-		outcomingPacket->length = 2;
-		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-		vTaskDelay(20);
-		#endif
-	}
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {}
 	
 	stream[0]='d';
 	
@@ -97,38 +83,11 @@ void MpxSetDACs() {
 	// odeslat skuteèné DAC
 	for (i = 0; i < 34; i++) {
 		
-		#if DEBUG_OUTPUT == 1
-		bin2hex(stream[i], &outcomingPacket->data);
-		outcomingPacket->data[2] = ' ';
-		outcomingPacket->data[3] = 0;
-		outcomingPacket->length = 4;
-		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-		#endif
-		
 		usartBufferPutByte(medipix_usart_buffer, stream[i], 1000);
 		vTaskDelay(5);
 	}
-	
-	#if DEBUG_OUTPUT == 1
-	sendBlankLine(15, 16);
-	#endif
 		
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {
-		
-		#if DEBUG_OUTPUT == 1
-		if (inChar == '\r')
-		inChar = '<';
-		
-		if (inChar == '\n')
-		inChar = '_';
-		
-		outcomingPacket->data[0] = inChar;
-		outcomingPacket->data[1] = 0;
-		outcomingPacket->length = 2;
-		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-		vTaskDelay(20);
-		#endif
-	}
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {}
 }
 
 // Shifts data in the buffer by "shift" bits to right
@@ -404,24 +363,7 @@ void pwrOnMedipix() {
 	
 	// prijme uvitaci zpravu
 	char inChar;
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 4000)) {
-	
-		#if DEBUG_OUTPUT == 1
-		
-		if (inChar == '\r')
-		inChar = '<';
-	
-		if (inChar == '\n')
-		inChar = '_';
-	
-		outcomingPacket->data[0] = inChar;
-		outcomingPacket->data[1] = 0;
-		outcomingPacket->length = 2;
-		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-		vTaskDelay(20);
-		
-		#endif
-	}
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 4000)) {}
 }
 
 void setBias(uint8_t bias) {
@@ -433,44 +375,15 @@ void setBias(uint8_t bias) {
 	sendBlankLine(15, 16);
 	#endif
 	
-	// prijme uvitaci zpravu
+	// prijme potvrzeni
 	char inChar;
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 500)) {
-		
-		#if DEBUG_OUTPUT == 1
-		
-		if (inChar == '\r')
-		inChar = '<';
-		
-		if (inChar == '\n')
-		inChar = '_';
-		
-		outcomingPacket->data[0] = inChar;
-		outcomingPacket->data[1] = 0;
-		outcomingPacket->length = 2;
-		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-		vTaskDelay(20);
-		
-		#endif
-	}
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 100)) {}
 }
 
 void pwrOffMedipix() {
 	
 	ioport_set_pin_level(MEDIPIX_PWR, false);
 	medipixOnline = 0;
-}
-
-void pwrToggleMedipix() {
-	
-	if (medipixOnline == 1) {
-		
-		pwrOffMedipix();
-		
-	} else {
-		
-		pwrOnMedipix();	
-	}
 }
 
 void openShutter() {
@@ -483,22 +396,7 @@ void openShutter() {
 	
 	// prijme uvitaci zpravu
 	char inChar;
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 500)) {
-		
-		#if DEBUG_OUTPUT == 1
-		if (inChar == '\r')
-		inChar = '<';
-		
-		if (inChar == '\n')
-		inChar = '_';
-		
-		outcomingPacket->data[0] = inChar;
-		outcomingPacket->data[1] = 0;
-		outcomingPacket->length = 2;
-		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-		vTaskDelay(20);
-		#endif
-	}
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 500)) {}
 }
 
 void closeShutter() {
@@ -511,22 +409,7 @@ void closeShutter() {
 	
 	// prijme uvitaci zpravu
 	char inChar;
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 500)) {
-		
-		#if DEBUG_OUTPUT == 1
-		if (inChar == '\r')
-		inChar = '<';
-		
-		if (inChar == '\n')
-		inChar = '_';
-		
-		outcomingPacket->data[0] = inChar;
-		outcomingPacket->data[1] = 0;
-		outcomingPacket->length = 2;
-		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-		vTaskDelay(20);
-		#endif
-	}
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 500)) {}
 }
 
 void eraseMatrix() {
@@ -558,7 +441,7 @@ void eraseMatrix() {
 	
 	usartBufferPutByte(medipix_usart_buffer, 'm', 1000);
 	
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 4000)) {break;}
+	usartBufferGetByte(medipix_usart_buffer, &inChar, 4000);
 	
 	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {
 		
@@ -700,41 +583,6 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 	return 0;
 }
 
-void proceedeLine(uint16_t * data) {
-	
-	uint8_t pCounter;
-	uint8_t i;
-	
-	// vytvoøí 8 packetù z celého øádku
-	for (pCounter = 0; pCounter < 8; pCounter++) {
-		
-		for (i = 0; i < 32; i++) {
-			
-			if (imageParameters.mode == MODE_TIMEPIX) {
-
-				*(data + ((pCounter*32) + i)) = *(data + ((pCounter*32) + i)) / 46;
-			}
-
-			// saturace na byte
-			if (*(data + ((pCounter*32) + i)) > 255) {
-	
-				outcomingPacket->data[i] = 255;
-			} else {
-	
-				outcomingPacket->data[i] = (uint8_t) (*(data + ((pCounter*32) + i)));
-			}
-		}
-		
-		outcomingPacket->data[32] = '\r';
-		outcomingPacket->data[33] = '\n';
-		outcomingPacket->length = 34;
-		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-		vTaskDelay(7);
-	}
-	
-	vTaskDelay(50);
-}
-
 void saveLine(uint8_t row, uint16_t * data) {
 	
 	uint16_t i;
@@ -874,10 +722,8 @@ void readMatrix() {
 			}
 			*/
 			
-			#if MATLAB_OUTPUT
-			// proceedeLine(&dataBuffer);
+			// save the current line to the fram memory
 			saveLine(rowsReceived, &dataBuffer);
-			#endif
 			
 			// skompíruje overBuffer do ioBufferu
 			memcpy(ioBuffer, tempBuffer, bytesInOverBuffer*sizeof(uint8_t));

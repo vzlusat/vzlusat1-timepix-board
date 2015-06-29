@@ -13,6 +13,7 @@ s.Terminator = 'CR/LF';
 s.DataBits = 8;
 s.Parity = 'none';
 s.StopBits = 1;
+s.ReadAsyncMode = 'continuous';
 
 fopen(s);
 

@@ -247,7 +247,7 @@ void mainTask(void *p) {
 
 				break;
 				
-				// read original image
+				// read filtered image
 				case 'r':
 				
 					outcomingPacket->data[0] = MEDIPIX_SEND_FILTERED;
@@ -258,8 +258,19 @@ void mainTask(void *p) {
 
 				break;
 				
-				// read the image metadata
+				// read binned image/histograms
 				case 't':
+				
+					outcomingPacket->data[0] = MEDIPIX_SEND_BINNED;
+					
+					outcomingPacket->length = 1;
+					
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
+
+				break;
+				
+				// read the image metadata
+				case 'z':
 					outcomingPacket->data[0] = MEDIPIX_SEND_METADATA;
 					outcomingPacket->length = 1;
 					pingSent = milisecondsTimer;

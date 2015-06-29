@@ -24,4 +24,6 @@ while (s.BytesAvailable <= 0)
 end
 
 disp(fgets(s));
+
+readMetadata;
     
