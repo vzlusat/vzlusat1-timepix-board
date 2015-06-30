@@ -73,7 +73,15 @@ void MpxSetDACs() {
 		vTaskDelay(5);
 	}
 
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {}
+	// ceka na potvrzeni nastaveni
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 2000)) {
+		
+		// TODO uložit zprávu z medipixu do fram k pozdìjšímu pøeètení
+
+		// ukonci cekani na odpoved pri prijmuti posledniho znaku
+		if (inChar == '\r')
+		break;
+	}
 	
 	stream[0]='d';
 	
@@ -87,7 +95,15 @@ void MpxSetDACs() {
 		vTaskDelay(5);
 	}
 		
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {}
+	// ceka na potvrzeni nastaveni
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 2000)) {
+		
+		// TODO uložit zprávu z medipixu do fram k pozdìjšímu pøeètení
+
+		// ukonci cekani na odpoved pri prijmuti posledniho znaku
+		if (inChar == '\r')
+		break;
+	}
 }
 
 // Shifts data in the buffer by "shift" bits to right
@@ -355,15 +371,16 @@ void pwrOnMedipix() {
 	ioport_set_pin_level(MEDIPIX_PWR, true);
 	medipixOnline = 1;
 	
-	// pocka az nastartuje
-
-	#if DEBUG_OUTPUT == 1
-	sendBlankLine(15, 16);
-	#endif
-	
 	// prijme uvitaci zpravu
 	char inChar;
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 4000)) {}
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 6000)) {
+		
+		// TODO uložit zprávu z medipixu do fram k pozdìjšímu pøeètení
+
+		// ukonci cekani na odpoved pri prijmuti posledniho znaku
+		if (inChar == '\r')
+			break;
+	}
 }
 
 void setBias(uint8_t bias) {
@@ -371,13 +388,16 @@ void setBias(uint8_t bias) {
 	usartBufferPutByte(medipix_usart_buffer, 'b', 1000);
 	usartBufferPutByte(medipix_usart_buffer, bias, 1000);
 	
-	#if DEBUG_OUTPUT == 1
-	sendBlankLine(15, 16);
-	#endif
-	
 	// prijme potvrzeni
 	char inChar;
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 100)) {}
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 2000)) {
+	
+		// TODO uložit zprávu z medipixu do fram k pozdìjšímu pøeètení
+
+		// ukonci cekani na odpoved pri prijmuti posledniho znaku
+		if (inChar == '\r')
+			break;
+	}
 }
 
 void pwrOffMedipix() {
@@ -389,27 +409,32 @@ void pwrOffMedipix() {
 void openShutter() {
 	
 	usartBufferPutByte(medipix_usart_buffer, 'o', 1000);
-	
-	#if DEBUG_OUTPUT == 1
-	sendBlankLine(15, 16);
-	#endif
-	
-	// prijme uvitaci zpravu
-	char inChar;
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 500)) {}
 }
 
 void closeShutter() {
 	
 	usartBufferPutByte(medipix_usart_buffer, 'c', 1000);
 	
-	#if DEBUG_OUTPUT == 1
-	sendBlankLine(15, 16);
-	#endif
-	
-	// prijme uvitaci zpravu
+	// prijme odpoved z open shutter
 	char inChar;
-	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 500)) {}
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 2000)) {
+		
+		// TODO uložit zprávu z medipixu do fram k pozdìjšímu pøeètení
+
+		// ukonci cekani na odpoved pri prijmuti posledniho znaku
+		if (inChar == '\r')
+			break;
+	}
+	
+	// prijme odpoved z close shutter
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 2000)) {
+		
+		// TODO uložit zprávu z medipixu do fram k pozdìjšímu pøeètení
+
+		// ukonci cekani na odpoved pri prijmuti posledniho znaku
+		if (inChar == '\r')
+			break;
+	}
 }
 
 void eraseMatrix() {
@@ -435,10 +460,6 @@ void eraseMatrix() {
 	memset(tempBuffer, 0, 256);
 	memset(dataBuffer, 0, 512);
 
-	#if DEBUG_OUTPUT == 1
-	sendBlankLine(15, 16);
-	#endif
-	
 	usartBufferPutByte(medipix_usart_buffer, 'm', 1000);
 	
 	usartBufferGetByte(medipix_usart_buffer, &inChar, 4000);
@@ -467,17 +488,13 @@ void eraseMatrix() {
 
 		// receive the dummy line
 		if (rowsReceived == 256) {
+
+			// TODO uložit zprávu z medipixu do fram k pozdìjšímu pøeètení
 			
-			#if DEBUG_OUTPUT == 1
-			
-			outcomingPacket->data[0] = inChar;
-			outcomingPacket->data[1] = 0;
-			outcomingPacket->length = 2;
-			csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-			vTaskDelay(5);
-			
-			#endif
-		}
+			// ukonci cekani na odpoved pri prijmuti posledniho znaku
+			if (inChar == '\r')
+				break;
+		}	
 		
 		// pokud mám plný buffer a pøišel další datagram, zpracuju øádek
 		if (receivedBytes == 256 & bufferFull == 1) {
@@ -490,7 +507,6 @@ void eraseMatrix() {
 			
 			usartBufferPutByte(medipix_usart_buffer, 'i', 1000);
 		}
-		
 	}
 }
 
@@ -504,10 +520,6 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 	
 	uint16_t * Mask;
 
-	#if DEBUG_OUTPUT == 1
-	sendBlankLine(15, 16);
-	#endif
-	
 	usartBufferPutByte(medipix_usart_buffer, 'S', 1000);
 	
 	vTaskDelay(10);
@@ -538,15 +550,6 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 		}
 		
 		MpxData2BitStreamSingleMXR(&dataBuffer, &ioBuffer);
-		
-		#if DEBUG_OUTPUT == 1
-		
-		outcomingPacket->data[0] = 'X';
-		outcomingPacket->data[1] = 0;
-		outcomingPacket->length = 2;
-		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-		
-		#endif
 						
 		for (k = 0; k < 448; k++) {
 			
@@ -563,21 +566,10 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 	
 	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1000)) {
 		
-		#if DEBUG_OUTPUT == 1
+		// TODO uložit zprávu z medipixu do fram k pozdìjšímu pøeètení
 		
 		if (inChar == '\r')
-		inChar = '<';
-		
-		if (inChar == '\n')
-		inChar = '_';
-		
-		outcomingPacket->data[0] = inChar;
-		outcomingPacket->data[1] = 0;
-		outcomingPacket->length = 2;
-		csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-		vTaskDelay(20);
-		
-		#endif
+			break;
 	}
 	
 	return 0;
@@ -645,10 +637,6 @@ void readMatrix() {
 	imageParameters.nonZeroPixelsOriginal = 0;
 	imageParameters.minValueOriginal = 255;
 	imageParameters.maxValueOriginal = 0;
-
-	#if DEBUG_OUTPUT == 1
-	sendBlankLine(15, 16);
-	#endif
 	
 	usartBufferPutByte(medipix_usart_buffer, 'm', 1000);
 	
@@ -678,14 +666,12 @@ void readMatrix() {
 
 		// receive the dummy line
 		if (rowsReceived == 256) {
-			
-			#if DEBUG_OUTPUT == 1
-				outcomingPacket->data[0] = inChar;
-				outcomingPacket->data[1] = 0;
-				outcomingPacket->length = 2;
-				csp_sendto(CSP_PRIO_NORM, 1, 15, 16, CSP_O_NONE, outcomingPacket, 1000);
-				vTaskDelay(5);
-			#endif
+		
+			// TODO uložit zprávu z medipixu do fram k pozdìjšímu pøeètení
+
+			// ukonci cekani na odpoved pri prijmuti posledniho znaku
+			if (inChar == '\r')
+				break;
 		}
 		
 		// pokud mám plný buffer a pøišel další datagram, zpracuju øádek
@@ -694,22 +680,7 @@ void readMatrix() {
 			MpxBitStream2DataSingleMXR(&ioBuffer, &dataBuffer);
 			
 			MpxConvertValuesMXR(&dataBuffer);
-			
-			// pøemístí ukazovátko na správné místo v tempBufferu
-			
-			#if DEBUG_OUTPUT == 1
-			// výpis
-			sprintf(temp, "R%d: %d %d %d %d %d %d\n\r", rowsReceived, dataBuffer[0], dataBuffer[1], dataBuffer[2], dataBuffer[3], dataBuffer[4], dataBuffer[5]);
-			strcpy(outcomingPacket->data, temp);
-			outcomingPacket->length = strlen(temp);
-			csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
-
-			sprintf(temp, "\n\r");
-			strcpy(outcomingPacket->data, temp);
-			outcomingPacket->length = strlen(temp);
-			csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
-			#endif
-			
+						
 			/*
 			// plot out test pattern
 			uint16_t q;

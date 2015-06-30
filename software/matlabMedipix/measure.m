@@ -16,6 +16,8 @@ s.StopBits = 1;
 
 fopen(s);
 
+tic
+
 % pozadej o mereni    
 fprintf(s, '%c', '9');
 
@@ -26,4 +28,6 @@ end
 disp(fgets(s));
 
 readMetadata;
+
+toc
     

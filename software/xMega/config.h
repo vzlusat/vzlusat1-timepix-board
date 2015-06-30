@@ -15,7 +15,7 @@
 #define FLIGHT	1
 #define MEDIPIX_VERSION	EQM
 
-#define DEBUG_OUTPUT 0
+#define DEBUG_OUTPUT 1
 #define MATLAB_OUTPUT 1
 
 // Address of the local CSP node

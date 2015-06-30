@@ -16,6 +16,8 @@ s.StopBits = 1;
 
 fopen(s);
 
+tic
+
 % pozadej o zapnuti mpx      
 fprintf(s, '%c', '0');
     
@@ -26,3 +28,5 @@ end
 disp(fgets(s));
 
 fclose(s);
+
+toc
