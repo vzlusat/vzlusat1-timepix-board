@@ -522,7 +522,19 @@ void mainTask(void *p) {
 						
 						case MEDIPIX_SET_MODE:
 						
-							// to tu nebude
+							medipixStop();
+							
+							loadImageParametersFromFram();
+							
+							imageParameters.mode = *packetPayload;
+							
+							saveImageParametersToFram();
+							
+							vTaskDelay(1000);
+							
+							medipixInit();
+							
+							replyOk();
 													
 						break;
 						

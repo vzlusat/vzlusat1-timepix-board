@@ -14,24 +14,24 @@ struct PixelCfg{
 int main()
 {
 
-    FILE * pFile;
-				pFile = fopen ("myfile.txt","w");
+				FILE * pFile;
+				pFile = fopen ("output.txt","w");
 				FILE * inFile;
-				inFile = fopen ("equalization2","rb");
+				inFile = fopen ("equalization","rb");
 
 				uint8_t val;
 
 				for (int i = 0; i < 65536; i++) {
 
 						if (fread(&val,1,1,inFile))
-								fprintf (pFile, "%u,\n", val);
+								fprintf (pFile, "%d,\n", val);
 
 						if (((i+1) % 8192) == 0)
 								fprintf (pFile, "konec\n");
 				}
 
-    fclose (pFile);
+				fclose (pFile);
 				fclose (inFile);
 
-    return 0;
+				return 0;
 }
