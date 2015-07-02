@@ -18,6 +18,8 @@ fopen(s);
 
 mode = 1;
 
+tic
+
 fprintf(s, '%c', '7');
 fwrite(s, mode, 'uchar');
 
@@ -28,3 +30,5 @@ end
 disp(fgets(s));
 
 fclose(s);
+
+toc

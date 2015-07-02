@@ -16,7 +16,7 @@ s.StopBits = 1;
 
 fopen(s);
 
-exposure = 10000;
+exposure = 100;
 
 fprintf(s, '%c', '5');
 fwrite(s, exposure, 'int16');

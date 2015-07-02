@@ -258,6 +258,9 @@
     <Compile Include="equalization2.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="errorCodes.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="fram_mapping.h">
       <SubType>compile</SubType>
     </Compile>

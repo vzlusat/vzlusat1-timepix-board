@@ -13,6 +13,7 @@
 #include "ADT7420.h"
 #include "imageProcessing.h"
 #include "fram_mapping.h"
+#include "errorCodes.h"
 
 csp_packet_t * outcomingPacket;
 xQueueHandle * xCSPEventQueue;
@@ -114,6 +115,19 @@ void replyOk() {
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
+void replyErr(uint8_t error) {
+	
+	vTaskDelay(20);
+	
+	outcomingPacket->data[0] = 'E';
+	outcomingPacket->data[1] = error;
+	outcomingPacket->data[2] = '\r';
+	outcomingPacket->data[3] = '\n';
+	
+	outcomingPacket->length = 4;
+	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+}
+
 void medipixInit() {
 	
 	loadImageParametersFromFram();
@@ -123,13 +137,13 @@ void medipixInit() {
 	loadEqualization(&dataBuffer, &ioBuffer);
 	
 	eraseMatrix();
-}
-
-void measure() {
 	
 	setDACs(imageParameters.threshold);
 	
 	setBias(imageParameters.bias);
+}
+
+void measure() {
 		
 	openShutter();
 	
@@ -411,6 +425,8 @@ void mainTask(void *p) {
 	char inChar;
 	
 	uint8_t * ptr;
+	
+	uint8_t modeChanging;
 					
 	// infinite while loop of the program 
 	while (1) {
@@ -456,8 +472,13 @@ void mainTask(void *p) {
 						case MEDIPIX_SET_ALL_PARAMS:
 						
 							loadImageParametersFromFram();
-						
+							
 							newSettings_t * settings = packetPayload;
+						
+							if (settings->mode != imageParameters.mode)
+								modeChanging = 1;
+							else
+								modeChanging = 0;
 							
 							imageParameters.threshold = settings->treshold;
 							imageParameters.exposure = settings->exposure;
@@ -465,8 +486,23 @@ void mainTask(void *p) {
 							imageParameters.filtering = settings->filtering;
 							imageParameters.mode = settings->mode;
 							imageParameters.outputForm = settings->outputForm;
-						
+							
 							saveImageParametersToFram();
+							
+							if ((modeChanging == 1) && (medipixPowered() == 1)) {
+
+								medipixStop();
+
+								vTaskDelay(1000);
+
+								medipixInit();
+								
+							} else if (medipixPowered() == 1) {
+								
+								setDACs(imageParameters.threshold);
+									
+								setBias(imageParameters.bias);
+							}
 							
 							replyOk();
 							
@@ -477,6 +513,9 @@ void mainTask(void *p) {
 							loadImageParametersFromFram();
 
 							imageParameters.threshold = parseUint16(packetPayload);
+							
+							if (medipixPowered() == 1)
+								setDACs(imageParameters.threshold);
 							
 							saveImageParametersToFram();
 							
@@ -489,6 +528,9 @@ void mainTask(void *p) {
 							loadImageParametersFromFram();
 
 							imageParameters.bias = *packetPayload;
+							
+							if (medipixPowered() == 1)
+								setBias(imageParameters.bias);
 							
 							saveImageParametersToFram();
 							
@@ -522,17 +564,25 @@ void mainTask(void *p) {
 						
 						case MEDIPIX_SET_MODE:
 						
-							medipixStop();
-							
 							loadImageParametersFromFram();
-							
+						
+							if (*packetPayload != imageParameters.mode)
+								modeChanging = 1;
+							else
+								modeChanging = 0;
+								
 							imageParameters.mode = *packetPayload;
-							
+								
 							saveImageParametersToFram();
 							
-							vTaskDelay(1000);
-							
-							medipixInit();
+							if ((modeChanging == 1) && (medipixPowered() == 1)) {
+
+								medipixStop();
+
+								vTaskDelay(1000);
+
+								medipixInit();
+							}
 							
 							replyOk();
 													
@@ -551,21 +601,37 @@ void mainTask(void *p) {
 						break;
 						
 						case MEDIPIX_MEASURE:
-
-							loadImageParametersFromFram();
 							
-							measure();
+							if (medipixPowered() == 1) {
 							
-							replyOk();
+								loadImageParametersFromFram();
+								
+								measure();
+								
+								replyOk();
+								
+							} else {
+								
+								replyErr(ERROR_MEDIPIX_NOT_POWERED);
+							}
 						
 						break;
 						
 						case MEDIPIX_MEASURE_WITH_PARAMETERS:
-
-							loadImageParametersFromFram();
 							
-							measure();
-						
+							if (medipixPowered() == 1) {
+
+								loadImageParametersFromFram();
+								
+								measure();
+								
+								replyOk();
+								
+							} else {
+							
+								replyErr(ERROR_MEDIPIX_NOT_POWERED);
+							}
+
 						break;
 						
 						case MEDIPIX_SEND_ORIGINAL:

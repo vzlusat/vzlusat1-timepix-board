@@ -87,7 +87,7 @@ image = image - mask.image;
 
 maximum = max(max(image, [], 1));
 
-imshow(image./255, [0, maximum(1)/255], 'InitialMagnification', 'fit');
+imshow(image./255, [0, 0.5*maximum(1)/255], 'InitialMagnification', 'fit');
 
 % im = struct('params', params, 'image', image);
 % 

@@ -16,7 +16,7 @@ s.StopBits = 1;
 
 fopen(s);
 
-treshold = 270;
+treshold = 310;
 
 fprintf(s, '%c', '3');
 fwrite(s, treshold, 'int16');

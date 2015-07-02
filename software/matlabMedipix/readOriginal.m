@@ -45,6 +45,10 @@ maxValueFiltered = fread(s, 1, 'uchar')
 
 fread(s, 1, 'uint16');
 
+if (nonzeropixelsoriginal == 0)
+    error('the image is blank');
+else
+
 while true
 
     % wait for next packet    
@@ -95,3 +99,5 @@ imshow(image./255, [0, 0.5*maximum(1)/255], 'InitialMagnification', 'fit');
 % filename = ['image' num2str(fileCounter)];
 % save(filename, 'im');
 % 
+
+end

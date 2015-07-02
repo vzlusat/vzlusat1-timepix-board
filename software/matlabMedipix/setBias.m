@@ -16,7 +16,7 @@ s.StopBits = 1;
 
 fopen(s);
 
-bias = 12;
+bias = 240;
 
 fprintf(s, '%c', '4');
 fwrite(s, bias, 'uchar');
