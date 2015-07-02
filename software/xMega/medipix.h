@@ -83,14 +83,6 @@ typedef struct {
 	uint32_t unused13:2; uint32_t biasLvds:8; uint32_t refLvds:8; uint32_t unused14:14;
 } DACsTimepix;
 
-// Pixel configuration as it is stored in binary file:
-typedef struct {
-	uint8_t lowTh: 3;          // low threshold (3 bits, low (0) is ACTIVE)
-	uint8_t highTh: 3;         // high threshold (3 bits, low (0) is ACTIVE)
-	uint8_t testBit: 1;        // test bit (1 bit, low (0) is ACTIVE)
-	uint8_t maskBit: 1;        // mask bit (1 bit, low (0) is ACTIVE)
-} PixelCfg;
-
 #define	BINNING_1	0
 #define	BINNING_8	1
 #define	BINNING_16	2

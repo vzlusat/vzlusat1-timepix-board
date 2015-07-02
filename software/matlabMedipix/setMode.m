@@ -16,10 +16,10 @@ s.StopBits = 1;
 
 fopen(s);
 
-exposure = 0;
+mode = 1;
 
 fprintf(s, '%c', '7');
-fwrite(s, exposure, 'uchar');
+fwrite(s, mode, 'uchar');
 
 % wait for data       
 while (s.BytesAvailable <= 0)

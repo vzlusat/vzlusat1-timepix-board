@@ -18,6 +18,8 @@
 #define DEBUG_OUTPUT 1
 #define MATLAB_OUTPUT 1
 
+#define PLOT_TEST_PATTERN 0
+
 // Address of the local CSP node
 // #define CSP_MY_ADDRESS	2	// Deska EPS
 // #define CSP_MY_ADDRESS	3	// Deska Measure
@@ -25,6 +27,9 @@
 
 // Address of the OBC CSP node
 #define CSP_OBC_ADDRESS	1	
+
+// clean last two lines
+#define ERASE_LAST_TWO_LINE 1
 
 // Actual position of CSP i2c on the xMega
 // Replace "TWIE" with adequate port of your board
@@ -62,7 +67,7 @@
 
 #define MPX_USART_BAUDRATE	BAUD200000
 
-#define MPX_USART_BUFFERSIZE	128	
+#define MPX_USART_BUFFERSIZE	255
 
 // definitions for ADT7420 thermometer IC
 #define ADT_I2C_INTERFACE	TWIC

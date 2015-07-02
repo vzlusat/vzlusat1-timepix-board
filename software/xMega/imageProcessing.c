@@ -99,7 +99,7 @@ uint8_t getBinnedPixel(uint8_t row, uint8_t col) {
 }
 
 // set the value in the pixel of the downscaled image
-uint8_t setBinnedPixel(uint8_t row, uint8_t col, uint8_t value) {
+void setBinnedPixel(uint8_t row, uint8_t col, uint8_t value) {
 	
 	unsigned long address = WORKING_SPACE_START_ADDRESS;
 	

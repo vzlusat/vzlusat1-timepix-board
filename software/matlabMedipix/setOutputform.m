@@ -16,7 +16,7 @@ s.StopBits = 1;
 
 fopen(s);
 
-outputForm = 2;
+outputForm = 3;
 
 fprintf(s, '%c', '8');
 fwrite(s, outputForm, 'uchar');
