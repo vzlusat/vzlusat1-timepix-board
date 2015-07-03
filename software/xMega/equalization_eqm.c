@@ -4,12 +4,15 @@
  * EQUALIZACE PRO POZEMSKY KUS
  */ 
 
-#if MEDIPIX_VERSION == EQM
-
 #include "equalization.h"
+
+#ifdef MEDIPIX_EQM
+
+#warning EQM Equalization used
+
 #include <avr/pgmspace.h>
 
-const uint8_t pseudo2Count2high[8192] PROGMEM = {
+const uint8_t pseudoCount2high[8192] PROGMEM = {
 	46,
 	46,
 	0,
@@ -8203,7 +8206,7 @@ const uint8_t pseudo2Count2high[8192] PROGMEM = {
 	0,
 0};
 
-const uint8_t pseudo2Count2low[8192] PROGMEM = {
+const uint8_t pseudoCount2low[8192] PROGMEM = {
 	21,
 	8,
 	0,
@@ -16397,7 +16400,7 @@ const uint8_t pseudo2Count2low[8192] PROGMEM = {
 	1,
 0};
 
-const uint8_t pseudo2Count1high[8192] PROGMEM = {
+const uint8_t pseudoCount1high[8192] PROGMEM = {
 	0,
 	46,
 	46,
@@ -24591,7 +24594,7 @@ const uint8_t pseudo2Count1high[8192] PROGMEM = {
 	0,
 46};
 
-const uint8_t pseudo2Count1low[8192] PROGMEM = {
+const uint8_t pseudoCount1low[8192] PROGMEM = {
 	0,
 	22,
 	9,
@@ -32785,7 +32788,7 @@ const uint8_t pseudo2Count1low[8192] PROGMEM = {
 	0,
 34};
 
-const uint8_t equalization28[8192] PROGMEM = {
+const uint8_t equalization8[8192] PROGMEM = {
 39,
 35,
 27,
@@ -40979,7 +40982,7 @@ const uint8_t equalization28[8192] PROGMEM = {
 51,
 31};
 
-const uint8_t equalization27[8192] PROGMEM = {
+const uint8_t equalization7[8192] PROGMEM = {
 19,
 23,
 43,
@@ -49173,7 +49176,7 @@ const uint8_t equalization27[8192] PROGMEM = {
 43,
 23};
 
-const uint8_t equalization26[8192] PROGMEM = {
+const uint8_t equalization6[8192] PROGMEM = {
 27,
 39,
 35,
@@ -57367,7 +57370,7 @@ const uint8_t equalization26[8192] PROGMEM = {
 27,
 19};
 
-const uint8_t equalization25[8192] PROGMEM = {
+const uint8_t equalization5[8192] PROGMEM = {
 23,
 15,
 23,
@@ -65561,7 +65564,7 @@ const uint8_t equalization25[8192] PROGMEM = {
 35,
 23};
 
-const uint8_t equalization24[8192] PROGMEM = {
+const uint8_t equalization4[8192] PROGMEM = {
 39,
 39,
 39,
@@ -73755,7 +73758,7 @@ const uint8_t equalization24[8192] PROGMEM = {
 27,
 31};
 
-const uint8_t equalization23[8192] PROGMEM = {
+const uint8_t equalization3[8192] PROGMEM = {
 35,
 27,
 31,
@@ -81949,7 +81952,7 @@ const uint8_t equalization23[8192] PROGMEM = {
 23,
 15};
 
-const uint8_t equalization22[8192] PROGMEM = {
+const uint8_t equalization2[8192] PROGMEM = {
 27,
 39,
 31,
@@ -90143,7 +90146,7 @@ const uint8_t equalization22[8192] PROGMEM = {
 19,
 31};
 
-const uint8_t equalization21[8192] PROGMEM = {
+const uint8_t equalization1[8192] PROGMEM = {
 23,
 19,
 35,

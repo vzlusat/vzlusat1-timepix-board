@@ -255,7 +255,10 @@
     <Compile Include="csp_interface.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="equalization2.c">
+    <Compile Include="equalization_eqm.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="equalization_flight.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="errorCodes.h">

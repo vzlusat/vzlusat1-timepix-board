@@ -276,15 +276,15 @@ uint16_t getRntRaw(uint16_t idx) {
 
 	if (idx < 8192) {
 		
-		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudo2Count1low) + idx);
+		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudoCount1low) + idx);
 		tempPtr++;
-		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudo2Count1high) + idx);
+		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudoCount1high) + idx);
 		
 	} else {
 		
-		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudo2Count2low) + idx - 8192);
+		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudoCount2low) + idx - 8192);
 		tempPtr++;
-		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudo2Count2high) + idx - 8192);
+		*tempPtr = pgm_read_byte_far(GET_FAR_ADDRESS(pseudoCount2high) + idx - 8192);
 	}
 	
 	return output;
@@ -292,8 +292,6 @@ uint16_t getRntRaw(uint16_t idx) {
 
 uint8_t getEqualizationRaw(uint16_t idx) {
 	
-#if MEDIPIX_VERSION == FLIGHT
-
 	if (idx < 8192) {
 
 		return pgm_read_byte(&(equalization1[idx]));
@@ -319,37 +317,6 @@ uint8_t getEqualizationRaw(uint16_t idx) {
 
 		return pgm_read_byte(&(equalization8[idx - 7*8192]));
 	}
-		
-#elif MEDIPIX_VERSION == EQM
-	
-	if (idx < 8192) {
-
-		return pgm_read_byte(&(equalization21[idx]));
-	} else if (idx < 2*8192) {
-
-		return pgm_read_byte(&(equalization22[idx - 8192]));
-	} else if (idx < 3*8192) {
-
-		return pgm_read_byte(&(equalization23[idx - 2*8192]));
-	} else if (idx < 4*8192) {
-
-		return pgm_read_byte(&(equalization24[idx - 3*8192]));
-	} else if (idx < 5*8192) {
-
-		return pgm_read_byte(&(equalization25[idx - 4*8192]));
-	} else if (idx < 6*8192) {
-
-		return pgm_read_byte(&(equalization26[idx - 5*8192]));
-	} else if (idx < 7*8192) {
-
-		return pgm_read_byte(&(equalization27[idx - 6*8192]));
-	} else {
-
-		return pgm_read_byte(&(equalization28[idx - 7*8192]));
-	}
-
-#endif
-
 }
 
 void pwrOnMedipix() {
