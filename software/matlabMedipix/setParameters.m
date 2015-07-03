@@ -17,7 +17,7 @@ s.StopBits = 1;
 fopen(s);
 
 treshold = 310;
-exposure = 1000;
+exposure = 60000;
 bias = 240;
 filtering = 1;
 mode = 1;
