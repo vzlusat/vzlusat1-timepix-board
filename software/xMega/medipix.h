@@ -83,11 +83,13 @@ typedef struct {
 	uint32_t unused13:2; uint32_t biasLvds:8; uint32_t refLvds:8; uint32_t unused14:14;
 } DACsTimepix;
 
-#define	BINNING_1	0
-#define	BINNING_8	1
-#define	BINNING_16	2
-#define	BINNING_32	3
-#define HISTOGRAMS	4
+enum MPX_MATLAB_COMMANDS {
+	BINNING_1 = 0,
+	BINNING_8 = 1,
+	BINNING_16 = 2,
+	BINNING_32 = 3,
+	HISTOGRAMS = 4,
+} OUTPUT_FORMS;
 
 // structure that hold all parameters of the measurement
 typedef struct {

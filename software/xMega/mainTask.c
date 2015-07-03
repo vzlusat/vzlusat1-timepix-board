@@ -608,7 +608,14 @@ void mainTask(void *p) {
 								
 								measure();
 								
-								replyOk();
+								sendImageInfo();
+								
+								switch imageParameters.outputForm {
+									
+									case 
+									
+									break;
+								}
 								
 							} else {
 								

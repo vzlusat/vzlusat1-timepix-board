@@ -17,18 +17,18 @@ s.StopBits = 1;
 fopen(s);
 
 treshold = 310;
-exposure = 60000;
+exposure = 200;
 bias = 240;
-filtering = 1;
-mode = 1;
-outputForm = 1;
+filtering = 0;
+mode = 0;
+outputForm = 4;
 
 tic
 
 fprintf(s, '%c', '2');
 
-fwrite(s, treshold, 'int16');
-fwrite(s, exposure, 'int16');
+fwrite(s, treshold, 'uint16');
+fwrite(s, exposure, 'uint16');
 fwrite(s, bias, 'uchar');
 fwrite(s, filtering, 'uchar');
 fwrite(s, mode, 'uchar');
