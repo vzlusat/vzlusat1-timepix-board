@@ -1,29 +1,11 @@
-if exist('s')
-    fclose(s);
-    delete(s);
-    clear s;
-end
-
-clear all
-
-s = serial('COM29');
-s.BaudRate = 230400;
-s.BytesAvailableFcnMode = 'terminator';
-s.Terminator = 'CR/LF';
-s.DataBits = 8;
-s.Parity = 'none';
-s.StopBits = 1;
-
-fopen(s);
+openPort();
 
 treshold = 310;
-exposure = 200;
+exposure = 1000;
 bias = 240;
 filtering = 0;
-mode = 0;
-outputForm = 4;
-
-tic
+mode = 1;
+outputForm = 0;
 
 fprintf(s, '%c', '2');
 
@@ -38,8 +20,4 @@ fwrite(s, outputForm, 'uchar');
 while (s.BytesAvailable <= 0)
 end
 
-disp(fgets(s));
-
-fclose(s);
-
-toc
+closePort();

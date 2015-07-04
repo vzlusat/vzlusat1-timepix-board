@@ -290,40 +290,13 @@ void filterOnePixelEvents() {
 // count number of active pixel in the filtered/output image
 void computeImageStatistics() {
 	
-	uint16_t i, j, numPerLine;
+	uint16_t i, j;
 	
 	uint8_t tempPixel;
 	
 	imageParameters.nonZeroPixelsFiltered = 0;
 	imageParameters.minValueFiltered = 255;
 	imageParameters.maxValueFiltered = 0;
-	
-	/*
-	uint8_t (*fce)(uint8_t, uint8_t);
-	
-	switch(imageParameters.outputForm) {
-	
-		case BINNING_1:
-			numPerLine = 256;
-			fce = &getFilteredPixel;
-		break;
-		
-		case BINNING_8:
-			numPerLine = 32;
-			fce = &getBinnedPixel;
-		break;
-		
-		case BINNING_16:
-			numPerLine = 16;
-			fce = &getBinnedPixel;
-		break;
-		
-		case BINNING_32:
-			numPerLine = 8;
-			fce = &getBinnedPixel;
-		break;
-	}
-	*/
 	
 	for (i = 0; i < 256; i++) {
 		
@@ -349,7 +322,9 @@ void applyBinning() {
 	
 	uint16_t i, j, x, y, sum;
 	
-	uint8_t numPerLine, numInBin, tempPixel;
+	uint8_t numPerLine = 0;
+	uint8_t numInBin = 0;
+	uint8_t tempPixel;
 	
 	switch (imageParameters.outputForm) {
 		

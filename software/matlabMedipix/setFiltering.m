@@ -1,20 +1,6 @@
-if exist('s')
-    fclose(s);
-    delete(s);
-    clear s;
-end
+openPort();
 
-clear all
-
-s = serial('COM29');
-s.BaudRate = 230400;
-s.BytesAvailableFcnMode = 'terminator';
-s.Terminator = 'CR/LF';
-s.DataBits = 8;
-s.Parity = 'none';
-s.StopBits = 1;
-
-fopen(s);
+tic
 
 filtering = 1;
 
@@ -27,4 +13,6 @@ end
 
 disp(fgets(s));
 
-fclose(s);
+toc
+
+closePort();

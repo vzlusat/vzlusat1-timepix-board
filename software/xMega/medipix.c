@@ -292,30 +292,37 @@ uint16_t getRntRaw(uint16_t idx) {
 
 uint8_t getEqualizationRaw(uint16_t idx) {
 	
+	uint16_t tempIdx;
+	
 	if (idx < 8192) {
 
 		return pgm_read_byte(&(equalization1[idx]));
-	} else if (idx < 2*8192) {
+	} else if (idx < (uint16_t) 2*8192) {
 
-		return pgm_read_byte(&(equalization2[idx - 8192]));
-	} else if (idx < 3*8192) {
+		return pgm_read_byte(&(equalization2[idx - (uint16_t) 8192]));
+	} else if (idx < (uint16_t) 3*8192) {
 
-		return pgm_read_byte(&(equalization3[idx - 2*8192]));
-	} else if (idx < 4*8192) {
+		return pgm_read_byte(&(equalization3[idx - (uint16_t) 2*8192]));
+	} else if (idx < (uint16_t) 4*8192) {
 
-		return pgm_read_byte(&(equalization4[idx - 3*8192]));
-	} else if (idx < 5*8192) {
+		return pgm_read_byte(&(equalization4[idx - (uint16_t) 3*8192]));
+	} else if (idx < (uint16_t) 5*8192) {
 
-		return pgm_read_byte(&(equalization5[idx - 4*8192]));
-	} else if (idx < 6*8192) {
+		return pgm_read_byte(&(equalization5[idx - (uint16_t) 4*8192]));
+	} else if (idx < (uint16_t) 6*8192) {
 
-		return pgm_read_byte(&(equalization6[idx - 5*8192]));
-	} else if (idx < 7*8192) {
+		return pgm_read_byte(&(equalization6[idx - (uint16_t) 5*8192]));
+	} else if (idx < (uint16_t) 7*8192) {
 
-		return pgm_read_byte(&(equalization7[idx - 6*8192]));
+		return pgm_read_byte(&(equalization7[idx - (uint16_t) 6*8192]));
 	} else {
+		
+		tempIdx = idx - 7*8192;
 
-		return pgm_read_byte(&(equalization8[idx - 7*8192]));
+		if (((uint16_t ) GET_FAR_ADDRESS(equalization8) + tempIdx) >= (uint16_t) 65536)
+			return pgm_read_byte_far(GET_FAR_ADDRESS(equalization8) + tempIdx);
+		else
+			return pgm_read_byte(&(equalization8[tempIdx]));
 	}
 }
 
@@ -565,7 +572,7 @@ void saveLine(uint8_t row, uint16_t * data) {
 		}
 		
 		// erase the last two lines
-		#if ERASE_LAST_TWO_LINE == 1
+		#if (ERASE_LAST_TWO_LINE == 1) && (PLOT_TEST_PATTERN == 0)
 			if (row >= 254)
 				newPixelValue = 0;
 		#endif
@@ -588,7 +595,6 @@ void saveLine(uint8_t row, uint16_t * data) {
 void readMatrix() {
 	
 	char inChar;
-	char temp[50];
 		
 	uint16_t bytesInIoBuffer = 0;
 	uint16_t bytesInTempBuffer = 0;
@@ -657,7 +663,7 @@ void readMatrix() {
 				#endif
 			
 				// save the line to fram
-				saveLine(rowsReceived, &dataBuffer);
+				saveLine(rowsReceived, (uint16_t *) &dataBuffer);
 				
 				// move the data from tempBuffer to IO buffer
 				memcpy(ioBuffer, tempBuffer, bytesInTempBuffer*sizeof(uint8_t));
@@ -693,7 +699,7 @@ void readMatrix() {
 			#endif
 
 			// save the line to fram
-			saveLine(rowsReceived, &dataBuffer);
+			saveLine(rowsReceived, (uint16_t *) &dataBuffer);
 			
 			break;
 		}

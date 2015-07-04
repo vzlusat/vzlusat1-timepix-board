@@ -25,8 +25,6 @@ void ADT_init(void)
 }
 
 int ADT_get_temperature(void) {
-	
-	int16_t temp;
 
 	adt_write_buffer[0] = ADT_REG_TEMPERATURE;
 	TWI_MasterWriteRead(&twi_adt_master,ADT_I2C_ADDRESS,&adt_write_buffer,1,2);		// 240 ms needed to convert temperature

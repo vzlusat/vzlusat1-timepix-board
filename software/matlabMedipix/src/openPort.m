@@ -4,25 +4,13 @@ if exist('s')
     clear s;
 end
 
-clear all
-
 s = serial('COM29');
-s.BaudRate = 230400;
+s.BaudRate = 230500;
 s.BytesAvailableFcnMode = 'terminator';
 s.Terminator = 'CR/LF';
 s.DataBits = 8;
 s.Parity = 'none';
 s.StopBits = 1;
+s.ReadAsyncMode = 'continuous';
 
 fopen(s);
-
-% pozadej o zapnuti mpx      
-fprintf(s, '%c', '3');
-    
-% wait for data       
-while (s.BytesAvailable <= 0)
-end
-
-disp(fgets(s));
-
-fclose(s);

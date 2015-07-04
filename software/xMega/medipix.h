@@ -17,6 +17,7 @@ void eraseMatrix();
 void closeShutter();
 void openShutter();
 
+void MpxDACstreamTimepix(uint8_t * buff);
 void setDACs();
 
 uint16_t getRntRaw(uint16_t idx);
@@ -83,7 +84,7 @@ typedef struct {
 	uint32_t unused13:2; uint32_t biasLvds:8; uint32_t refLvds:8; uint32_t unused14:14;
 } DACsTimepix;
 
-enum MPX_MATLAB_COMMANDS {
+typedef enum {
 	BINNING_1 = 0,
 	BINNING_8 = 1,
 	BINNING_16 = 2,
@@ -165,7 +166,7 @@ typedef struct {
 } newSettings_t;
 
 // board commands
-enum MPX_MATLAB_COMMANDS {
+typedef enum {
 	MEDIPIX_PWR_ON = 0,						// initialize medipix
 	MEDIPIX_PWR_OFF = 1,					// power off medipix
 	MEDIPIX_SET_ALL_PARAMS = 2,				// set all aquisition parameters (save to fram)
@@ -182,7 +183,8 @@ enum MPX_MATLAB_COMMANDS {
 	MEDIPIX_SEND_FILTERED = 13,				// send the filtered image
 	MEDIPIX_SEND_BINNED = 14,				// send binned/histogram image
 	MEDIPIX_SEND_METADATA = 15,				// send only the image metadata
-};
+	MEDIPIX_MEASURE_NO_TURNOFF = 16,		// dont turn off medipix after measurement
+} MPX_MATLAB_COMMANDS;
 
 volatile uint8_t ioBuffer[448];
 volatile uint8_t tempBuffer[256];

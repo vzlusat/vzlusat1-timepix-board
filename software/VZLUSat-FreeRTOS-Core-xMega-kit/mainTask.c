@@ -232,7 +232,7 @@ void mainTask(void *p) {
 					
 					outcomingPacket->length = 1;
 					
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 					
 				break;
 				

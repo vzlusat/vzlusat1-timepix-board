@@ -1,33 +1,28 @@
-if exist('s')
-    fclose(s);
-    delete(s);
-    clear s;
-end
+setParameters;
 
-clear all
+closePort();
+clear all;
 
-s = serial('COM29');
-s.BaudRate = 230400;
-s.BytesAvailableFcnMode = 'terminator';
-s.Terminator = 'CR/LF';
-s.DataBits = 8;
-s.Parity = 'none';
-s.StopBits = 1;
-
-fopen(s);
+openPort();
 
 tic
 
 % pozadej o mereni    
 fprintf(s, '%c', '9');
 
-% wait for last line data       
-while (s.BytesAvailable <= 0)
+receiveMetadata;
+
+% receive compressed image
+if image.outputForm == 0
+    
+    receiveCompressed;
+    
+else
+   
+    receivePostprocessed;
+    
 end
 
-disp(fgets(s));
-
-readMetadata;
-
 toc
-    
+
+closePort();

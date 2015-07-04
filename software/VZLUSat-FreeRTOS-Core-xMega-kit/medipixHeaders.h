@@ -65,6 +65,7 @@ enum MPX_MATLAB_COMMANDS {
 	MEDIPIX_SEND_FILTERED = 13,				// send the filtered image
 	MEDIPIX_SEND_BINNED = 14,				// send binned/histogram image
 	MEDIPIX_SEND_METADATA = 15,				// send only the image metadata
+	MEDIPIX_MEASURE_NO_TURNOFF = 16,		// dont turn off medipix after measurement
 };
 
 #endif /* MEDIPIXHEADERS_H_ */

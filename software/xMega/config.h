@@ -28,7 +28,7 @@
 #define CSP_OBC_ADDRESS	1	
 
 // clean last two lines
-#define ERASE_LAST_TWO_LINE 1
+#define ERASE_LAST_TWO_LINE 0
 
 // Actual position of CSP i2c on the xMega
 // Replace "TWIE" with adequate port of your board
