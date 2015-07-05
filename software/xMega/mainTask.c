@@ -97,7 +97,7 @@ int echoBack(csp_packet_t * inPacket) {
 
 void sendString(char * in) {
 	
-	vTaskDelay(30);
+	vTaskDelay(40);
 	
 	strcpy(outcomingPacket->data, in);
 	outcomingPacket->length = strlen(in);
@@ -106,7 +106,7 @@ void sendString(char * in) {
 
 void replyOk() {
 	
-	vTaskDelay(30);
+	vTaskDelay(40);
 		
 	outcomingPacket->data[0] = 'O';
 	outcomingPacket->data[1] = 'K';
@@ -116,12 +116,12 @@ void replyOk() {
 	outcomingPacket->length = 4;
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 	
-	vTaskDelay(30);
+	vTaskDelay(40);
 }
 
 void replyErr(uint8_t error) {
 	
-	vTaskDelay(20);
+	vTaskDelay(40);
 	
 	outcomingPacket->data[0] = 'E';
 	outcomingPacket->data[1] = error;
@@ -131,7 +131,7 @@ void replyErr(uint8_t error) {
 	outcomingPacket->length = 4;
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 	
-	vTaskDelay(20);
+	vTaskDelay(40);
 }
 
 void medipixInit() {
@@ -171,12 +171,12 @@ void sendImageInfo() {
 	// send the final packet
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 	
-	vTaskDelay(30);
+	vTaskDelay(100);
 }
 
 void waitForAck() {
 		
-	xQueueReceive(xCSPEventQueue, &xReceivedEvent, 1000);
+	xQueueReceive(xCSPEventQueue, &xReceivedEvent, 5000);
 }
 
 uint16_t parseUint16(uint8_t * buffer) {
@@ -440,7 +440,7 @@ void measure(uint8_t turnOff) {
 		
 		sendCompressed(1);
 		
-		} else {
+	} else {
 		
 		sendPostProcessed();
 	}
@@ -629,7 +629,7 @@ void mainTask(void *p) {
 						
 						case MEDIPIX_MEASURE:
 							
-							measure(0);
+							measure(1);
 						
 						break;
 						

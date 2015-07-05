@@ -29,6 +29,7 @@ else
         elseif packetType == 'C'
 
             fprintf(s, '%c', 'h');
+            idx = fread(s, 1, 'uint16');
             break;
 
         end

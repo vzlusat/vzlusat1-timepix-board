@@ -85,7 +85,7 @@ void MpxSetDACs() {
 			break;
 	}
 	
-	vTaskDelay(20);
+	vTaskDelay(40);
 	
 	stream[0]='d';
 	
@@ -109,7 +109,7 @@ void MpxSetDACs() {
 			break;
 	}
 	
-	vTaskDelay(20);
+	vTaskDelay(40);
 }
 
 // Shifts data in the buffer by "shift" bits to right
@@ -343,7 +343,7 @@ void pwrOnMedipix() {
 			break;
 	}
 	
-	vTaskDelay(20);
+	vTaskDelay(40);
 }
 
 void setBias(uint8_t bias) {
@@ -408,7 +408,7 @@ void closeShutter() {
 			break;
 	}
 
-	vTaskDelay(20);
+	vTaskDelay(40);
 
 	#endif
 }
@@ -430,7 +430,7 @@ void eraseMatrix() {
 			break;
 	}
 	
-	vTaskDelay(20);
+	vTaskDelay(40);
 	
 	#endif
 }
@@ -545,7 +545,7 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 			break;
 	}
 	
-	vTaskDelay(20);
+	vTaskDelay(40);
 	
 	return 0;
 }

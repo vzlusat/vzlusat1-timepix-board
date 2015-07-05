@@ -1,7 +1,7 @@
 openPort();
 
 treshold = 310;
-exposure = 1000;
+exposure = 100;
 bias = 240;
 filtering = 0;
 mode = 1;
@@ -19,5 +19,7 @@ fwrite(s, outputForm, 'uchar');
 % wait for data       
 while (s.BytesAvailable <= 0)
 end
+
+disp(fgets(s));
 
 closePort();

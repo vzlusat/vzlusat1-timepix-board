@@ -35,7 +35,7 @@ void spi_mem_init(void)
 	ioport_configure_port_pin(&SPI_PORT, PIN7_bm, IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);		// SCK
 	
 	spi_master_init(&SPI_MEM_INTERFACE);
-	spi_master_setup_device(&SPI_MEM_INTERFACE, &spi_device_conf, SPI_MODE_0, 10000000, 0);
+	spi_master_setup_device(&SPI_MEM_INTERFACE, &spi_device_conf, SPI_MODE_0, 20000000, 0);
 	spi_enable(&SPI_MEM_INTERFACE);
 
 	led_red_toggle();

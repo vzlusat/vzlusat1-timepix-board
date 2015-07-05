@@ -236,6 +236,17 @@ void mainTask(void *p) {
 					
 				break;
 				
+				// measure no turn off
+				case 'q':
+				
+					outcomingPacket->data[0] = MEDIPIX_MEASURE_NO_TURNOFF;
+					
+					outcomingPacket->length = 1;
+					
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
+				
+				break;
+				
 				// read original image
 				case 'e':
 				
