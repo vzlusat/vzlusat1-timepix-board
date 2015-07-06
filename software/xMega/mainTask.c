@@ -487,7 +487,7 @@ void sendTemperature() {
 	
 	char temp[40];
 	
-	sprintf(temp, "Temp = %d\n\r", adtTemp);
+	sprintf(temp, "Temp = %d %d\n\r", ADT_get_temperature(), adt_convert_temperature(ADT_get_temperature()));
 	strcpy(outcomingPacket->data, temp);
 	outcomingPacket->length = strlen(temp);
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);

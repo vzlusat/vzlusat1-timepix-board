@@ -26,7 +26,7 @@ void ADT_init(void)
 	TWI_MasterWriteRead(&twi_adt_master,ADT_I2C_ADDRESS,&adt_write_buffer,2,0);
 }
 
-int8_t ADT_get_temperature(void) {
+int16_t ADT_get_temperature(void) {
 
 	adt_write_buffer[0] = ADT_REG_TEMPERATURE;
 	TWI_MasterWriteRead(&twi_adt_master,ADT_I2C_ADDRESS,&adt_write_buffer,1,2);		// 240 ms needed to convert temperature
@@ -36,20 +36,13 @@ int8_t ADT_get_temperature(void) {
 	adt_write_buffer[0] = ADT_REG_TEMPERATURE;
 	TWI_MasterWriteRead(&twi_adt_master,ADT_I2C_ADDRESS,&adt_write_buffer,1,2);		// 240 ms needed to convert temperature
 
-	uint16_t temp = (twi_adt_master.readData[0]<<8) + (twi_adt_master.readData[1]);
-	
-	// negative temperature
-	if ((temp & 0x8000) > 0) {
-		
-		return (int8_t) ((float) ((signed long) temp - (signed long) 65536))/((float) 128);
-		
-	// positive temperature
-	} else {
-		
-		return (int8_t) (((float) temp)/((float) 128));
-	}
+	return (twi_adt_master.readData[0]<<8) + (twi_adt_master.readData[1]);
 }
 
+int8_t adt_convert_temperature(int16_t temp) {
+	
+	return (int8_t) (((float) temp)/((float) 128));
+}
 
 /*!  Master Interrupt vector for ADT7420. */
 ISR(ADT_I2C_TWIM) {

@@ -22,7 +22,7 @@ void adtTask(void *p) {
 
 	while (true) {
 		
-		adtTemp = ADT_get_temperature();
+		adtTemp = adt_convert_temperature(ADT_get_temperature());
 		
 		vTaskDelay(5000);
 	}

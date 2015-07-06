@@ -32,7 +32,7 @@ enum ADT_commands_enum {
 
 
 void ADT_init(void);
-int8_t ADT_get_temperature(void);
-static inline float ADT_temperature_16b(int temperature);
+int16_t ADT_get_temperature(void);
+int8_t adt_convert_temperature(int16_t raw_temperature);
 
 #endif /* ADT7420_H_ */
