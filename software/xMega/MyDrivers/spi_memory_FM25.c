@@ -1,8 +1,8 @@
 #include "spi_memory_FM25.h"
 #include "config.h"
-//#include "spi.h"
 #include "spi_master.h"
 #include "avr/cpufunc.h"
+#include "fram_mapping.h"
 
 uint8_t buffer_memory[68];		// buffer for saving and loading data from SPI memory
 
@@ -148,6 +148,18 @@ void spi_mem_write_command(uint8_t command){
 	fram_select();
 	spi_write_packet(&SPI_MEM_INTERFACE, &command, 1);
 	fram_deselect();
+}
+
+uint8_t fram_test() {
+	
+	spi_mem_write_byte(FRAM_TEST_ADDRESS, 33);
+	
+	if (spi_mem_read_byte(FRAM_TEST_ADDRESS) == 33) {
+		
+		return 1;
+	}
+	
+	return 0;
 }
 
 void fram_protect() {

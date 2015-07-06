@@ -38,6 +38,8 @@ uint16_t spi_mem_read_uint16t(unsigned long address);
 void spi_mem_write_blob(unsigned long address, uint8_t * data, uint8_t size);
 void spi_mem_read_blob(unsigned long address, uint8_t * data, uint8_t size);
 
+uint8_t fram_test();
+
 void spi_mem_init(void);
 void fram_unprotect(void);
 void fram_protect(void);

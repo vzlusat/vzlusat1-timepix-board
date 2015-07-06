@@ -16,8 +16,9 @@
 #define WORKING_SPACE_START_ADDRESS		((unsigned long) 131072) + IMAGE_MEMORY_OFFSET
 
 // define additional addresses
-#define IMAGE_ID_ADDRESS				((unsigned long) 2)	// uint16t
 #define BOOT_COUNT_ADDRESS				((unsigned long) 0)	// uint16t
+#define IMAGE_ID_ADDRESS				((unsigned long) 2)	// uint16t
+#define FRAM_TEST_ADDRESS				((unsigned long) 4) // uint8_t
 #define IMAGE_PARAMETERS_ADDRESS		((unsigned long) 20)  // imageParameters_t
 #define MEDIPIX_BOOTUP_MESSAGE			((unsigned long) 84) // bootup message from medipix is stored here
 

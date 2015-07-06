@@ -41,4 +41,6 @@ const uint8_t equalization3[8192];
 const uint8_t equalization2[8192];
 const uint8_t equalization1[8192];
 
+const uint32_t crc_tab[256];
+
 #endif /* EQUALIZATION_H_ */

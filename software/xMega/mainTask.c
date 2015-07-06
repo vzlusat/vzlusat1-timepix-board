@@ -16,6 +16,7 @@
 #include "errorCodes.h"
 #include "medipix.h"
 #include "adtTask.h"
+#include "spi_memory_FM25.h"
 
 csp_packet_t * outcomingPacket;
 xQueueHandle * xCSPEventQueue;
@@ -47,6 +48,16 @@ void sendFreeHeapSpace() {
 /*	Reply with some status info message									*/
 /* -------------------------------------------------------------------- */
 int houseKeeping(csp_packet_t * inPacket) {
+	
+	loadImageParametersFromFram();
+	
+	hk_data_t hk_data;
+	
+	hk_data.bootCount = getBootCount();
+	hk_data.imagesTaken = imageParameters.imageId;
+	hk_data.temperature = adtTemp;
+	hk_data.framStatus = fram_test();
+	
 	
 	// put the info message into the packet
 	char msg[64];
@@ -440,7 +451,7 @@ void measure(uint8_t turnOff) {
 		
 		applyBinning();
 		
-		} else if (imageParameters.outputForm == HISTOGRAMS) {
+	} else if (imageParameters.outputForm == HISTOGRAMS) {
 		
 		createHistograms();
 	}
@@ -485,11 +496,8 @@ void sendBootupMessage() {
 
 void sendTemperature() {
 	
-	char temp[40];
-	
-	sprintf(temp, "Temp = %d %d\n\r", ADT_get_temperature(), adt_convert_temperature(ADT_get_temperature()));
-	strcpy(outcomingPacket->data, temp);
-	outcomingPacket->length = strlen(temp);
+	outcomingPacket->data[0] = adtTemp;
+	outcomingPacket->length = 1;
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
@@ -506,24 +514,31 @@ void mainTask(void *p) {
 	while (1) {
 			
 		if (xQueueReceive(xCSPEventQueue, &xReceivedEvent, 1)) {
+			
+			dest_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.sport;
+			source_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.dport;
+			
+			uint8_t command = ((csp_packet_t *) xReceivedEvent.pvData)->data[0];
+			uint8_t * packetPayload = ((csp_packet_t *) xReceivedEvent.pvData)->data+1;
 		
 			switch( xReceivedEvent.eEventType ) {
-			
-				// sends the info about the system
-				case housKeepingEvent :
 				
-					houseKeeping(xReceivedEvent.pvData);
-			
+				case obcEvent :
+					
+					switch (command) {
+				
+						case MEDIPIX_GET_TEMPERATURE:
+						
+							sendTemperature();
+						
+						break;
+					
+					}
+									
 				break;
 				
 				// sends the info about the system
-				case medipixEvent :
-					
-					dest_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.sport;
-					source_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.dport;
-					
-					uint8_t command = ((csp_packet_t *) xReceivedEvent.pvData)->data[0];
-					uint8_t * packetPayload = ((csp_packet_t *) xReceivedEvent.pvData)->data+1;
+				case directEvent :
 					
 					switch (command) {
 						

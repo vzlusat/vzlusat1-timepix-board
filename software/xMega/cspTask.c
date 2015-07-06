@@ -40,36 +40,24 @@ void cspTask(void *p) {
 		/* Read packets. Timout is 1000 ms */
 		while ((packet = csp_read(conn, 10)) != NULL) {
 			switch (csp_conn_dport(conn)) {
-				
-				/* if Port 15 packet received */
-				// Echo back the incoming packet
-				case 15:
-				
-					newEvent->eEventType = echoBackEvent;
-					newEvent->pvData = packet;
-					xQueueSend(xCSPEventQueue, newEvent, 10);
 					
-				break;
-					
-				/* if Port 16 packet received */
-				// Free Heap space in Human readable form
+				// direct event
 				case 16:
 				
-					newEvent->eEventType = medipixEvent;
+					newEvent->eEventType = directEvent;
 					newEvent->pvData = packet;
 					xQueueSend(xCSPEventQueue, newEvent, 10);	
 					
-				break;	
-				
-				/* if Port 17 packet received */
-				// Return info status message
+				break;
+
+				// datakeeper saving event
 				case 17:
 				
-					newEvent->eEventType = housKeepingEvent;
+					newEvent->eEventType = obcEvent;
 					newEvent->pvData = packet;
 					xQueueSend(xCSPEventQueue, newEvent, 10);
 				
-				break;		
+				break;
 				
 				/* Process packet here */
 				default:
