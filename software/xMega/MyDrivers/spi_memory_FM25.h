@@ -5,8 +5,7 @@
 #ifndef SPI_MEMORY
 #define SPI_MEMORY
 
-// #define FRAM_CS		IOPORT_CREATE_PIN(PORTD, 4)		// letovy
-#define FRAM_CS		IOPORT_CREATE_PIN(PORTC, 4)			// prototyp
+#define FRAM_CS		IOPORT_CREATE_PIN(PORTC, 4)
 
 #define	FRAM_WP		IOPORT_CREATE_PIN(PORTB, 1)
 

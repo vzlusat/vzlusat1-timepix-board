@@ -21,6 +21,7 @@
 csp_packet_t * outcomingPacket;
 xQueueHandle * xCSPEventQueue;
 
+unsigned int dest_addr;
 unsigned int dest_p;
 unsigned int source_p;
 
@@ -41,13 +42,13 @@ void sendFreeHeapSpace() {
 	strcpy(outcomingPacket->data, msg);
 	outcomingPacket->length = strlen(msg);
 
-	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
 /* -------------------------------------------------------------------- */
 /*	Reply with some status info message									*/
 /* -------------------------------------------------------------------- */
-int houseKeeping(csp_packet_t * inPacket) {
+void houseKeeping() {
 	
 	loadImageParametersFromFram();
 	
@@ -55,30 +56,17 @@ int houseKeeping(csp_packet_t * inPacket) {
 	
 	hk_data.bootCount = getBootCount();
 	hk_data.imagesTaken = imageParameters.imageId;
-	hk_data.temperature = adtTemp;
+	hk_data.temperature = adt_convert_temperature(ADT_get_temperature());
 	hk_data.framStatus = fram_test();
-	
-	
-	// put the info message into the packet
-	char msg[64];
-	memset(msg, 0, 64);
-	sprintf(msg, "Timepix Board\n\rUptime: %id %ih %im %ds\n\r\000", (int16_t) hoursTimer/24, (int16_t) hoursTimer%24, (int16_t) secondsTimer/60, (int16_t) secondsTimer%60);
+	hk_data.medipixStatus = medipixCheckStatus();
+	hk_data.hours = (uint8_t) hoursTimer;
+	hk_data.minutes = (uint8_t) secondsTimer/60;
+	hk_data.seconds = (uint8_t) secondsTimer%60;
 
-	memset(outcomingPacket->data, 0, sizeof(outcomingPacket->data));
-	strcpy(outcomingPacket->data, msg);
-	outcomingPacket->length = strlen(msg)+1;
+	memcpy(outcomingPacket->data, &hk_data, sizeof(hk_data_t));
+	outcomingPacket->length = sizeof(hk_data_t);
 
-	/* Send packet */
-	if (csp_sendto(CSP_PRIO_NORM, inPacket->id.src, inPacket->id.sport, inPacket->id.dport, CSP_O_NONE, outcomingPacket, 1000) == CSP_ERR_NONE) {
-		
-		/* Send succeeded */
-		led_red_toggle();
-	} else {
-		/* Send failed */
-	}
-
-	return 0;
-	
+	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
 /* -------------------------------------------------------------------- */
@@ -104,7 +92,7 @@ void sendString(char * in) {
 	
 	strcpy(outcomingPacket->data, in);
 	outcomingPacket->length = strlen(in);
-	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
 void replyOk() {
@@ -113,11 +101,10 @@ void replyOk() {
 		
 	outcomingPacket->data[0] = 'O';
 	outcomingPacket->data[1] = 'K';
-	outcomingPacket->data[2] = '\r';
-	outcomingPacket->data[3] = '\n';
+	outcomingPacket->data[2] = '\0';
 	
-	outcomingPacket->length = 4;
-	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	outcomingPacket->length = 3;
+	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 	
 	vTaskDelay(40);
 }
@@ -128,11 +115,10 @@ void replyErr(uint8_t error) {
 	
 	outcomingPacket->data[0] = 'E';
 	outcomingPacket->data[1] = error;
-	outcomingPacket->data[2] = '\r';
-	outcomingPacket->data[3] = '\n';
+	outcomingPacket->data[2] = '\0';
 	
-	outcomingPacket->length = 4;
-	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	outcomingPacket->length = 3;
+	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 	
 	vTaskDelay(40);
 }
@@ -143,13 +129,16 @@ void medipixInit() {
 		
 	pwrOnMedipix();	
 
-	loadEqualization(&dataBuffer, &ioBuffer);
-	
-	eraseMatrix();
-	
-	setDACs(imageParameters.threshold);
-	
-	setBias(imageParameters.bias);
+	if (medipixPowered() == 1) {
+
+		loadEqualization(&dataBuffer, &ioBuffer);
+		
+		eraseMatrix();
+		
+		setDACs(imageParameters.threshold);
+		
+		setBias(imageParameters.bias);
+	}
 }
 
 void medipixStop() {
@@ -159,27 +148,26 @@ void medipixStop() {
 
 void sendImageInfo() {
 	
-	// 'A' means the first packet of the image message
-	outcomingPacket->data[0] = 'A';
-	
 	// load current info from fram
 	loadImageParametersFromFram();
 	
+	imageParameters.packetType = 'A';
+	
 	// save current info to the packet
-	memcpy(outcomingPacket->data+1, &imageParameters, sizeof(imageParameters_t));
+	memcpy(outcomingPacket->data, &imageParameters, sizeof(imageParameters_t));
 	
 	// set the size of the packet
-	outcomingPacket->length = 1+sizeof(imageParameters_t);
+	outcomingPacket->length = sizeof(imageParameters_t);
 	
 	// send the final packet
-	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 	
 	vTaskDelay(100);
 }
 
 void waitForAck() {
 		
-	xQueueReceive(xCSPEventQueue, &xReceivedEvent, 5000);
+	xQueueReceive(xCSPEventQueue, &xReceivedEvent, 100);
 }
 
 uint16_t parseUint16(uint8_t * buffer) {
@@ -250,7 +238,7 @@ uint8_t sendCompressed(uint8_t image) {
 					
 					outcomingPacket->data[3] = numPixelsInPacket;
 					outcomingPacket->length = packetPointer;
-					csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+					csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 					
 					waitForAck();
 					
@@ -268,7 +256,7 @@ uint8_t sendCompressed(uint8_t image) {
 		
 		outcomingPacket->length = packetPointer;
 		outcomingPacket->data[3] = numPixelsInPacket;
-		csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+		csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 	}
 	
 	waitForAck();
@@ -277,7 +265,7 @@ uint8_t sendCompressed(uint8_t image) {
 	outcomingPacket->data[0] = 'C';
 	outcomingPacket->length = 1;
 	
-	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 					
 	waitForAck();
 	
@@ -327,7 +315,7 @@ void sendPostProcessed() {
 			
 			outcomingPacket->length = 64 + 4;
 			
-			csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+			csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 			
 			waitForAck();
 		}
@@ -353,7 +341,7 @@ void sendPostProcessed() {
 			
 			outcomingPacket->length = 64 + 4;
 			
-			csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+			csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 			
 			waitForAck();
 		}
@@ -384,7 +372,7 @@ void sendPostProcessed() {
 					
 					outcomingPacket->length = 64 + 4;
 					
-					csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+					csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 					
 					waitForAck();
 					
@@ -415,9 +403,7 @@ void shutterDelay() {
 	}
 }
 
-void measure(uint8_t turnOff) {
-	
-	
+void measure(uint8_t turnOff, uint8_t withoutData) {
 	
 	if (medipixPowered() == 0) {
 		
@@ -434,7 +420,7 @@ void measure(uint8_t turnOff) {
 	
 	readMatrix();
 
-	if (turnOff == 1) {
+	if (turnOff == MEASURE_TURNOFF_YES) {
 		
 		medipixStop();
 	}
@@ -462,13 +448,16 @@ void measure(uint8_t turnOff) {
 	
 	sendImageInfo();
 	
-	if (imageParameters.outputForm == BINNING_1) {
-		
-		sendCompressed(1);
-		
-	} else {
-		
-		sendPostProcessed();
+	if (withoutData == MEASURE_WITHOUT_DATA_NO) {
+	
+		if (imageParameters.outputForm == BINNING_1) {
+			
+			sendCompressed(1);
+			
+		} else {
+			
+			sendPostProcessed();
+		}
 	}
 }
 
@@ -491,14 +480,14 @@ void sendBootupMessage() {
 	
 	outcomingPacket->length = i;
 	
-	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
 void sendTemperature() {
 	
 	outcomingPacket->data[0] = adtTemp;
 	outcomingPacket->length = 1;
-	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
 /* -------------------------------------------------------------------- */
@@ -517,6 +506,7 @@ void mainTask(void *p) {
 			
 			dest_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.sport;
 			source_p = ((csp_packet_t *) (xReceivedEvent.pvData))->id.dport;
+			dest_addr = ((csp_packet_t *) (xReceivedEvent.pvData))->id.src;
 			
 			uint8_t command = ((csp_packet_t *) xReceivedEvent.pvData)->data[0];
 			uint8_t * packetPayload = ((csp_packet_t *) xReceivedEvent.pvData)->data+1;
@@ -546,7 +536,10 @@ void mainTask(void *p) {
 							
 							medipixInit();
 							
-							replyOk();
+							if (medipixPowered() == 1)
+								replyOk();
+							else
+								replyErr(ERROR_MEDIPIX_NOT_POWERED);	
 							
 						break;
 						
@@ -691,19 +684,25 @@ void mainTask(void *p) {
 						
 						case MEDIPIX_MEASURE:
 							
-							measure(1);
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO);
 						
 						break;
 						
 						case MEDIPIX_MEASURE_WITH_PARAMETERS:
 							
-							measure(1);
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO);
 
 						break;
 						
 						case MEDIPIX_MEASURE_NO_TURNOFF:
 						
-							measure(0);
+							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_NO);
+						
+						break;
+						
+						case MEDIPIX_MEASURE_WITHOUT_DATA:
+						
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_YES);
 						
 						break;
 						
@@ -743,6 +742,12 @@ void mainTask(void *p) {
 						case MEDIPIX_GET_TEMPERATURE:
 						
 							sendTemperature();
+						
+						break;
+						
+						case MEDIPIX_GET_HOUSKEEPING:
+						
+							houseKeeping();
 						
 						break;
 					}

@@ -95,6 +95,8 @@ typedef enum {
 // structure that hold all parameters of the measurement
 typedef struct {
 	
+	uint8_t packetType;
+	
 	// 0 -> 65535
 	uint16_t imageId;
 	
@@ -173,5 +175,7 @@ volatile uint8_t tempBuffer[256];
 volatile uint16_t dataBuffer[256];
 
 volatile imageParameters_t imageParameters;
+
+uint8_t medipixCheckStatus();
 
 #endif /* MEDIPIX_H_ */

@@ -19,8 +19,6 @@ uint8_t medipixOnline = 0;
 
 uint16_t DefaultDacValsTimepix[15] = {1, 100, 255, 127, 127, 0, 314, 7, 130, 128, 80, 85, 128, 128, 0};
 	
-char timeOutMessage[] = "Timed out";
-
 volatile Mpx_DAC DAC;
 
 volatile imageParameters_t imageParameters;
@@ -28,6 +26,20 @@ volatile imageParameters_t imageParameters;
 volatile uint8_t ioBuffer[448];
 volatile uint8_t tempBuffer[256];
 volatile uint16_t dataBuffer[256];
+
+uint8_t medipixCheckStatus() {
+	
+	char message[] = "!Unit is on line. Medipix TPXXX chips: 1 Medipix chips: 1 Ready";
+	
+	uint8_t i;
+	for (i = 0; i < strlen(message); i++) {
+		
+		if (((uint8_t) message[i]) != ((uint8_t) spi_mem_read_byte(MEDIPIX_BOOTUP_MESSAGE + i)))
+			return 0;
+	}
+	
+	return 1;
+}
 
 void bin2hex(uint8_t in, uint8_t * out) {
 	
@@ -331,6 +343,12 @@ uint8_t getEqualizationRaw(uint16_t idx) {
 
 void pwrOnMedipix() {
 	
+	char timeOutMessage[] = "Timed out";
+	
+	// clean the buffer before doing anything
+	char inChar;
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1)) {}
+	
 	ioport_set_pin_level(MEDIPIX_PWR, true);
 	medipixOnline = 1;
 	
@@ -339,7 +357,6 @@ void pwrOnMedipix() {
 	uint8_t i = 0;
 	
 	// prijme uvitaci zpravu
-	char inChar;
 	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 8000)) {
 		
 		// TODO uložit zprávu z medipixu do fram k pozdìjšímu pøeètení
@@ -363,6 +380,14 @@ void pwrOnMedipix() {
 			spi_mem_write_byte(MEDIPIX_BOOTUP_MESSAGE+i, timeOutMessage[i]);
 		}
 	}
+	
+	if (medipixCheckStatus() == 0) {
+		
+		ioport_set_pin_level(MEDIPIX_PWR, false);
+		medipixOnline = 0;
+	}
+	
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1)) {}
 	
 	vTaskDelay(40);
 }
