@@ -11,12 +11,15 @@
 #include "mainTask.h"
 #include "imageProcessing.h"
 #include "avr/cpufunc.h"
+#include "fram_mapping.h"
 
 // 1 if medipix is powered
 // 0 if medipix is turned off
 uint8_t medipixOnline = 0;
 
 uint16_t DefaultDacValsTimepix[15] = {1, 100, 255, 127, 127, 0, 314, 7, 130, 128, 80, 85, 128, 128, 0};
+	
+char timeOutMessage[] = "Timed out";
 
 volatile Mpx_DAC DAC;
 
@@ -331,6 +334,10 @@ void pwrOnMedipix() {
 	ioport_set_pin_level(MEDIPIX_PWR, true);
 	medipixOnline = 1;
 	
+	uint8_t timedOut = 1;
+	
+	uint8_t i = 0;
+	
 	// prijme uvitaci zpravu
 	char inChar;
 	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 8000)) {
@@ -339,8 +346,22 @@ void pwrOnMedipix() {
 
 		// ukonci cekani na odpoved pri prijmuti posledniho znaku
 
-		if (inChar == '\r')
+		if (inChar == '\r') {
+			
+			timedOut = 0;
 			break;
+		}
+	
+		spi_mem_write_byte(MEDIPIX_BOOTUP_MESSAGE + i++, inChar);
+	}
+	
+	// if the bootup timed out, save it into the message
+	if (timedOut == 1) {
+		
+		for (i = 0; i < strlen(timeOutMessage)+1; i++) {
+			
+			spi_mem_write_byte(MEDIPIX_BOOTUP_MESSAGE+i, timeOutMessage[i]);
+		}
 	}
 	
 	vTaskDelay(40);

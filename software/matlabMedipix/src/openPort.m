@@ -12,6 +12,6 @@ s.DataBits = 8;
 s.Parity = 'none';
 s.StopBits = 1;
 s.ReadAsyncMode = 'continuous';
-s.Timeout = 120;
+s.Timeout = 600;
 
 fopen(s);

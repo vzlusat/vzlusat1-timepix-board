@@ -15,6 +15,7 @@
 #include "fram_mapping.h"
 #include "errorCodes.h"
 #include "medipix.h"
+#include "adtTask.h"
 
 csp_packet_t * outcomingPacket;
 xQueueHandle * xCSPEventQueue;
@@ -30,7 +31,7 @@ xCSPStackEvent_t xReceivedEvent;
 /* -------------------------------------------------------------------- */
 /*	Reply the free heap space in human readable form					*/
 /* -------------------------------------------------------------------- */
-int sendFreeHeapSpace(csp_packet_t * inPacket) {
+void sendFreeHeapSpace() {
 	
 	char msg[20];
 	itoa(xPortGetFreeHeapSize(), msg, 10);
@@ -39,15 +40,7 @@ int sendFreeHeapSpace(csp_packet_t * inPacket) {
 	strcpy(outcomingPacket->data, msg);
 	outcomingPacket->length = strlen(msg);
 
-	/* Send packet */
-	if (csp_sendto(CSP_PRIO_NORM, inPacket->id.src, inPacket->id.sport, inPacket->id.dport, CSP_O_NONE, outcomingPacket, 1000) == CSP_ERR_NONE) {
-		/* Send succeeded */
-		led_red_toggle();
-		} else {
-		/* Send failed */
-	}
-
-	return 0;
+	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
 /* -------------------------------------------------------------------- */
@@ -58,8 +51,7 @@ int houseKeeping(csp_packet_t * inPacket) {
 	// put the info message into the packet
 	char msg[64];
 	memset(msg, 0, 64);
-	// sprintf(msg, "Timepix Board\n\rUptime: %id %ih %im %ds\n\r\000", (int16_t) hoursTimer/24, (int16_t) hoursTimer%24, (int16_t) secondsTimer/60, (int16_t) secondsTimer%60);
-	sprintf(msg, "%lu, %lu, %lu\n\r", GET_FAR_ADDRESS(equalization8), GET_FAR_ADDRESS(equalization3), &equalization3);
+	sprintf(msg, "Timepix Board\n\rUptime: %id %ih %im %ds\n\r\000", (int16_t) hoursTimer/24, (int16_t) hoursTimer%24, (int16_t) secondsTimer/60, (int16_t) secondsTimer%60);
 
 	memset(outcomingPacket->data, 0, sizeof(outcomingPacket->data));
 	strcpy(outcomingPacket->data, msg);
@@ -163,10 +155,10 @@ void sendImageInfo() {
 	loadImageParametersFromFram();
 	
 	// save current info to the packet
-	memcpy(outcomingPacket->data+1, &imageParameters, sizeof(imageParameters));
+	memcpy(outcomingPacket->data+1, &imageParameters, sizeof(imageParameters_t));
 	
 	// set the size of the packet
-	outcomingPacket->length = 1+sizeof(imageParameters);
+	outcomingPacket->length = 1+sizeof(imageParameters_t);
 	
 	// send the final packet
 	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
@@ -394,7 +386,27 @@ void sendPostProcessed() {
 	}
 }
 
+void shutterDelay() {
+	
+	if (imageParameters.exposure <= (uint16_t) 60000) {
+		
+		vTaskDelay(imageParameters.exposure);	
+	} else {
+		
+		vTaskDelay((uint16_t) 60000);
+		
+		uint16_t i;
+		
+		for (i = 0; i < (imageParameters.exposure - 60000); i++) {
+			
+			vTaskDelay(1000);
+		}
+	}
+}
+
 void measure(uint8_t turnOff) {
+	
+	
 	
 	if (medipixPowered() == 0) {
 		
@@ -405,7 +417,7 @@ void measure(uint8_t turnOff) {
 	
 	openShutter();
 	
-	vTaskDelay(imageParameters.exposure);
+	shutterDelay();
 	
 	closeShutter();
 	
@@ -416,9 +428,12 @@ void measure(uint8_t turnOff) {
 		medipixStop();
 	}
 
+	imageParameters.temperature = adtTemp;
+
 	filterOnePixelEvents();
 
 	computeImageStatistics();
+	
 	
 	// do binning
 	if (imageParameters.outputForm >= BINNING_1 && imageParameters.outputForm <= BINNING_32) {
@@ -444,6 +459,38 @@ void measure(uint8_t turnOff) {
 		
 		sendPostProcessed();
 	}
+}
+
+void sendBootupMessage() {
+	
+	uint8_t i;
+	char myChar;
+	
+	for (i = 0; i < 64; i++) {
+		
+		myChar = spi_mem_read_byte(MEDIPIX_BOOTUP_MESSAGE+i);
+		
+		outcomingPacket->data[i] = myChar;
+		
+		if (myChar == '\0') {
+			
+			break;
+		}
+	}
+	
+	outcomingPacket->length = i;
+	
+	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+}
+
+void sendTemperature() {
+	
+	char temp[40];
+	
+	sprintf(temp, "Temp = %d\n\r", adtTemp);
+	strcpy(outcomingPacket->data, temp);
+	outcomingPacket->length = strlen(temp);
+	csp_sendto(CSP_PRIO_NORM, 1, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
 /* -------------------------------------------------------------------- */
@@ -669,6 +716,18 @@ void mainTask(void *p) {
 						case MEDIPIX_SEND_METADATA:
 							
 							sendImageInfo();
+						
+						break;
+						
+						case MEDIPIX_GET_BOOTUP_MESSAGE:
+						
+							sendBootupMessage();
+						
+						break;
+						
+						case MEDIPIX_GET_TEMPERATURE:
+						
+							sendTemperature();
 						
 						break;
 					}

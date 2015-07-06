@@ -280,12 +280,30 @@ void mainTask(void *p) {
 
 				break;
 				
+				// read binned image/histograms
+				case 'i':
+				
+					outcomingPacket->data[0] = MEDIPIX_GET_TEMPERATURE;
+					
+					outcomingPacket->length = 1;
+					
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
+
+				break;
+				
 				// read the image metadata
 				case 'z':
 					outcomingPacket->data[0] = MEDIPIX_SEND_METADATA;
 					outcomingPacket->length = 1;
 					pingSent = milisecondsTimer;
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
+				break;
+				
+				case 'u':
+					outcomingPacket->data[0] = MEDIPIX_GET_BOOTUP_MESSAGE;
+					outcomingPacket->length = 1;
+					pingSent = milisecondsTimer;
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
 				break;
 			 
 				// ping

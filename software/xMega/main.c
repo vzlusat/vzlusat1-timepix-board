@@ -13,6 +13,7 @@
 #include "mainTask.h"
 #include "cspTask.h"
 #include "medipixTask.h"
+#include "adtTask.h"
 
 int main(void) {
 	
@@ -43,6 +44,11 @@ int main(void) {
 	/*	Starts task that handles outgoing communication		 				*/
 	/* -------------------------------------------------------------------- */
 	xTaskCreate(mainTask, (signed char*) "mainTask", 1500, NULL, configNORMAL_PRIORITY, NULL);
+	
+	/* -------------------------------------------------------------------- */
+	/*	Starts task that handles outgoing communication		 				*/
+	/* -------------------------------------------------------------------- */
+	xTaskCreate(adtTask, (signed char*) "adtTask", 512, NULL, configNORMAL_PRIORITY, NULL);
 	
 	/* -------------------------------------------------------------------- */
 	/*	Starts the scheduler and all previously created tasks				*/

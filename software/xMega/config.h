@@ -72,7 +72,6 @@
 #define ADT_I2C_INTERFACE	TWIC
 #define ADT_I2C_TWIM		TWIC_TWIM_vect
 #define ADT_I2C_BAUDRATE	400000
-#define ADT_I2C_BAUDSETTING TWI_BAUD(F_CPU, ADT_I2C_BAUDRATE)
 #define ADT_I2C_ADDRESS		0x48
 
 // definition for SPI memory - interface, CS pin must be edited in spi_memory_23lcxx.c

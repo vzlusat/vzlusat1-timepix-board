@@ -133,6 +133,9 @@ typedef struct {
 	uint8_t minValueFiltered;
 	uint8_t maxValueFiltered;
 	
+	// temperature from the ADT sensor
+	int8_t temperature;
+	
 	// TBD attitude
 	
 	// TBD timestamp
@@ -184,6 +187,8 @@ typedef enum {
 	MEDIPIX_SEND_BINNED = 14,				// send binned/histogram image
 	MEDIPIX_SEND_METADATA = 15,				// send only the image metadata
 	MEDIPIX_MEASURE_NO_TURNOFF = 16,		// dont turn off medipix after measurement
+	MEDIPIX_GET_BOOTUP_MESSAGE = 17,		// return the medipix's bootup message from the last boot
+	MEDIPIX_GET_TEMPERATURE = 18,		// return the medipix's bootup message from the last boot
 } MPX_MATLAB_COMMANDS;
 
 volatile uint8_t ioBuffer[448];

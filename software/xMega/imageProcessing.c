@@ -372,6 +372,9 @@ void applyBinning() {
 					
 					sum = (uint16_t) ((float) sum / (float) 4);
 				}
+				
+				if (sum >= 256)
+					sum = 255;
 			
 				// create the averege
 				// sum = sum / (numPerLine*numPerLine);

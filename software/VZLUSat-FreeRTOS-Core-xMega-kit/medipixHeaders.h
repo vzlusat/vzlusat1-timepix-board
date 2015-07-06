@@ -48,7 +48,7 @@ typedef struct {
 } newSettings_t;
 
 // board commands
-enum MPX_MATLAB_COMMANDS {
+typedef enum {
 	MEDIPIX_PWR_ON = 0,						// initialize medipix
 	MEDIPIX_PWR_OFF = 1,					// power off medipix
 	MEDIPIX_SET_ALL_PARAMS = 2,				// set all aquisition parameters (save to fram)
@@ -66,6 +66,8 @@ enum MPX_MATLAB_COMMANDS {
 	MEDIPIX_SEND_BINNED = 14,				// send binned/histogram image
 	MEDIPIX_SEND_METADATA = 15,				// send only the image metadata
 	MEDIPIX_MEASURE_NO_TURNOFF = 16,		// dont turn off medipix after measurement
-};
+	MEDIPIX_GET_BOOTUP_MESSAGE = 17,		// return the medipix's bootup message from the last boot
+	MEDIPIX_GET_TEMPERATURE = 18,		// return the medipix's bootup message from the last boot
+} MPX_MATLAB_COMMANDS;
 
 #endif /* MEDIPIXHEADERS_H_ */
