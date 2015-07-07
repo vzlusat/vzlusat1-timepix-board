@@ -10,13 +10,16 @@
 
 #include "system.h"
 
-extern xQueueHandle * xCSPEventQueue;
+xQueueHandle * xCSPEventQueue;
+xQueueHandle * xCSPAckQueue;
+
 csp_packet_t * outcomingPacket;
 
 unsigned int dest_p;
 unsigned int source_p;
 
 void mainTask(void *p);
+uint8_t waitForDkAck();
 
 // board commands
 typedef enum {
@@ -41,7 +44,8 @@ typedef enum {
 	MEDIPIX_GET_TEMPERATURE = 18,						// return the medipix's bootup message from the last boot
 	MEDIPIX_GET_HOUSKEEPING = 19,						// return the main houskeeping information
 	MEDIPIX_MEASURE_WITHOUT_DATA_NO_TURNOFF = 20,		// return the main houskeeping information
-} MPX_COMMANDS;
+	XRAY_DK_CREATE_STORAGES = 21,						// create all storages in the data keeper
+} MPX_COMMANDS;	
 
 typedef struct {
 	
@@ -61,7 +65,7 @@ typedef struct {
 #define MEASURE_WITHOUT_DATA_YES	1
 #define MEASURE_WITHOUT_DATA_NO		0
 
-#define MEASURE_OUTPUT_DATAKEEPER	1
-#define MEASURE_OUTPUT_DIRECT		0
+#define OUTPUT_DATAKEEPER	1
+#define OUTPUT_DIRECT		0
 
 #endif /* MAINTASK_H_ */

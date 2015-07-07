@@ -10,5 +10,7 @@
 #define ERRORCODES_H_
 
 #define ERROR_MEDIPIX_NOT_POWERED	'1'
+#define ERROR_STORAGES_NOT_CREATED  '2'
+#define ERROR_DATA_NOT_SAVED		'3'
 
 #endif /* ERRORCODES_H_ */

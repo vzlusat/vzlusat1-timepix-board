@@ -17,9 +17,11 @@
 #include "medipix.h"
 #include "adtTask.h"
 #include "spi_memory_FM25.h"
+#include "dkHandler.h"
 
 csp_packet_t * outcomingPacket;
 xQueueHandle * xCSPEventQueue;
+xQueueHandle * xCSPAckQueue;
 
 unsigned int dest_addr;
 unsigned int dest_p;
@@ -45,10 +47,53 @@ void sendFreeHeapSpace() {
 	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
+void replyErr(uint8_t error) {
+	
+	vTaskDelay(50);
+	
+	outcomingPacket->data[0] = 'E';
+	outcomingPacket->data[1] = error;
+	outcomingPacket->data[2] = '\0';
+	
+	outcomingPacket->length = 3;
+	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	
+	vTaskDelay(50);
+}
+
+void replyOk() {
+	
+	vTaskDelay(50);
+	
+	outcomingPacket->data[0] = 'O';
+	outcomingPacket->data[1] = 'K';
+	outcomingPacket->data[2] = '\0';
+	
+	outcomingPacket->length = 3;
+	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	
+	vTaskDelay(50);
+}
+
+uint8_t waitForDkAck() {
+	
+	int32_t err;
+	
+	if (pdTRUE == xQueueReceive(xCSPAckQueue, &err, 1000)) {
+		
+		if (err != 0) {
+			
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
 /* -------------------------------------------------------------------- */
 /*	Reply with some status info message									*/
 /* -------------------------------------------------------------------- */
-void houseKeeping() {
+void houseKeeping(uint8_t outputTo) {
 	
 	loadImageParametersFromFram();
 	
@@ -62,11 +107,37 @@ void houseKeeping() {
 	hk_data.hours = (uint8_t) hoursTimer;
 	hk_data.minutes = (uint8_t) secondsTimer/60;
 	hk_data.seconds = (uint8_t) secondsTimer%60;
+	
+	// direct answer
+	if (outputTo == OUTPUT_DIRECT) {
 
-	memcpy(outcomingPacket->data, &hk_data, sizeof(hk_data_t));
-	outcomingPacket->length = sizeof(hk_data_t);
+		memcpy(outcomingPacket->data, &hk_data, sizeof(hk_data_t));
+		outcomingPacket->length = sizeof(hk_data_t);
 
-	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+		csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	
+	// save it to datakeeper
+	} else {
+		
+		dk_msg_store_t * message = (dk_msg_store_t *) outcomingPacket->data;
+		
+		message->parent.cmd = DKC_STORE;
+		message->port = STORAGE_HK_ID;
+		
+		memcpy(message->data, &hk_data, sizeof(hk_data_t));
+		
+		outcomingPacket->length = sizeof(dk_msg_store_t) + sizeof(hk_data_t);
+		
+		csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+		
+		if (waitForDkAck() == 1) {
+			
+			replyOk();
+		} else {
+			
+			replyErr(ERROR_DATA_NOT_SAVED);
+		}
+	}
 }
 
 /* -------------------------------------------------------------------- */
@@ -93,34 +164,6 @@ void sendString(char * in) {
 	strcpy(outcomingPacket->data, in);
 	outcomingPacket->length = strlen(in);
 	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
-}
-
-void replyOk() {
-	
-	vTaskDelay(40);
-		
-	outcomingPacket->data[0] = 'O';
-	outcomingPacket->data[1] = 'K';
-	outcomingPacket->data[2] = '\0';
-	
-	outcomingPacket->length = 3;
-	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
-	
-	vTaskDelay(40);
-}
-
-void replyErr(uint8_t error) {
-	
-	vTaskDelay(40);
-	
-	outcomingPacket->data[0] = 'E';
-	outcomingPacket->data[1] = error;
-	outcomingPacket->data[2] = '\0';
-	
-	outcomingPacket->length = 3;
-	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
-	
-	vTaskDelay(40);
 }
 
 void medipixInit() {
@@ -483,11 +526,18 @@ void sendBootupMessage() {
 	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
-void sendTemperature() {
+void sendTemperature(uint8_t outputTo) {
 	
-	outcomingPacket->data[0] = adtTemp;
-	outcomingPacket->length = 1;
-	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	if (outputTo == OUTPUT_DIRECT) {
+
+		outcomingPacket->data[0] = adtTemp;
+		outcomingPacket->length = 1;
+		csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+		
+	} else {
+		
+		
+	}
 }
 
 /* -------------------------------------------------------------------- */
@@ -519,8 +569,14 @@ void mainTask(void *p) {
 				
 						case MEDIPIX_GET_TEMPERATURE:
 						
-							sendTemperature();
+							sendTemperature(OUTPUT_DATAKEEPER);
 						
+						break;
+
+						case MEDIPIX_GET_HOUSKEEPING:
+
+							houseKeeping(OUTPUT_DATAKEEPER);
+
 						break;
 					
 					}
@@ -706,6 +762,12 @@ void mainTask(void *p) {
 						
 						break;
 						
+						case MEDIPIX_MEASURE_WITHOUT_DATA_NO_TURNOFF:
+						
+							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_YES);
+						
+						break;
+						
 						case MEDIPIX_SEND_ORIGINAL:
 						
 							sendImageInfo();
@@ -741,13 +803,26 @@ void mainTask(void *p) {
 						
 						case MEDIPIX_GET_TEMPERATURE:
 						
-							sendTemperature();
+							sendTemperature(OUTPUT_DIRECT);
 						
 						break;
 						
 						case MEDIPIX_GET_HOUSKEEPING:
 						
-							houseKeeping();
+							houseKeeping(OUTPUT_DIRECT);
+						
+						break;
+						
+						case XRAY_DK_CREATE_STORAGES:
+						
+							if (createStorages() == 1) {
+							
+								replyOk();
+								
+							} else {
+								
+								replyErr(ERROR_STORAGES_NOT_CREATED);
+							}
 						
 						break;
 					}

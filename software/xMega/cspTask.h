@@ -10,8 +10,6 @@
 #ifndef CSPTASK_H_
 #define CSPTASK_H_
 
-extern xQueueHandle * xCSPEventQueue;
-
 typedef enum {
 
 	directEvent = 0,

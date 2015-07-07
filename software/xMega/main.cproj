@@ -261,6 +261,12 @@
     <Compile Include="csp_interface.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="dkHandler.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="dkHandler.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="equalization_eqm.c">
       <SubType>compile</SubType>
     </Compile>

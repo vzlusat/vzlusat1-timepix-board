@@ -7,6 +7,7 @@
 
 #include "cspTask.h"
 #include "mainTask.h"
+#include "dkHandler.h"
 
 /* -------------------------------------------------------------------- */
 /*	Task that handles CSP incoming packets								*/
@@ -27,6 +28,9 @@ void cspTask(void *p) {
 	csp_packet_t * packet;
 	
 	xCSPEventQueue = xQueueCreate(10, (portBASE_TYPE) sizeof(xCSPStackEvent_t));
+	xCSPAckQueue = xQueueCreate(1, 4);
+	
+	int32_t tempInt;
 	
 	xCSPStackEvent_t * newEvent;
 
@@ -57,6 +61,14 @@ void cspTask(void *p) {
 					newEvent->pvData = packet;
 					xQueueSend(xCSPEventQueue, newEvent, 10);
 				
+				break;
+				
+				// ack from DK
+				case 18:
+					
+					tempInt = ((dk_reply_common_t *) packet->data)->err_no;
+					xQueueSend(xCSPAckQueue, &tempInt, 10);		
+							
 				break;
 				
 				/* Process packet here */
