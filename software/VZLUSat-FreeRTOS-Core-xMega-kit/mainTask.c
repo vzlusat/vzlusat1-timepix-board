@@ -111,14 +111,14 @@ void mainTask(void *p) {
 				case '0':
 					outcomingPacket->data[0] = MEDIPIX_PWR_ON;
 					outcomingPacket->length = 1;
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 				break;
 			
 				// power off medipix
 				case '1':
 					outcomingPacket->data[0] = MEDIPIX_PWR_OFF;
 					outcomingPacket->length = 1;
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 				break;
 				
 				// set parameters
@@ -141,7 +141,7 @@ void mainTask(void *p) {
 					
 					outcomingPacket->length = 1+sizeof(newSettings_t);
 					
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 					
 				break;
 				
@@ -155,7 +155,7 @@ void mainTask(void *p) {
 					
 					outcomingPacket->length = 1+2;
 					
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 				
 				break;
 				
@@ -168,7 +168,7 @@ void mainTask(void *p) {
 					
 					outcomingPacket->length = 1+1;
 					
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 				
 				break;
 				
@@ -182,7 +182,7 @@ void mainTask(void *p) {
 					
 					outcomingPacket->length = 1+2;
 					
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 				
 				break;
 				
@@ -195,7 +195,7 @@ void mainTask(void *p) {
 					
 					outcomingPacket->length = 1+1;
 					
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 				
 				break;
 				
@@ -208,7 +208,7 @@ void mainTask(void *p) {
 					
 					outcomingPacket->length = 1+1;
 					
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 				
 				break;
 				
@@ -221,7 +221,7 @@ void mainTask(void *p) {
 					
 					outcomingPacket->length = 1+1;
 					
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 				
 				break;
 				
@@ -303,7 +303,7 @@ void mainTask(void *p) {
 					outcomingPacket->data[0] = MEDIPIX_GET_BOOTUP_MESSAGE;
 					outcomingPacket->length = 1;
 					pingSent = milisecondsTimer;
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 15, CSP_O_NONE, outcomingPacket, 10);
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 				break;
 			 
 				// ping
@@ -316,7 +316,7 @@ void mainTask(void *p) {
 				
 				// ask board for status
 				case 'h':
-					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 17, 15, CSP_O_NONE,  outcomingPacket, 10);
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 17, 17, CSP_O_NONE,  outcomingPacket, 10);
 				break;
 			
 				// sends the char and is supposed to receive it back

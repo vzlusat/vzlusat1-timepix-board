@@ -4,7 +4,7 @@ if exist('s')
     clear s;
 end
 
-s = serial('COM29');
+s = serial('COM2');
 s.BaudRate = 230500;
 s.BytesAvailableFcnMode = 'terminator';
 s.Terminator = 'CR/LF';

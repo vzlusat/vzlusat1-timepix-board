@@ -3,7 +3,7 @@ openPort();
 treshold = 310;
 exposure = 1000;
 bias = 240;
-filtering = 1;
+filtering = 0;
 mode = 1;
 outputForm = 0;
 
