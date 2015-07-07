@@ -3,9 +3,9 @@ openPort();
 treshold = 310;
 exposure = 1000;
 bias = 240;
-filtering = 0;
+filtering = 1;
 mode = 1;
-outputForm = 0;
+outputForm = 3;
 
 fprintf(s, '%c', '2');
 
