@@ -193,23 +193,57 @@ void medipixStop() {
 	pwrOffMedipix();
 }
 
-void sendImageInfo() {
+void sendImageInfo(uint8_t repplyTo) {
 	
-	// load current info from fram
-	loadImageParametersFromFram();
-	
-	imageParameters.packetType = 'A';
-	
-	// save current info to the packet
-	memcpy(outcomingPacket->data, &imageParameters, sizeof(imageParameters_t));
-	
-	// set the size of the packet
-	outcomingPacket->length = sizeof(imageParameters_t);
-	
-	// send the final packet
-	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
-	
-	vTaskDelay(100);
+	if (repplyTo == OUTPUT_DIRECT) {
+
+		// load current info from fram
+		loadImageParametersFromFram();
+
+		imageParameters.packetType = 'A';
+
+		// save current info to the packet
+		memcpy(outcomingPacket->data, &imageParameters, sizeof(imageParameters_t));
+
+		// set the size of the packet
+		outcomingPacket->length = sizeof(imageParameters_t);
+
+		// send the final packet
+		csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+
+		vTaskDelay(100);
+		
+	// save data to datakeeper
+	} else {
+		
+		// load current info from fram
+		loadImageParametersFromFram();
+		
+		dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
+		
+		imageParameters.packetType = 'A';
+		
+		message->parent.cmd = DKC_STORE_ACK;
+		message->port = STORAGE_METADATA_ID;
+		message->host = CSP_DK_MY_ADDRESS;
+		
+		imageParameters.packetType = 'A';
+		
+		// save current info to the packet
+		memcpy(message->data, &imageParameters, sizeof(imageParameters_t));
+		
+		outcomingPacket->length = sizeof(dk_msg_store_ack_t) + sizeof(imageParameters_t);
+		
+		csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+		
+		if (waitForDkAck() == 1) {
+			
+			replyOk();
+		} else {
+			
+			replyErr(ERROR_DATA_NOT_SAVED);
+		}
+	}
 }
 
 void waitForAck() {
@@ -319,9 +353,13 @@ uint8_t sendCompressed(uint8_t image) {
 	return 0;
 }
 
-void sendPostProcessed() {
+void sendPostProcessed(uint8_t replyTo) {
 	
 	uint16_t i, j, numPerLine;
+	
+	dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
+	
+	uint8_t noErr = 1;
 	
 	switch (imageParameters.outputForm) {
 		
@@ -338,59 +376,142 @@ void sendPostProcessed() {
 		break;
 	}
 	
+	// if saving data to datakeeper, set the correct data storage
+	if (replyTo == OUTPUT_DATAKEEPER) {
+		
+		message->parent.cmd = DKC_STORE_ACK;
+		
+		switch (imageParameters.outputForm) {
+			
+			case BINNING_8:
+				message->port = STORAGE_BINNED8_ID;
+			break;
+			
+			case BINNING_16:
+				message->port = STORAGE_BINNED16_ID;
+			break;
+			
+			case BINNING_32:
+				message->port = STORAGE_BINNED32_ID;
+			break;
+			
+			case HISTOGRAMS:
+				message->port = STORAGE_HISTOGRAMS_ID;
+			break;
+		}
+		
+		message->host = CSP_DK_MY_ADDRESS;
+	}
+	
 	// send the histograms
 	if (imageParameters.outputForm == HISTOGRAMS) {
 		
-		// send the 1st histogram
-		// for 4 packets
-		for (i = 0; i < 4; i++) {
+		if (replyTo == OUTPUT_DIRECT) {
 			
-			// it is a first histogram packet [0]
-			outcomingPacket->data[0] = 'h';
+			// send the 1st histogram
+			// for 4 packets
+			for (i = 0; i < 4; i++) {
 			
-			// save the image ID [1, 2]
-			saveUint16(outcomingPacket->data+1, imageParameters.imageId);
+				// it is a first histogram packet [0]
+				outcomingPacket->data[0] = 'h';
 			
-			// save the number of the packet
-			outcomingPacket->data[3] = i;
+				// save the image ID [1, 2]
+				saveUint16(outcomingPacket->data+1, imageParameters.imageId);
 			
-			// fill the packets
-			for (j = 0; j < 64; j++) {
+				// save the number of the packet
+				outcomingPacket->data[3] = i;
+			
+				// fill the packets
+				for (j = 0; j < 64; j++) {
 				
-				outcomingPacket->data[j+4] = getHistogram1(j + i*64);
+					outcomingPacket->data[j+4] = getHistogram1(j + i*64);
+				}
+			
+				outcomingPacket->length = 64 + 4;
+			
+				csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+			
+				waitForAck();
 			}
-			
-			outcomingPacket->length = 64 + 4;
-			
-			csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
-			
-			waitForAck();
-		}
 		
-		// send the 2nd histogram
-		// for 4 packets
-		for (i = 0; i < 4; i++) {
+			// send the 2nd histogram
+			// for 4 packets
+			for (i = 0; i < 4; i++) {
 			
-			// it is a first histogram packet [0]
-			outcomingPacket->data[0] = 'H';
+				// it is a first histogram packet [0]
+				outcomingPacket->data[0] = 'H';
 			
-			// save the image ID [1, 2]
-			saveUint16(outcomingPacket->data+1, imageParameters.imageId);
+				// save the image ID [1, 2]
+				saveUint16(outcomingPacket->data+1, imageParameters.imageId);
 			
-			// save the number of the packet
-			outcomingPacket->data[3] = i;
+				// save the number of the packet
+				outcomingPacket->data[3] = i;
 			
-			// fill the packets
-			for (j = 0; j < 64; j++) {
+				// fill the packets
+				for (j = 0; j < 64; j++) {
 				
-				outcomingPacket->data[j+4] = getHistogram2(j + i*64);
+					outcomingPacket->data[j+4] = getHistogram2(j + i*64);
+				}
+			
+				outcomingPacket->length = 64 + 4;
+			
+				csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+			
+				waitForAck();
+			}
+		} else {
+			
+			// send the 1st histogram
+			// for 4 packets
+			for (i = 0; i < 4; i++) {
+				
+				// it is a first histogram packet [0]
+				message->data[0] = 'h';
+				
+				// save the image ID [1, 2]
+				saveUint16(message->data+1, imageParameters.imageId);
+				
+				// save the number of the packet
+				message->data[3] = i;
+				
+				// fill the packets
+				for (j = 0; j < 64; j++) {
+					
+					message->data[j+4] = getHistogram1(j + i*64);
+				}
+				
+				outcomingPacket->length = 64 + 4 + sizeof(dk_msg_store_ack_t);
+				
+				csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+				
+				noErr *= waitForDkAck();
 			}
 			
-			outcomingPacket->length = 64 + 4;
-			
-			csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
-			
-			waitForAck();
+			// send the 2nd histogram
+			// for 4 packets
+			for (i = 0; i < 4; i++) {
+				
+				// it is a first histogram packet [0]
+				message->data[0] = 'H';
+				
+				// save the image ID [1, 2]
+				saveUint16(message->data+1, imageParameters.imageId);
+				
+				// save the number of the packet
+				message->data[3] = i;
+				
+				// fill the packets
+				for (j = 0; j < 64; j++) {
+					
+					message->data[j+4] = getHistogram2(j + i*64);
+				}
+				
+				outcomingPacket->length = 64 + 4 + sizeof(dk_msg_store_ack_t);
+				
+				csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+				
+				noErr *= waitForDkAck();
+			}
 		}
 		
 	// send the binned content
@@ -399,36 +520,78 @@ void sendPostProcessed() {
 		uint8_t packetId = 0;
 		uint8_t byteInPacket = 0;
 		
-		// it is a first histogram packet [0]
-		outcomingPacket->data[0] = 'D';
-			
-		// save the image ID [1, 2]
-		saveUint16(outcomingPacket->data+1, imageParameters.imageId);
+		if (replyTo == OUTPUT_DIRECT) {
 		
-		// bytes count
-		outcomingPacket->data[3] = packetId++;
+			// it is a first histogram packet [0]
+			outcomingPacket->data[0] = 'C' + imageParameters.outputForm;
 		
-		for (i = 0; i < numPerLine; i++) {
+			// save the image ID [1, 2]
+			saveUint16(outcomingPacket->data+1, imageParameters.imageId);
+		
+			// bytes count
+			outcomingPacket->data[3] = packetId++;
+		
+			for (i = 0; i < numPerLine; i++) {
 			
-			for (j = 0; j < numPerLine; j++) {
+				for (j = 0; j < numPerLine; j++) {
 				
-				outcomingPacket->data[4+byteInPacket++] = getBinnedPixel(i, j);
+					outcomingPacket->data[4+byteInPacket++] = getBinnedPixel(i, j);
+				
+					// packet is full, send it
+					if (byteInPacket == 64) {
+					
+						outcomingPacket->length = 64 + 4;
+					
+						csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+					
+						waitForAck();
+					
+						byteInPacket = 0;
+					
+						outcomingPacket->data[3] = packetId++;
+					}
+				}
+			}
 			
-				// packet is full, send it
-				if (byteInPacket == 64) {
+		// save to datakeeper
+		} else {
+			
+			// it is a first histogram packet [0]
+			message->data[0] = 'C' + imageParameters.outputForm;
+			
+			// save the image ID [1, 2]
+			saveUint16(message->data+1, imageParameters.imageId);
+			
+			// bytes count
+			message->data[3] = packetId++;
+			
+			for (i = 0; i < numPerLine; i++) {
+				
+				for (j = 0; j < numPerLine; j++) {
 					
-					outcomingPacket->length = 64 + 4;
+					message->data[4+byteInPacket++] = getBinnedPixel(i, j);
 					
-					csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
-					
-					waitForAck();
-					
-					byteInPacket = 0;
-					
-					outcomingPacket->data[3] = packetId++;
+					// packet is full, send it
+					if (byteInPacket == 64) {
+						
+						outcomingPacket->length = 64 + 4 + sizeof(dk_msg_store_ack_t);
+						
+						csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+						
+						noErr *= waitForDkAck();
+						
+						byteInPacket = 0;
+						
+						message->data[3] = packetId++;
+					}
 				}
 			}
 		}
+	}
+	
+	if (replyTo == OUTPUT_DATAKEEPER) {
+		
+		// zaloguj mereni
 	}
 }
 
@@ -450,7 +613,7 @@ void shutterDelay() {
 	}
 }
 
-void measure(uint8_t turnOff, uint8_t withoutData) {
+void measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo) {
 	
 	if (medipixPowered() == 0) {
 		
@@ -493,7 +656,7 @@ void measure(uint8_t turnOff, uint8_t withoutData) {
 	
 	saveImageParametersToFram();
 	
-	sendImageInfo();
+	sendImageInfo(repplyTo);
 	
 	if (withoutData == MEASURE_WITHOUT_DATA_NO) {
 	
@@ -503,7 +666,7 @@ void measure(uint8_t turnOff, uint8_t withoutData) {
 			
 		} else {
 			
-			sendPostProcessed();
+			sendPostProcessed(repplyTo);
 		}
 	}
 }
@@ -626,7 +789,13 @@ void mainTask(void *p) {
 							sendBootupMessage(OUTPUT_DATAKEEPER);
 
 						break;
-					
+						
+						case MEDIPIX_MEASURE:
+						
+							replyOk();
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DATAKEEPER);
+						
+						break;
 					}
 									
 				break;
@@ -788,58 +957,58 @@ void mainTask(void *p) {
 						
 						case MEDIPIX_MEASURE:
 							
-							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO);
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DIRECT);
 						
 						break;
 						
 						case MEDIPIX_MEASURE_WITH_PARAMETERS:
 							
-							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO);
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DIRECT);
 
 						break;
 						
 						case MEDIPIX_MEASURE_NO_TURNOFF:
 						
-							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_NO);
+							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_NO, OUTPUT_DIRECT);
 						
 						break;
 						
 						case MEDIPIX_MEASURE_WITHOUT_DATA:
 						
-							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_YES);
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_YES, OUTPUT_DIRECT);
 						
 						break;
 						
 						case MEDIPIX_MEASURE_WITHOUT_DATA_NO_TURNOFF:
 						
-							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_YES);
+							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_YES, OUTPUT_DIRECT);
 						
 						break;
 						
 						case MEDIPIX_SEND_ORIGINAL:
 						
-							sendImageInfo();
+							sendImageInfo(OUTPUT_DIRECT);
 							sendCompressed(0);
 						
 						break;
 						
 						case MEDIPIX_SEND_FILTERED:
 						
-							sendImageInfo();
+							sendImageInfo(OUTPUT_DIRECT);
 							sendCompressed(1);
 						
 						break;
 						
 						case MEDIPIX_SEND_BINNED:
 						
-							sendImageInfo();
-							sendPostProcessed();
+							sendImageInfo(OUTPUT_DIRECT);
+							sendPostProcessed(OUTPUT_DIRECT);
 						
 						break;	
 						
 						case MEDIPIX_SEND_METADATA:
 							
-							sendImageInfo();
+							sendImageInfo(OUTPUT_DIRECT);
 						
 						break;
 						
