@@ -52,5 +52,8 @@ uint8_t createStorages() {
 	// create storage for raw images
 	out *= createStorage(STORAGE_RAW_ID, DEFAULT_CONF_CHUNK_SIZE);
 	
+	// create storage for bootup message
+	out *= createStorage(STORAGE_BOOTUP_MESSAGE_ID, DEFAULT_CONF_CHUNK_SIZE);
+	
 	return out;
 }

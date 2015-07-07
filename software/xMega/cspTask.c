@@ -28,7 +28,7 @@ void cspTask(void *p) {
 	csp_packet_t * packet;
 	
 	xCSPEventQueue = xQueueCreate(10, (portBASE_TYPE) sizeof(xCSPStackEvent_t));
-	xCSPAckQueue = xQueueCreate(1, 4);
+	xCSPAckQueue = xQueueCreate(2, 4);
 	
 	int32_t tempInt;
 	

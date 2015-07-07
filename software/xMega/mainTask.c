@@ -84,10 +84,13 @@ uint8_t waitForDkAck() {
 		if (err != 0) {
 			
 			return 0;
+		} else {
+			
+			return 1;
 		}
 	}
 
-	return 1;
+	return 0;
 }
 
 /* -------------------------------------------------------------------- */
@@ -119,14 +122,15 @@ void houseKeeping(uint8_t outputTo) {
 	// save it to datakeeper
 	} else {
 		
-		dk_msg_store_t * message = (dk_msg_store_t *) outcomingPacket->data;
+		dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
 		
-		message->parent.cmd = DKC_STORE;
+		message->parent.cmd = DKC_STORE_ACK;
 		message->port = STORAGE_HK_ID;
+		message->host = CSP_DK_MY_ADDRESS;
 		
 		memcpy(message->data, &hk_data, sizeof(hk_data_t));
 		
-		outcomingPacket->length = sizeof(dk_msg_store_t) + sizeof(hk_data_t);
+		outcomingPacket->length = sizeof(dk_msg_store_ack_t) + sizeof(hk_data_t);
 		
 		csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
 		
@@ -504,26 +508,64 @@ void measure(uint8_t turnOff, uint8_t withoutData) {
 	}
 }
 
-void sendBootupMessage() {
+void sendBootupMessage(uint8_t replyTo) {
 	
 	uint8_t i;
 	char myChar;
 	
-	for (i = 0; i < 64; i++) {
-		
-		myChar = spi_mem_read_byte(MEDIPIX_BOOTUP_MESSAGE+i);
-		
-		outcomingPacket->data[i] = myChar;
-		
-		if (myChar == '\0') {
+	if (replyTo == OUTPUT_DIRECT) {
+	
+		for (i = 0; i < 64; i++) {
 			
-			break;
+			myChar = spi_mem_read_byte(MEDIPIX_BOOTUP_MESSAGE+i);
+			
+			outcomingPacket->data[i] = myChar;
+			
+			if (myChar == '\0') {
+				
+				break;
+			}
+		}
+		
+		outcomingPacket->length = i;
+		
+		csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+		
+	// DK response
+	} else {
+		
+		dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
+		
+		message->parent.cmd = DKC_STORE_ACK;
+		message->port = STORAGE_BOOTUP_MESSAGE_ID;
+		message->host = CSP_DK_MY_ADDRESS;
+		
+		// zde narvat daty memcpy(message->data, &hk_data, sizeof(hk_data_t));
+		
+		for (i = 0; i < 64; i++) {
+			
+			myChar = spi_mem_read_byte(MEDIPIX_BOOTUP_MESSAGE+i);
+			
+			message->data[i] = myChar;
+			
+			if (myChar == '\0') {
+				
+				break;
+			}
+		}
+		
+		outcomingPacket->length = sizeof(dk_msg_store_ack_t) + i;
+		
+		csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+		
+		if (waitForDkAck() == 1) {
+			
+			replyOk();
+		} else {
+			
+			replyErr(ERROR_DATA_NOT_SAVED);
 		}
 	}
-	
-	outcomingPacket->length = i;
-	
-	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
 void sendTemperature(uint8_t outputTo) {
@@ -576,6 +618,12 @@ void mainTask(void *p) {
 						case MEDIPIX_GET_HOUSKEEPING:
 
 							houseKeeping(OUTPUT_DATAKEEPER);
+
+						break;
+					
+						case MEDIPIX_GET_BOOTUP_MESSAGE:
+
+							sendBootupMessage(OUTPUT_DATAKEEPER);
 
 						break;
 					
@@ -797,7 +845,7 @@ void mainTask(void *p) {
 						
 						case MEDIPIX_GET_BOOTUP_MESSAGE:
 						
-							sendBootupMessage();
+							sendBootupMessage(OUTPUT_DIRECT);
 						
 						break;
 						
