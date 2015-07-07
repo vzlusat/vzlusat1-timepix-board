@@ -274,7 +274,7 @@ void saveUint16(uint8_t * buffer, uint16_t value) {
 
 // image == 0 -> original
 // image == 1 -> compressed
-uint8_t sendCompressed(uint8_t image) {
+uint8_t sendCompressed(uint8_t image, uint8_t replyTo) {
 	
 	uint8_t (*getPixel)(uint8_t, uint8_t);
 	
@@ -287,70 +287,140 @@ uint8_t sendCompressed(uint8_t image) {
 	
 	uint8_t packetPointer, tempPixel, numPixelsInPacket;
 	
+	dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
+	
+	uint8_t noErr = 1;
+	
+	message->parent.cmd = DKC_STORE_ACK;
+	message->port = STORAGE_RAW_ID;
+	message->host = CSP_DK_MY_ADDRESS;
+	
 	if (imageParameters.nonZeroPixelsOriginal == 0)
 		return 0;
-	
-	// initialize the first packet
-	outcomingPacket->data[0] = 'B';
-	saveUint16(outcomingPacket->data+1, imageParameters.imageId);
-	packetPointer = 4;
-	numPixelsInPacket = 0;
-	
-	for (i = 0; i < 256; i++) {
 		
-		for (j = 0; j < 256; j++) {
+	if (replyTo == OUTPUT_DIRECT) {
+	
+		// initialize the first packet
+		outcomingPacket->data[0] = 'B';
+		saveUint16(outcomingPacket->data+1, imageParameters.imageId);
+		packetPointer = 4;
+		numPixelsInPacket = 0;
+	
+		for (i = 0; i < 256; i++) {
+		
+			for (j = 0; j < 256; j++) {
 			
-			tempPixel = getPixel(i, j);
+				tempPixel = getPixel(i, j);
 			
-			// the pixel will be send
-			if (tempPixel > 0) {
+				// the pixel will be send
+				if (tempPixel > 0) {
 				
-				// there is still a place in the packet
-				if (packetPointer <= 61) {
+					// there is still a place in the packet
+					if (packetPointer <= 61) {
 					
-					saveUint16(outcomingPacket->data + packetPointer, i*256+j);
-					packetPointer += 2;
-					*(outcomingPacket->data + packetPointer++) = tempPixel;
-					numPixelsInPacket++;
-				}
+						saveUint16(outcomingPacket->data + packetPointer, i*256+j);
+						packetPointer += 2;
+						*(outcomingPacket->data + packetPointer++) = tempPixel;
+						numPixelsInPacket++;
+					}
 				
-				// the packet is full, send it
-				if (packetPointer > 61) {
+					// the packet is full, send it
+					if (packetPointer > 61) {
 					
-					outcomingPacket->data[3] = numPixelsInPacket;
-					outcomingPacket->length = packetPointer;
-					csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+						outcomingPacket->data[3] = numPixelsInPacket;
+						outcomingPacket->length = packetPointer;
+						csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 					
-					waitForAck();
+						waitForAck();
 					
-					outcomingPacket->data[0] = 'B';
-					saveUint16(outcomingPacket->data+1, imageParameters.imageId);
-					packetPointer = 4;
-					numPixelsInPacket = 0;
+						outcomingPacket->data[0] = 'B';
+						saveUint16(outcomingPacket->data+1, imageParameters.imageId);
+						packetPointer = 4;
+						numPixelsInPacket = 0;
+					}
 				}
 			}
 		}
-	}
 	
-	// send the last data packet
-	if (packetPointer > 4) {
+		// send the last data packet
+		if (packetPointer > 4) {
 		
-		outcomingPacket->length = packetPointer;
-		outcomingPacket->data[3] = numPixelsInPacket;
+			outcomingPacket->length = packetPointer;
+			outcomingPacket->data[3] = numPixelsInPacket;
+			csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+		}
+	
+		waitForAck();
+	
+		// send the terminal packet
+		outcomingPacket->data[0] = 'C';
+		outcomingPacket->length = 1;
+	
 		csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
-	}
 	
-	waitForAck();
+		waitForAck();
 	
-	// send the terminal packet
-	outcomingPacket->data[0] = 'C';
-	outcomingPacket->length = 1;
+		return 1;
 	
-	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+	// output to DK
+	} else {
+		
+		// initialize the first packet
+		message->data[0] = 'B';
+		saveUint16(message->data+1, imageParameters.imageId);
+		packetPointer = 4;
+		numPixelsInPacket = 0;
+		
+		for (i = 0; i < 256; i++) {
+			
+			for (j = 0; j < 256; j++) {
+				
+				tempPixel = getPixel(i, j);
+				
+				// the pixel will be send
+				if (tempPixel > 0) {
 					
-	waitForAck();
-	
-	return 0;
+					// there is still a place in the packet
+					if (packetPointer <= 61) {
+						
+						saveUint16(message->data + packetPointer, i*256+j);
+						packetPointer += 2;
+						*(message->data + packetPointer++) = tempPixel;
+						numPixelsInPacket++;
+					}
+					
+					// the packet is full, send it
+					if (packetPointer > 61) {
+						
+						message->data[3] = numPixelsInPacket;
+						
+						outcomingPacket->length = packetPointer + sizeof(dk_msg_store_ack_t);
+						
+						csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+						
+						noErr *= waitForDkAck();
+						
+						message->data[0] = 'B';
+						saveUint16(message->data+1, imageParameters.imageId);
+						packetPointer = 4;
+						numPixelsInPacket = 0;
+					}
+				}
+			}
+		}
+		
+		// send the last data packet
+		if (packetPointer > 4) {
+			
+			outcomingPacket->length = packetPointer + sizeof(dk_msg_store_ack_t);
+			message->data[3] = numPixelsInPacket;
+			csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+			noErr *= waitForDkAck();
+		}
+
+		return noErr;
+	}
+
 }
 
 void sendPostProcessed(uint8_t replyTo) {
@@ -662,7 +732,7 @@ void measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo) {
 	
 		if (imageParameters.outputForm == BINNING_1) {
 			
-			sendCompressed(1);
+			sendCompressed(1, repplyTo);
 			
 		} else {
 			
@@ -988,14 +1058,14 @@ void mainTask(void *p) {
 						case MEDIPIX_SEND_ORIGINAL:
 						
 							sendImageInfo(OUTPUT_DIRECT);
-							sendCompressed(0);
+							sendCompressed(0, OUTPUT_DIRECT);
 						
 						break;
 						
 						case MEDIPIX_SEND_FILTERED:
 						
 							sendImageInfo(OUTPUT_DIRECT);
-							sendCompressed(1);
+							sendCompressed(1, OUTPUT_DIRECT);
 						
 						break;
 						
