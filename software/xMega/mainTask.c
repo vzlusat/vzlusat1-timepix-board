@@ -22,6 +22,7 @@
 csp_packet_t * outcomingPacket;
 xQueueHandle * xCSPEventQueue;
 xQueueHandle * xCSPAckQueue;
+xQueueHandle * xCSPTimeQueue;
 
 unsigned int dest_addr;
 unsigned int dest_p;
@@ -773,6 +774,8 @@ void measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo) {
 	}
 
 	imageParameters.temperature = adtTemp;
+	
+	imageParameters.time = getTime();
 
 	filterOnePixelEvents();
 

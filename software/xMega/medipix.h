@@ -138,9 +138,7 @@ typedef struct {
 	// temperature from the ADT sensor
 	int8_t temperature;
 	
-	// TBD attitude
-	
-	// TBD timestamp
+	uint32_t time;
 	
 } imageParameters_t;
 

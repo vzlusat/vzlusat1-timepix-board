@@ -87,6 +87,14 @@ typedef struct __attribute__((packed))
 	uint8_t data[0]; //array of data
 } dk_msg_store_t;
 
+typedef struct __attribute__ ((packed)) {
+	uint8_t type;
+	uint8_t code;
+	uint32_t tv_sec;
+	uint32_t tv_nsec;
+} csp_cmp_msg_t;
+
 uint8_t createStorages();
+uint32_t getTime();
 
 #endif /* DKHANDLER_H_ */

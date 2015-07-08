@@ -12,6 +12,7 @@
 
 xQueueHandle * xCSPEventQueue;
 xQueueHandle * xCSPAckQueue;
+xQueueHandle * xCSPTimeQueue;
 
 csp_packet_t * outcomingPacket;
 

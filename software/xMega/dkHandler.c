@@ -57,3 +57,56 @@ uint8_t createStorages() {
 	
 	return out;
 }
+
+uint32_t waitForTimeAck() {
+	
+	int32_t time;
+	
+	if (pdTRUE == xQueueReceive(xCSPTimeQueue, &time, 100)) {
+		
+		return (uint32_t) time;
+	}
+
+	return 0;
+}
+
+uint32_t my_ntho32(uint32_t in) {
+	
+	uint32_t out;
+	uint8_t * tempPtr = (uint8_t *) &in;
+	uint8_t * tempPtr2 = (uint8_t *) &out;
+	uint8_t l;
+	
+	for (l = 0; l < 4; l++) {
+		
+		*(tempPtr2 + l) = *(tempPtr + 3 - l);
+	}
+	
+	return out;
+}
+
+uint32_t getTime() {
+	
+	csp_cmp_msg_t * msg = (csp_cmp_msg_t *) outcomingPacket->data;
+	msg->type = 0; //CSP_CMP_REQUEST;
+	msg->code = 6; //CSP_CMP_CLOCK;
+	msg->tv_sec = 0; //MUST be set to 0; clock>0 will modify OBC time!
+	msg->tv_nsec = 0;
+		
+	uint32_t time;
+	
+	uint8_t k;
+	for (k = 0; k < 3; k++) {
+				
+		outcomingPacket->length = sizeof(csp_cmp_msg_t);
+		csp_sendto(CSP_PRIO_NORM, CSP_OBC_ADDRESS, CSP_CMP, 20, CSP_O_NONE, outcomingPacket, 1000);
+				
+		if (pdTRUE == xQueueReceive(xCSPTimeQueue, &time, 100)) {
+			
+			return my_ntho32(time);
+		}
+	}
+	
+	return 0;
+}
+
