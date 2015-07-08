@@ -17,6 +17,7 @@ image.maxValueOriginal = fread(s, 1, 'uchar');
 image.minValueFiltered = fread(s, 1, 'uchar');
 image.maxValueFiltered = fread(s, 1, 'uchar');
 image.temperature = fread(s, 1, 'int8');
+image.time =  fread(s, 1, 'uint32');
 
 fread(s, 1, 'int16');
 
