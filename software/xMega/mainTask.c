@@ -79,7 +79,7 @@ uint8_t waitForDkAck() {
 	
 	int32_t err;
 	
-	if (pdTRUE == xQueueReceive(xCSPAckQueue, &err, 1000)) {
+	if (pdTRUE == xQueueReceive(xCSPAckQueue, &err, 100)) {
 		
 		if (err != 0) {
 			
@@ -130,16 +130,24 @@ void houseKeeping(uint8_t outputTo) {
 		
 		memcpy(message->data, &hk_data, sizeof(hk_data_t));
 		
-		outcomingPacket->length = sizeof(dk_msg_store_ack_t) + sizeof(hk_data_t);
-		
-		csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
-		
-		if (waitForDkAck() == 1) {
+		uint8_t k;
+		for (k = 0; k < 3; k++) {
 			
-			replyOk();
-		} else {
+			outcomingPacket->length = sizeof(dk_msg_store_ack_t) + sizeof(hk_data_t);
+			csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+			
+			if (waitForDkAck() == 1) {
+				
+				break;
+			}
+		}
+		
+		if (k == 3) {
 			
 			replyErr(ERROR_DATA_NOT_SAVED);
+		} else {
+			
+			replyOk();
 		}
 	}
 }
@@ -173,8 +181,9 @@ void sendString(char * in) {
 void medipixInit() {
 	
 	loadImageParametersFromFram();
-		
-	pwrOnMedipix();	
+	
+	if (medipixPowered() == 0)	
+		pwrOnMedipix();	
 
 	if (medipixPowered() == 1) {
 
@@ -232,16 +241,16 @@ void sendImageInfo(uint8_t repplyTo) {
 		// save current info to the packet
 		memcpy(message->data, &imageParameters, sizeof(imageParameters_t));
 		
-		outcomingPacket->length = sizeof(dk_msg_store_ack_t) + sizeof(imageParameters_t);
-		
-		csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
-		
-		if (waitForDkAck() == 1) {
+		uint8_t k;
+		for (k = 0; k < 3; k++) {
 			
-			replyOk();
-		} else {
+			outcomingPacket->length = sizeof(dk_msg_store_ack_t) + sizeof(imageParameters_t);
+			csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
 			
-			replyErr(ERROR_DATA_NOT_SAVED);
+			if (waitForDkAck() == 1) {
+				
+				break;
+			}
 		}
 	}
 }
@@ -394,11 +403,22 @@ uint8_t sendCompressed(uint8_t image, uint8_t replyTo) {
 						
 						message->data[3] = numPixelsInPacket;
 						
-						outcomingPacket->length = packetPointer + sizeof(dk_msg_store_ack_t);
+						uint8_t k;
+						for (k = 0; k < 3; k++) {
 						
-						csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+							outcomingPacket->length = packetPointer + sizeof(dk_msg_store_ack_t);
+							csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+							
+							if (waitForDkAck() == 1) {
+								
+								break;
+							}
+						}
 						
-						noErr *= waitForDkAck();
+						if (k == 3) {
+							
+							noErr *= 0;
+						}
 						
 						message->data[0] = 'B';
 						saveUint16(message->data+1, imageParameters.imageId);
@@ -412,10 +432,24 @@ uint8_t sendCompressed(uint8_t image, uint8_t replyTo) {
 		// send the last data packet
 		if (packetPointer > 4) {
 			
-			outcomingPacket->length = packetPointer + sizeof(dk_msg_store_ack_t);
 			message->data[3] = numPixelsInPacket;
-			csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
-			noErr *= waitForDkAck();
+			
+			uint8_t k;
+			for (k = 0; k < 3; k++) {	
+				
+				outcomingPacket->length = packetPointer + sizeof(dk_msg_store_ack_t);
+				csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+				
+				if (waitForDkAck() == 1) {
+								
+					break;
+				}
+			}
+						
+			if (k == 3) {
+							
+				noErr *= 0;
+			}
 		}
 
 		return noErr;
@@ -550,11 +584,22 @@ void sendPostProcessed(uint8_t replyTo) {
 					message->data[j+4] = getHistogram1(j + i*64);
 				}
 				
-				outcomingPacket->length = 64 + 4 + sizeof(dk_msg_store_ack_t);
+				uint8_t k;
+				for (k = 0; k < 3; k++) {
+					
+					outcomingPacket->length = 64 + 4 + sizeof(dk_msg_store_ack_t);
+					csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+					
+					if (waitForDkAck() == 1) {
+						
+						break;
+					}
+				}
 				
-				csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
-				
-				noErr *= waitForDkAck();
+				if (k == 3) {
+					
+					noErr *= 0;
+				}
 			}
 			
 			// send the 2nd histogram
@@ -576,11 +621,22 @@ void sendPostProcessed(uint8_t replyTo) {
 					message->data[j+4] = getHistogram2(j + i*64);
 				}
 				
-				outcomingPacket->length = 64 + 4 + sizeof(dk_msg_store_ack_t);
-				
-				csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
-				
-				noErr *= waitForDkAck();
+				uint8_t k;
+				for (k = 0; k < 3; k++) {
+							
+					outcomingPacket->length = 64 + 4 + sizeof(dk_msg_store_ack_t);
+					csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+							
+					if (waitForDkAck() == 1) {
+								
+						break;
+					}
+				}
+						
+				if (k == 3) {
+							
+					noErr *= 0;
+				}
 			}
 		}
 		
@@ -644,11 +700,22 @@ void sendPostProcessed(uint8_t replyTo) {
 					// packet is full, send it
 					if (byteInPacket == 64) {
 						
-						outcomingPacket->length = 64 + 4 + sizeof(dk_msg_store_ack_t);
+						uint8_t k;
+						for (k = 0; k < 3; k++) {
+							
+							outcomingPacket->length = 64 + 4 + sizeof(dk_msg_store_ack_t);
+							csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+							
+							if (waitForDkAck() == 1) {
+								
+								break;
+							}
+						}
 						
-						csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
-						
-						noErr *= waitForDkAck();
+						if (k == 3) {
+							
+							noErr *= 0;
+						}
 						
 						byteInPacket = 0;
 						
@@ -710,7 +777,6 @@ void measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo) {
 	filterOnePixelEvents();
 
 	computeImageStatistics();
-	
 	
 	// do binning
 	if (imageParameters.outputForm >= BINNING_1 && imageParameters.outputForm <= BINNING_32) {
@@ -787,14 +853,20 @@ void sendBootupMessage(uint8_t replyTo) {
 			}
 		}
 		
-		outcomingPacket->length = sizeof(dk_msg_store_ack_t) + i;
+		uint8_t k;
+		for (k = 0; k < 3; k++) {
 		
-		csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
-		
-		if (waitForDkAck() == 1) {
+			outcomingPacket->length = sizeof(dk_msg_store_ack_t) + i;
+			csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
 			
-			replyOk();
-		} else {
+			if (waitForDkAck() == 1) {
+				
+				replyOk();
+				break;				
+			}
+		}
+		
+		if (k == 3) {
 			
 			replyErr(ERROR_DATA_NOT_SAVED);
 		}
@@ -865,6 +937,55 @@ void mainTask(void *p) {
 							replyOk();
 							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DATAKEEPER);
 						
+						break;
+						
+						case MEDIPIX_MEASURE_WITH_PARAMETERS:
+						
+							replyOk();
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DATAKEEPER);
+
+						break;
+
+						case MEDIPIX_MEASURE_NO_TURNOFF:
+
+							replyOk();	
+							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_NO, OUTPUT_DATAKEEPER);
+
+						break;
+					
+						case MEDIPIX_MEASURE_WITHOUT_DATA:
+
+							replyOk();
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_YES, OUTPUT_DATAKEEPER);
+
+						break;
+						
+						case MEDIPIX_MEASURE_WITHOUT_DATA_NO_TURNOFF:
+
+							replyOk();
+							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_YES, OUTPUT_DATAKEEPER);
+
+						break;
+						
+						case MEDIPIX_SEND_ORIGINAL:
+						
+							replyOk();
+							sendCompressed(0, OUTPUT_DATAKEEPER);
+						
+						break;
+						
+						case MEDIPIX_SEND_FILTERED:
+						
+							replyOk();
+							sendCompressed(1, OUTPUT_DATAKEEPER);
+						
+						break;
+
+						case MEDIPIX_SEND_BINNED:
+						
+							replyOk();
+							sendPostProcessed(OUTPUT_DATAKEEPER);
+
 						break;
 					}
 									

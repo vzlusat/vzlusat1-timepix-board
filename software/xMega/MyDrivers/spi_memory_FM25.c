@@ -119,6 +119,8 @@ uint16_t spi_mem_read_uint16t(unsigned long address) {
 	
 	// read the second byte of the uint16t
 	*(tempPtr + 1) = spi_mem_read_byte(address+1);
+	
+	return tempValue;
 }
 
 // save a blob of data (max 256B) to spi memory

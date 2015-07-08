@@ -25,7 +25,10 @@
 #define CSP_MY_ADDRESS	4		// Deska Medipix
 
 // Address of the OBC CSP node
-#define CSP_OBC_ADDRESS	1	
+#define CSP_OBC_ADDRESS		1	
+
+// Adress of the radio
+#define CSP_RADIO_ADDRESS	5
 
 // clean last two lines
 #define ERASE_LAST_TWO_LINE 0
@@ -46,10 +49,10 @@
 #define CSP_BUFFER_COUNT	1
 
 // CSP Buffer size in bytes
-#define CSP_BUFFER_SIZE	94
+#define CSP_BUFFER_SIZE	98
 
 // Maximum size of CSP packet, payload + header
-#define CSP_PACKET_SIZE	80
+#define CSP_PACKET_SIZE	84
 
 // Size of CSP router stack in words
 #define CSP_ROUTER_STACK	500
