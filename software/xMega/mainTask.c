@@ -23,6 +23,7 @@ csp_packet_t * outcomingPacket;
 xQueueHandle * xCSPEventQueue;
 xQueueHandle * xCSPAckQueue;
 xQueueHandle * xCSPTimeQueue;
+xQueueHandle * xCSPAttitudeQueue;
 
 unsigned int dest_addr;
 unsigned int dest_p;

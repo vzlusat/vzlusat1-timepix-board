@@ -8,6 +8,7 @@
 #include "system.h"
 #include "dkHandler.h"
 #include "mainTask.h"
+#include "medipix.h"
 
 uint8_t createStorage(uint8_t id, uint16_t size) {
 	
@@ -110,3 +111,35 @@ uint32_t getTime() {
 	return 0;
 }
 
+void getAttitude(adcs_att_t * attitude) {
+	
+	timestamp_t * req_time = (timestamp_t *) &outcomingPacket->data;
+	
+	req_time->tv_sec = my_ntho32(imageParameters.time) - 946684800;
+	req_time->tv_nsec = 0;
+		
+	uint8_t k;
+	for (k = 0; k < 3; k++) {
+		
+		outcomingPacket->length = sizeof(timestamp_t);
+		csp_sendto(CSP_PRIO_NORM, CSP_OBC_ADDRESS, OBC_PORT_ADCS, 19, CSP_O_NONE, outcomingPacket, 1000);
+		
+		if (pdTRUE == xQueueReceive(xCSPAttitudeQueue, &attitude, 100)) {
+			
+			uint8_t i;
+			for (i = 0; i < 6; i++) {
+				
+				attitude->attitude[i] = csp_ntoh16(attitude->attitude);
+			}
+			
+			for (i = 0; i < 3; i++) {
+				
+				attitude->position[i] = csp_ntoh16(attitude->position);
+			}
+			
+			return 1;
+		}
+	}
+	
+	return 0;
+}

@@ -17,6 +17,8 @@
 
 #define CSP_DK_MY_ADDRESS		CSP_MY_ADDRESS
 
+#define OBC_PORT_ADCS			20
+
 typedef enum {
 	
 	STORAGE_SETTINGS_ID			= 1,
@@ -93,6 +95,18 @@ typedef struct __attribute__ ((packed)) {
 	uint32_t tv_sec;
 	uint32_t tv_nsec;
 } csp_cmp_msg_t;
+
+typedef struct {
+	uint32_t tv_sec;
+	uint32_t tv_nsec;
+} timestamp_t;
+
+typedef struct __attribute__((packed)) {
+	uint32_t tv_sec;
+	uint32_t tv_nsec;
+	int16_t attitude[7];
+	int16_t position[3];
+} adcs_att_t;
 
 uint8_t createStorages();
 uint32_t getTime();

@@ -30,9 +30,11 @@ void cspTask(void *p) {
 	xCSPEventQueue = xQueueCreate(10, (portBASE_TYPE) sizeof(xCSPStackEvent_t));
 	xCSPAckQueue = xQueueCreate(1, 4);
 	xCSPTimeQueue = xQueueCreate(1, 4);
+	xCSPAttitudeQueue =  xQueueCreate(1, sizeof(adcs_att_t));
 	
 	int32_t tempInt;
 	uint32_t tempUint;
+	adcs_att_t attitudeData;
 	
 	xCSPStackEvent_t * newEvent;
 
@@ -71,6 +73,14 @@ void cspTask(void *p) {
 					tempInt = ((dk_reply_common_t *) packet->data)->err_no;
 					xQueueSend(xCSPAckQueue, &tempInt, 10);		
 							
+				break;
+				
+				// message with attitude
+				case 19:
+				
+					memcpy(&attitudeData, packet->data, sizeof(adcs_att_t));
+					xQueueSend(xCSPAttitudeQueue, &attitudeData, 10);	
+				
 				break;
 				
 				// message with time
