@@ -55,7 +55,7 @@
 #define CSP_PACKET_SIZE	84
 
 // Size of CSP router stack in words
-#define CSP_ROUTER_STACK	500
+#define CSP_ROUTER_STACK	256
 
 // Do not ever change!!!
 #define CSP_ROUTER_PRIORITY	0

@@ -1,9 +1,9 @@
 openPort();
 
 treshold = 310;
-exposure = 5000;
-bias = 240;
-filtering = 1;
+exposure = 200;
+bias = 70;
+filtering = 0;
 mode = 0;
 outputForm = 0;
 tempLimit = 40;

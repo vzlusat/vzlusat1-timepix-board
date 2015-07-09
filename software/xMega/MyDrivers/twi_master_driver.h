@@ -82,7 +82,7 @@ typedef enum TWIM_RESULT_enum {
 } TWIM_RESULT_t;
  
 /*! Buffer size defines */
-#define TWIM_WRITE_BUFFER_SIZE         128
+#define TWIM_WRITE_BUFFER_SIZE         90
 #define TWIM_READ_BUFFER_SIZE          10
  
  

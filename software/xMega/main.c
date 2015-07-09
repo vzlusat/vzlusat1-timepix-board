@@ -44,7 +44,7 @@ int main(void) {
 	/* -------------------------------------------------------------------- */
 	/*	Starts task that handles outgoing communication		 				*/
 	/* -------------------------------------------------------------------- */
-	xTaskCreate(mainTask, (signed char*) "mainTask", 1500, NULL, configNORMAL_PRIORITY, NULL);
+	xTaskCreate(mainTask, (signed char*) "mainTask", 1600, NULL, configNORMAL_PRIORITY, NULL);
 	
 	/* -------------------------------------------------------------------- */
 	/*	Starts task that handles outgoing communication		 				*/

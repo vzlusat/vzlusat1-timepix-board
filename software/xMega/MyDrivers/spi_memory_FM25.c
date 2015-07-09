@@ -35,7 +35,7 @@ void spi_mem_init(void)
 	ioport_configure_port_pin(&SPI_PORT, PIN7_bm, IOPORT_INIT_HIGH | IOPORT_DIR_OUTPUT);		// SCK
 	
 	spi_master_init(&SPI_MEM_INTERFACE);
-	spi_master_setup_device(&SPI_MEM_INTERFACE, &spi_device_conf, SPI_MODE_0, 20000000, 0);
+	spi_master_setup_device(&SPI_MEM_INTERFACE, &spi_device_conf, SPI_MODE_0, 10000000, 0);
 	spi_enable(&SPI_MEM_INTERFACE);
 
 	led_red_toggle();
@@ -54,7 +54,9 @@ void spi_mem_write_byte(unsigned long address, uint8_t data) {
 	
 	fram_unprotect();
 	fram_select();
+	portENTER_CRITICAL();
 	spi_write_packet(&SPI_MEM_INTERFACE, buffer_memory, 5);
+	portEXIT_CRITICAL();
 	fram_deselect();
 	fram_protect();
 	led_red_toggle();
@@ -78,8 +80,10 @@ uint8_t spi_mem_read_byte(unsigned long address) {
 	
 	fram_unprotect();
 	fram_select();
+	portENTER_CRITICAL();
 	spi_write_packet(&SPI_MEM_INTERFACE, buffer_memory, 4);
 	spi_read_packet(&SPI_MEM_INTERFACE, buffer_memory, 1);
+	portEXIT_CRITICAL();
 	fram_deselect();
 	fram_protect();
 	
