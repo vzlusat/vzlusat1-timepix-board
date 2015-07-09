@@ -1,11 +1,11 @@
 openPort();
 
-treshold = 430;
-exposure = 1000;
+treshold = 310;
+exposure = 10000;
 bias = 240;
 filtering = 0;
 mode = 1;
-outputForm = 0;
+outputForm = 4;
 
 fprintf(s, '%c', '2');
 

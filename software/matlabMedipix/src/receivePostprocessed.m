@@ -38,7 +38,7 @@ if (image.outputForm == 4)
 
     end
 
-    figure(3);
+    figure(4);
     subplot(2, 1, 1);
     title('Line histogram');
     plot(image.data(1, :)');
@@ -95,7 +95,7 @@ else
         
     end
     
-    figure(1);
+    figure(3);
     imagesc(image.data);
     axis equal;
     axis tight;
