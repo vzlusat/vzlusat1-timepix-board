@@ -9,6 +9,7 @@
 #include "dkHandler.h"
 #include "mainTask.h"
 #include "medipix.h"
+#include "csp_endian.h"
 
 uint8_t createStorage(uint8_t id, uint16_t size) {
 	
@@ -18,43 +19,75 @@ uint8_t createStorage(uint8_t id, uint16_t size) {
 	message->port = id;
 	message->conf_siz = csp_hton16(size);
 	
-	outcomingPacket->length = sizeof(dk_msg_create_t);
+	uint8_t k;
+	for (k = 0; k < 3; k++) {
+
+		outcomingPacket->length = sizeof(dk_msg_create_t);
+
+		csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+
+		if (waitForDkAck() == 1) {
+			
+			return 1;
+		}
+	}
 	
-	csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
-	
-	return waitForDkAck();
+	return 0;
 };
+
+uint8_t removeStorage(uint8_t id) {
+	
+	dk_msg_storage_t * message = (dk_msg_storage_t *) outcomingPacket->data;
+	
+	message->parent.cmd = DKC_REMOVE;
+	message->port = id;
+	message->host = CSP_DK_MY_ADDRESS;
+	
+	uint8_t k;
+	for (k = 0; k < 3; k++) {
+
+		outcomingPacket->length = sizeof(dk_msg_create_t);
+
+		csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+
+		if (waitForDkAck() == 1) {
+			
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
+uint8_t clearStorage(uint8_t id) {
+	
+	if (removeStorage(id) == 1) {
+		
+		if (createStorage(id, DEFAULT_CONF_CHUNK_SIZE) == 1) {
+			
+			return 1;
+		} else {
+			
+			return 0;
+		}
+	} else {
+		
+		return 0;
+	}
+}
 
 uint8_t createStorages() {
 	
+	// clear all storages
+	
+	uint8_t i;
 	uint8_t out = 1;
 	
-	// create storage for settings
-	out *= createStorage(STORAGE_SETTINGS_ID, DEFAULT_CONF_CHUNK_SIZE);
-	
-	// create storage for houskeeping data
-	out *= createStorage(STORAGE_HK_ID, DEFAULT_CONF_CHUNK_SIZE);
-	
-	// create storage for image metadata
-	out *= createStorage(STORAGE_METADATA_ID, DEFAULT_CONF_CHUNK_SIZE);
-	
-	// create storage for images with binning = 32
-	out *= createStorage(STORAGE_BINNED32_ID, DEFAULT_CONF_CHUNK_SIZE);
-	
-	// create storage for images with binning = 16
-	out *= createStorage(STORAGE_BINNED16_ID, DEFAULT_CONF_CHUNK_SIZE);
-	
-	// create storage for images with binning = 8
-	out *= createStorage(STORAGE_BINNED8_ID, DEFAULT_CONF_CHUNK_SIZE);
-	
-	// create storage for images histograms
-	out *= createStorage(STORAGE_HISTOGRAMS_ID, DEFAULT_CONF_CHUNK_SIZE);
-	
-	// create storage for raw images
-	out *= createStorage(STORAGE_RAW_ID, DEFAULT_CONF_CHUNK_SIZE);
-	
-	// create storage for bootup message
-	out *= createStorage(STORAGE_BOOTUP_MESSAGE_ID, DEFAULT_CONF_CHUNK_SIZE);
+	for (i = 1; i <= NUMBER_OF_STORAGES; i++) {
+		
+		clearStorage(i);
+		out *= createStorage(i, DEFAULT_CONF_CHUNK_SIZE);
+	}
 	
 	return out;
 }
@@ -111,12 +144,15 @@ uint32_t getTime() {
 	return 0;
 }
 
-void getAttitude(adcs_att_t * attitude) {
+uint8_t getAttitude(int16_t * attitude, int16_t * position) {
 	
 	timestamp_t * req_time = (timestamp_t *) &outcomingPacket->data;
 	
 	req_time->tv_sec = my_ntho32(imageParameters.time) - 946684800;
 	req_time->tv_nsec = 0;
+	
+	adcs_att_t attitudeIn;
+	uint8_t i;
 		
 	uint8_t k;
 	for (k = 0; k < 3; k++) {
@@ -124,21 +160,30 @@ void getAttitude(adcs_att_t * attitude) {
 		outcomingPacket->length = sizeof(timestamp_t);
 		csp_sendto(CSP_PRIO_NORM, CSP_OBC_ADDRESS, OBC_PORT_ADCS, 19, CSP_O_NONE, outcomingPacket, 1000);
 		
-		if (pdTRUE == xQueueReceive(xCSPAttitudeQueue, &attitude, 100)) {
+		if (pdTRUE == xQueueReceive(xCSPAttitudeQueue, &attitudeIn, 300)) {
 			
-			uint8_t i;
-			for (i = 0; i < 6; i++) {
+			for (i = 0; i < 7; i++) {
 				
-				attitude->attitude[i] = csp_ntoh16(attitude->attitude);
+				attitude[i] = csp_ntoh16(attitudeIn.attitude[i]);
 			}
 			
 			for (i = 0; i < 3; i++) {
 				
-				attitude->position[i] = csp_ntoh16(attitude->position);
+				position[i] = csp_ntoh16(attitudeIn.position[i]);
 			}
 			
 			return 1;
 		}
+	}
+	
+	for (i = 0; i < 7; i++) {
+		
+		attitude[i] = 0;
+	}
+	
+	for (i = 0; i < 3; i++) {
+		
+		position[i] = 0;
 	}
 	
 	return 0;

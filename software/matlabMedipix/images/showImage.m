@@ -3,7 +3,7 @@ function [] = showImage( name )
     image = load(['image_' name '.mat']);
     image = image.image;
 
-    if (image.outputForm < 4)
+    if (size(image.data, 1) > 2)
 
         figure(1);
         imagesc(image.data);

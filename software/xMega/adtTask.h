@@ -10,7 +10,7 @@
 
 #include "system.h"
 
-int8_t adtTemp;
+volatile int8_t adtTemp;
 
 void adtTask();
 

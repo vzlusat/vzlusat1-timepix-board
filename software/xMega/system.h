@@ -33,14 +33,13 @@
 #define led_red_toggle()	ioport_toggle_pin_level(RED)
  
 // UART handler
-extern UsartBuffer * medipix_usart_buffer;
+UsartBuffer * medipix_usart_buffer;
 
 /* -------------------------------------------------------------------- */
 /*	RTC																	*/
 /* -------------------------------------------------------------------- */
-extern volatile uint32_t milisecondsTimer;
-extern volatile uint32_t secondsTimer;
-extern volatile uint32_t hoursTimer;
+volatile uint16_t milisecondsTimer;
+volatile uint32_t secondsTimer;
 
 /* -------------------------------------------------------------------- */
 /*	Additional quues													*/

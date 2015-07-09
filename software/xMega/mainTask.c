@@ -109,9 +109,7 @@ void houseKeeping(uint8_t outputTo) {
 	hk_data.temperature = adt_convert_temperature(ADT_get_temperature());
 	hk_data.framStatus = fram_test();
 	hk_data.medipixStatus = medipixCheckStatus();
-	hk_data.hours = (uint8_t) hoursTimer;
-	hk_data.minutes = (uint8_t) secondsTimer/60;
-	hk_data.seconds = (uint8_t) secondsTimer%60;
+	hk_data.seconds = secondsTimer;
 	
 	// direct answer
 	if (outputTo == OUTPUT_DIRECT) {
@@ -123,6 +121,8 @@ void houseKeeping(uint8_t outputTo) {
 	
 	// save it to datakeeper
 	} else {
+	
+		clearStorage(STORAGE_HK_ID);
 		
 		dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
 		
@@ -298,13 +298,7 @@ uint8_t sendCompressed(uint8_t image, uint8_t replyTo) {
 	
 	uint8_t packetPointer, tempPixel, numPixelsInPacket;
 	
-	dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
-	
 	uint8_t noErr = 1;
-	
-	message->parent.cmd = DKC_STORE_ACK;
-	message->port = STORAGE_RAW_ID;
-	message->host = CSP_DK_MY_ADDRESS;
 	
 	if (imageParameters.nonZeroPixelsOriginal == 0)
 		return 0;
@@ -375,6 +369,14 @@ uint8_t sendCompressed(uint8_t image, uint8_t replyTo) {
 	
 	// output to DK
 	} else {
+		
+		clearStorage(STORAGE_RAW_ID);
+	
+		dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
+	
+		message->parent.cmd = DKC_STORE_ACK;
+		message->port = STORAGE_RAW_ID;
+		message->host = CSP_DK_MY_ADDRESS;
 		
 		// initialize the first packet
 		message->data[0] = 'B';
@@ -461,7 +463,9 @@ uint8_t sendCompressed(uint8_t image, uint8_t replyTo) {
 
 void sendPostProcessed(uint8_t replyTo) {
 	
-	uint16_t i, j, numPerLine;
+	uint16_t i, j;
+	
+	uint16_t numPerLine = 0;
 	
 	dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
 	
@@ -752,11 +756,18 @@ void shutterDelay() {
 	}
 }
 
-void measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo) {
+uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo) {
 	
 	if (medipixPowered() == 0) {
 		
 		medipixInit();
+	}
+	
+	// pokud se nepustil
+	if (medipixPowered() == 0) {
+		
+		// zalogovat chybu
+		return 0;
 	}
 	
 	loadImageParametersFromFram();
@@ -777,6 +788,8 @@ void measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo) {
 	imageParameters.temperature = adtTemp;
 	
 	imageParameters.time = getTime();
+
+	getAttitude(&imageParameters.attitude, &imageParameters.position);
 
 	filterOnePixelEvents();
 
@@ -809,6 +822,8 @@ void measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo) {
 			sendPostProcessed(repplyTo);
 		}
 	}
+	
+	return 1;
 }
 
 void sendBootupMessage(uint8_t replyTo) {
@@ -836,6 +851,8 @@ void sendBootupMessage(uint8_t replyTo) {
 		
 	// DK response
 	} else {
+		
+		clearStorage(STORAGE_BOOTUP_MESSAGE_ID);
 		
 		dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
 		
@@ -899,6 +916,8 @@ void mainTask(void *p) {
 	outcomingPacket = csp_buffer_get(CSP_PACKET_SIZE);
 		
 	uint8_t modeChanging;
+	
+	loadImageParametersFromFram();
 					
 	// infinite while loop of the program 
 	while (1) {
@@ -1023,7 +1042,7 @@ void mainTask(void *p) {
 						
 							loadImageParametersFromFram();
 							
-							newSettings_t * settings = packetPayload;
+							newSettings_t * settings = (newSettings_t *) packetPayload;
 						
 							if (settings->mode != imageParameters.mode)
 								modeChanging = 1;
@@ -1036,6 +1055,8 @@ void mainTask(void *p) {
 							imageParameters.filtering = settings->filtering;
 							imageParameters.mode = settings->mode;
 							imageParameters.outputForm = settings->outputForm;
+							imageParameters.temperatureLimit = settings->temperatureLimit;
+							imageParameters.pixelCountThr = settings->pixelCountThr;
 							
 							saveImageParametersToFram();
 							
@@ -1112,6 +1133,30 @@ void mainTask(void *p) {
 						
 						break;
 						
+						case MEDIPIX_SET_TEMPLIMIT:
+						
+							loadImageParametersFromFram();
+
+							imageParameters.temperatureLimit = *packetPayload;
+							
+							saveImageParametersToFram();
+							
+							replyOk();
+						
+						break;		
+						
+						case MEDIPIX_SET_PIXELCNTTHR:
+						
+							loadImageParametersFromFram();
+
+							imageParameters.pixelCountThr = parseUint16(packetPayload);
+							
+							saveImageParametersToFram();
+							
+							replyOk();
+						
+						break;				
+					
 						case MEDIPIX_SET_MODE:
 						
 							loadImageParametersFromFram();

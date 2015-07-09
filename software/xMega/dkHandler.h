@@ -19,6 +19,8 @@
 
 #define OBC_PORT_ADCS			20
 
+#define NUMBER_OF_STORAGES		9
+
 typedef enum {
 	
 	STORAGE_SETTINGS_ID			= 1,
@@ -108,7 +110,16 @@ typedef struct __attribute__((packed)) {
 	int16_t position[3];
 } adcs_att_t;
 
+typedef struct __attribute__((packed))
+{ //DKC_INFO, DKC_INFO_RICH, DKC_REMOVE, DKC_MAINTENANCE
+	dk_msg_t parent;
+	uint8_t host; //storage identification
+	uint8_t port; //storage sub-identification
+} dk_msg_storage_t;
+
 uint8_t createStorages();
 uint32_t getTime();
+uint8_t getAttitude(int16_t * attitude, int16_t * position);
+uint8_t clearStorage(uint8_t id);
 
 #endif /* DKHANDLER_H_ */

@@ -12,6 +12,7 @@
 #include "imageProcessing.h"
 #include "avr/cpufunc.h"
 #include "fram_mapping.h"
+#include "spi_memory_FM25.h"
 
 // 1 if medipix is powered
 // 0 if medipix is turned off
@@ -502,7 +503,7 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 	
 	for (i = 0; i < 256; i++) {
 		
-		Mask = &dataBuffer;
+		Mask = (uint16_t *) &dataBuffer;
 		
 		for (j = 0; j < 256; j++) {
 			

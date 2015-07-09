@@ -13,9 +13,8 @@
  #include "spi_memory_FM25.h"
  #include "fram_mapping.h"
  
- volatile uint32_t milisecondsTimer;
+ volatile uint16_t milisecondsTimer;
  volatile uint32_t secondsTimer;
- volatile uint32_t hoursTimer;
  
  // UART handler
  UsartBuffer * medipix_usart_buffer;
@@ -55,7 +54,6 @@ void boardInit() {
 	
 	milisecondsTimer = 0;
 	secondsTimer = 0;
-	hoursTimer = 0;
 	
 	/* -------------------------------------------------------------------- */
 	/*	Setup LEDs															*/
@@ -117,10 +115,6 @@ ISR(TCC1_OVF_vect) {
 		
 		milisecondsTimer = 0;
 		
-		if (secondsTimer++ == 3600) {
-			
-			secondsTimer = 0;
-			hoursTimer++;
-		}
+		secondsTimer++;
 	}
 }

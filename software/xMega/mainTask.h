@@ -47,18 +47,18 @@ typedef enum {
 	MEDIPIX_GET_HOUSKEEPING = 19,						// return the main houskeeping information
 	MEDIPIX_MEASURE_WITHOUT_DATA_NO_TURNOFF = 20,		// return the main houskeeping information
 	XRAY_DK_CREATE_STORAGES = 21,						// create all storages in the data keeper
+	MEDIPIX_SET_PIXELCNTTHR = 22,						// pixel count threshold for scanning mode
+	MEDIPIX_SET_TEMPLIMIT = 23,							// temperature limit for medipix
 } MPX_COMMANDS;	
 
-typedef struct {
+typedef struct __attribute__((packed)) {
 	
 	uint16_t bootCount;
 	uint16_t imagesTaken;
 	uint8_t temperature;
 	uint8_t framStatus;
 	uint8_t medipixStatus;
-	uint8_t hours;
-	uint8_t minutes;
-	uint8_t seconds;
+	uint32_t seconds;
 } hk_data_t;
 
 #define MEASURE_TURNOFF_YES		1

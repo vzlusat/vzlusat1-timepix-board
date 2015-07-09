@@ -19,6 +19,7 @@ void openShutter();
 
 void MpxDACstreamTimepix(uint8_t * buff);
 void setDACs();
+void setBias(uint8_t bias);
 
 uint16_t getRntRaw(uint16_t idx);
 uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream);
@@ -93,7 +94,7 @@ typedef enum {
 } OUTPUT_FORMS;
 
 // structure that hold all parameters of the measurement
-typedef struct {
+typedef struct __attribute__((packed)) {
 	
 	uint8_t packetType;
 	
@@ -138,12 +139,22 @@ typedef struct {
 	// temperature from the ADT sensor
 	int8_t temperature;
 	
+	// temperature limit for measuring
+	int8_t temperatureLimit;
+	
+	// pixel count threshold for image catcher mode
+	uint16_t pixelCountThr;
+	
+	int16_t attitude[7];
+	
+	int16_t position[3];
+	
 	uint32_t time;
 	
 } imageParameters_t;
 
 // this structure is send via CSP to set image parameters
-typedef struct {
+typedef struct __attribute__((packed)) {
 	
 	uint16_t treshold;
 	
@@ -165,6 +176,12 @@ typedef struct {
 	// 3 -> 32 binning
 	// 4 -> histograms
 	uint8_t outputForm;
+	
+	// temperature limit for measuring
+	int8_t temperatureLimit;
+	
+	// pixel count threshold for image catcher mode
+	uint16_t pixelCountThr;
 	
 } newSettings_t;
 

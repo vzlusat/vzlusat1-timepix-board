@@ -39,7 +39,7 @@ int main(void) {
 	/* -------------------------------------------------------------------- */
 	/*	Starts task that handles incoming communication		 				*/
 	/* -------------------------------------------------------------------- */
-	xTaskCreate(cspTask, (signed char*) "cspTask", 512, NULL, configNORMAL_PRIORITY, NULL);
+	xTaskCreate(cspTask, (signed char*) "cspTask", 400, NULL, configNORMAL_PRIORITY, NULL);
 	
 	/* -------------------------------------------------------------------- */
 	/*	Starts task that handles outgoing communication		 				*/
