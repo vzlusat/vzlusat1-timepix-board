@@ -49,6 +49,8 @@ typedef enum {
 	XRAY_DK_CREATE_STORAGES = 21,						// create all storages in the data keeper
 	MEDIPIX_SET_PIXELCNTTHR = 22,						// pixel count threshold for scanning mode
 	MEDIPIX_SET_TEMPLIMIT = 23,							// temperature limit for medipix
+	MEDIPIX_MEASURE_SCANNING_MODE = 24,					// similar as "MEDIPIX_MEASURE", but saves the data only if number of pixels (after filtration) exceeds a treshold
+	MEDIPIX_MEASURE_SCANNING_MODE_NO_TURNOFF = 25,		// -||- but not turnoff
 } MPX_COMMANDS;	
 
 typedef struct __attribute__((packed)) {
@@ -69,5 +71,8 @@ typedef struct __attribute__((packed)) {
 
 #define OUTPUT_DATAKEEPER	1
 #define OUTPUT_DIRECT		0
+
+#define USE_PIXEL_TRESHOLD_YES	1
+#define USE_PIXEL_TRESHOLD_NO	0
 
 #endif /* MAINTASK_H_ */

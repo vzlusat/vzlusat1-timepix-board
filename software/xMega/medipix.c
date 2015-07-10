@@ -16,9 +16,9 @@
 
 // 1 if medipix is powered
 // 0 if medipix is turned off
-uint8_t medipixOnline = 0;
+volatile uint8_t medipixOnline = 0;
 
-uint16_t DefaultDacValsTimepix[15] = {1, 100, 255, 127, 127, 0, 314, 7, 130, 128, 80, 85, 128, 128, 0};
+volatile uint16_t DefaultDacValsTimepix[15] = {1, 100, 255, 127, 127, 0, 314, 7, 130, 128, 80, 85, 128, 128, 0};
 	
 volatile Mpx_DAC DAC;
 

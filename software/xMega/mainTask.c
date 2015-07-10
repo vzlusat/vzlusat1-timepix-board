@@ -756,7 +756,9 @@ void shutterDelay() {
 	}
 }
 
-uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo) {
+uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t usePixelTreshold) {
+	
+	char inChar;
 	
 	if (medipixPowered() == 0) {
 		
@@ -778,7 +780,11 @@ uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo) {
 	
 	closeShutter();
 	
+	vTaskDelay(10);
+	
 	readMatrix();
+	
+	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 1)) {}
 
 	if (turnOff == MEASURE_TURNOFF_YES) {
 		
@@ -808,6 +814,14 @@ uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo) {
 	imageParameters.imageId++;
 	
 	saveImageParametersToFram();
+
+	if (usePixelTreshold == 1) {
+		
+		if (imageParameters.nonZeroPixelsFiltered < imageParameters.pixelCountThr) {
+			
+			return 0;
+		}
+	}
 	
 	sendImageInfo(repplyTo);
 	
@@ -958,37 +972,52 @@ void mainTask(void *p) {
 						case MEDIPIX_MEASURE:
 						
 							replyOk();
-							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DATAKEEPER);
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DATAKEEPER, USE_PIXEL_TRESHOLD_NO);
 						
 						break;
 						
 						case MEDIPIX_MEASURE_WITH_PARAMETERS:
 						
 							replyOk();
-							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DATAKEEPER);
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DATAKEEPER, USE_PIXEL_TRESHOLD_NO);
 
 						break;
 
 						case MEDIPIX_MEASURE_NO_TURNOFF:
 
 							replyOk();	
-							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_NO, OUTPUT_DATAKEEPER);
+							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_NO, OUTPUT_DATAKEEPER, USE_PIXEL_TRESHOLD_NO);
 
 						break;
 					
 						case MEDIPIX_MEASURE_WITHOUT_DATA:
 
 							replyOk();
-							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_YES, OUTPUT_DATAKEEPER);
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_YES, OUTPUT_DATAKEEPER, USE_PIXEL_TRESHOLD_NO);
 
 						break;
 						
 						case MEDIPIX_MEASURE_WITHOUT_DATA_NO_TURNOFF:
 
 							replyOk();
-							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_YES, OUTPUT_DATAKEEPER);
+							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_YES, OUTPUT_DATAKEEPER, USE_PIXEL_TRESHOLD_NO);
 
 						break;
+						
+						case MEDIPIX_MEASURE_SCANNING_MODE:
+						
+							replyOk();
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DATAKEEPER, USE_PIXEL_TRESHOLD_YES);
+						
+						break;
+						
+						case MEDIPIX_MEASURE_SCANNING_MODE_NO_TURNOFF:
+						
+							replyOk();
+							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_NO, OUTPUT_DATAKEEPER, USE_PIXEL_TRESHOLD_YES);
+						
+						break;
+						
 						
 						case MEDIPIX_SEND_ORIGINAL:
 						
@@ -1197,31 +1226,31 @@ void mainTask(void *p) {
 						
 						case MEDIPIX_MEASURE:
 							
-							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DIRECT);
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DIRECT, USE_PIXEL_TRESHOLD_NO);
 						
 						break;
 						
 						case MEDIPIX_MEASURE_WITH_PARAMETERS:
 							
-							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DIRECT);
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DIRECT, USE_PIXEL_TRESHOLD_NO);
 
 						break;
 						
 						case MEDIPIX_MEASURE_NO_TURNOFF:
 						
-							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_NO, OUTPUT_DIRECT);
+							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_NO, OUTPUT_DIRECT, USE_PIXEL_TRESHOLD_NO);
 						
 						break;
 						
 						case MEDIPIX_MEASURE_WITHOUT_DATA:
 						
-							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_YES, OUTPUT_DIRECT);
+							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_YES, OUTPUT_DIRECT, USE_PIXEL_TRESHOLD_NO);
 						
 						break;
 						
 						case MEDIPIX_MEASURE_WITHOUT_DATA_NO_TURNOFF:
 						
-							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_YES, OUTPUT_DIRECT);
+							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_YES, OUTPUT_DIRECT, USE_PIXEL_TRESHOLD_NO);
 						
 						break;
 						
