@@ -52,8 +52,6 @@ void applyBinning();
 // create histograms from the image
 void createHistograms();
 
-void prepareOutput();
-
 // count number of active pixel in the filtered/output image
 void computeImageStatistics();
 

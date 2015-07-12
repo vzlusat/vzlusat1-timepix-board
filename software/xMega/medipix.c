@@ -510,14 +510,6 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 			// load the pixel coniguration from the equalization matrix
 			pixelCfg = getEqualizationRaw(256*i + j);
 			
-			/*
-			// vymaskovat roh
-			if (((i < 64) && (j < 64)) || ((i > 192) && (j < 64)) || ((i > 192) && (j > 192)) || ((i < 64) && (j > 192))) {
-				
-				pixelCfg = pixelCfg & (~(0x01));
-			}
-			*/
-			
 			// initialize the pixel with testbit preset on 1
 			*(Mask+j) = 0;
 
@@ -569,6 +561,7 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 			#endif
 		}
 		
+		// serialize the data
 		MpxData2BitStreamSingleMXR(&dataBuffer, &ioBuffer);
 						
 		for (k = 0; k < 448; k++) {
@@ -584,8 +577,6 @@ uint8_t loadEqualization(uint16_t * data, uint8_t * outputBitStream) {
 
 	char inChar;
 	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 2000)) {
-	
-		// TODO uložit zprávu z medipixu do fram k pozdìjšímu pøeètení
 
 		// ukonci cekani na odpoved pri prijmuti posledniho znaku
 		if (inChar == '\r')
@@ -617,12 +608,6 @@ void saveLine(uint8_t row, uint16_t * data) {
 				
 			newPixelValue = (uint8_t) (*(data + i));
 		}
-		
-		// erase the last two lines
-		#if (ERASE_LAST_TWO_LINE == 1) && (PLOT_TEST_PATTERN == 0)
-			if (row >= 254)
-				newPixelValue = 0;
-		#endif
 		
 		// count statistic of the original image
 		if (newPixelValue > 0) {

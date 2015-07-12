@@ -11,8 +11,8 @@
 #include "twi_master_driver.h"
 
 // define different versions of timepix
-#define MEDIPIX_EQM	1
-// #define MEDIPIX_FLIGHT	1
+#define MEDIPIX_EQM	1			// EQM kus
+// #define MEDIPIX_FLIGHT	1	// LETOVY kus
 
 #define DEBUG_OUTPUT 1
 #define MATLAB_OUTPUT 1
@@ -20,8 +20,6 @@
 #define PLOT_TEST_PATTERN 0
 
 // Address of the local CSP node
-// #define CSP_MY_ADDRESS	2	// Deska EPS
-// #define CSP_MY_ADDRESS	3	// Deska Measure
 #define CSP_MY_ADDRESS	4		// Deska Medipix
 
 // Address of the OBC CSP node
@@ -29,9 +27,6 @@
 
 // Adress of the radio
 #define CSP_RADIO_ADDRESS	5
-
-// clean last two lines
-#define ERASE_LAST_TWO_LINE 0
 
 // Actual position of CSP i2c on the xMega
 // Replace "TWIE" with adequate port of your board
@@ -81,11 +76,5 @@
 // letovy kus
 #define SPI_MEM_INTERFACE	SPIC
 #define SPI_PORT			PORTC
-
-/*
-// prototyp
-#define SPI_MEM_INTERFACE	SPID
-#define SPI_PORT			PORTD
-*/
 
 #endif /* CONFIG_H_ */

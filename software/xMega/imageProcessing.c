@@ -423,17 +423,4 @@ void createHistograms() {
 		
 		setHistogram2(i, (uint8_t) sum);
 	}
-	
-	/* testing pattern
-	for (i = 0; i < 256; i++) {
-		
-		setHistogram1(i, i);
-		setHistogram2(i, 255-i);
-	}
-	*/
-}
-
-void prepareOutput() {
-	
-	
 }
