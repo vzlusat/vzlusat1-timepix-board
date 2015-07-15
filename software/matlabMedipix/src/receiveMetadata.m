@@ -20,6 +20,8 @@ image.temperature = fread(s, 1, 'int8');
 image.tempLimit = fread(s, 1, 'int8');
 image.pxlLimit =  fread(s, 1, 'uint16');
 
+image.chunkId = fread(s, 1, 'uint32');
+
 for u=1:7
     image.attitude(u) =  fread(s, 1, 'int16');
 end

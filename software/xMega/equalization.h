@@ -25,7 +25,7 @@
 	"p"  (&(var))                             \
 	);                                                \
 	tmp;                                              \
-})
+})	
 
 const uint8_t pseudoCount2high[8192];
 const uint8_t pseudoCount2low[8192];

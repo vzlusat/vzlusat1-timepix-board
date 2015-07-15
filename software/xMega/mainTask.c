@@ -81,7 +81,7 @@ uint8_t waitForDkAck() {
 	
 	int32_t err;
 	
-	if (pdTRUE == xQueueReceive(xCSPAckQueue, &err, 100)) {
+	if (pdTRUE == xQueueReceive(xCSPAckQueue, &err, 3000)) {
 		
 		if (err != 0) {
 			
@@ -122,8 +122,6 @@ void houseKeeping(uint8_t outputTo) {
 	// save it to datakeeper
 	} else {
 	
-		clearStorage(STORAGE_HK_ID);
-		
 		dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
 		
 		message->parent.cmd = DKC_STORE_ACK;
@@ -370,12 +368,10 @@ uint8_t sendCompressed(uint8_t image, uint8_t replyTo) {
 	// output to DK
 	} else {
 		
-		clearStorage(STORAGE_RAW_ID);
-	
 		dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
 	
 		message->parent.cmd = DKC_STORE_ACK;
-		message->port = STORAGE_RAW_ID;
+		message->port = STORAGE_DATA_ID;
 		message->host = CSP_DK_MY_ADDRESS;
 		
 		// initialize the first packet
@@ -490,26 +486,7 @@ void sendPostProcessed(uint8_t replyTo) {
 	if (replyTo == OUTPUT_DATAKEEPER) {
 		
 		message->parent.cmd = DKC_STORE_ACK;
-		
-		switch (imageParameters.outputForm) {
-			
-			case BINNING_8:
-				message->port = STORAGE_BINNED8_ID;
-			break;
-			
-			case BINNING_16:
-				message->port = STORAGE_BINNED16_ID;
-			break;
-			
-			case BINNING_32:
-				message->port = STORAGE_BINNED32_ID;
-			break;
-			
-			case HISTOGRAMS:
-				message->port = STORAGE_HISTOGRAMS_ID;
-			break;
-		}
-		
+		message->port = STORAGE_DATA_ID;
 		message->host = CSP_DK_MY_ADDRESS;
 	}
 	
@@ -756,6 +733,37 @@ void shutterDelay() {
 	}
 }
 
+uint32_t getNextChunkId(uint8_t port) {
+	
+	dk_msg_storage_t * message = (dk_msg_storage_t *) outcomingPacket->data;
+	
+	message->host = CSP_DK_MY_ADDRESS;
+	message->port = STORAGE_DATA_ID;
+	message->parent.cmd = DKC_INFO;
+	
+	uint32_t chunksNum;
+	
+	uint8_t i;
+	for (i = 0; i < 3; i++) {
+		
+		outcomingPacket->length = sizeof(dk_msg_storage_t);
+		
+		csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 21, CSP_O_NONE, outcomingPacket, 1000);
+		
+		chunksNum = my_ntho32(waitForTimeAck());
+		
+		if (chunksNum > 0) {
+				
+			break;
+		}	
+	}
+	
+	if (chunksNum == 0)
+		return 0;
+		
+	return chunksNum;
+}
+
 uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t usePixelTreshold) {
 	
 	char inChar;
@@ -823,6 +831,11 @@ uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t 
 		}
 	}
 	
+	// get chunk-ID of the next image
+	imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
+	
+	saveImageParametersToFram();
+	
 	sendImageInfo(repplyTo);
 	
 	if (withoutData == MEASURE_WITHOUT_DATA_NO) {
@@ -866,8 +879,7 @@ void sendBootupMessage(uint8_t replyTo) {
 	// DK response
 	} else {
 		
-		clearStorage(STORAGE_BOOTUP_MESSAGE_ID);
-		
+		/*
 		dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
 		
 		message->parent.cmd = DKC_STORE_ACK;
@@ -905,6 +917,7 @@ void sendBootupMessage(uint8_t replyTo) {
 			
 			replyErr(ERROR_DATA_NOT_SAVED);
 		}
+		*/
 	}
 }
 

@@ -11,8 +11,8 @@
 #include "twi_master_driver.h"
 
 // define different versions of timepix
-#define MEDIPIX_EQM	1			// EQM kus
-// #define MEDIPIX_FLIGHT	1	// LETOVY kus
+// #define MEDIPIX_EQM	1			// EQM kus
+#define MEDIPIX_FLIGHT	1	// LETOVY kus
 
 #define DEBUG_OUTPUT 1
 #define MATLAB_OUTPUT 1
@@ -28,6 +28,8 @@
 // Adress of the radio
 #define CSP_RADIO_ADDRESS	5
 
+#define CSP_DEBUG_ADRESS	30
+
 // Actual position of CSP i2c on the xMega
 // Replace "TWIE" with adequate port of your board
 #define CSP_I2C_INTERFACE	TWIE
@@ -39,6 +41,9 @@
 
 // Slave address of the OBC CSP i2c interface
 #define CSP_I2C_OBC_ADDRESS	CSP_OBC_ADDRESS
+
+// slave address of the RADIO on the i2c
+#define CSP_I2C_COM_ADRESS	CSP_RADIO_ADDRESS
 
 // Number of CSP buffer to allocate
 #define CSP_BUFFER_COUNT	1

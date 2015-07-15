@@ -31,7 +31,9 @@ int main(void) {
 					
 	// Add route to OBC via i2c
 	csp_route_set(CSP_OBC_ADDRESS, &csp_if_i2c, CSP_I2C_OBC_ADDRESS);
-	csp_route_set(CSP_RADIO_ADDRESS, &csp_if_i2c, CSP_I2C_OBC_ADDRESS);
+	csp_route_set(CSP_RADIO_ADDRESS, &csp_if_i2c, CSP_I2C_COM_ADRESS);
+	csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_i2c, CSP_I2C_COM_ADRESS);
+	csp_route_set(CSP_DEBUG_ADRESS, &csp_if_i2c, CSP_I2C_OBC_ADDRESS);
 					
 	// Start router task
 	csp_route_start_task(CSP_ROUTER_STACK, CSP_ROUTER_PRIORITY);

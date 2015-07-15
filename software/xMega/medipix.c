@@ -248,6 +248,7 @@ void MpxBitStream2DataSingleMXR(uint8_t * byteStream, uint16_t * data) {
 	}
 }
 
+// serializace
 void MpxData2BitStreamSingleMXR(uint16_t * data, uint8_t * byteStream) {
 	
 	int16_t j, k;
@@ -359,8 +360,6 @@ void pwrOnMedipix() {
 	
 	// prijme uvitaci zpravu
 	while (usartBufferGetByte(medipix_usart_buffer, &inChar, 8000)) {
-		
-		// TODO uložit zprávu z medipixu do fram k pozdìjšímu pøeètení
 
 		// ukonci cekani na odpoved pri prijmuti posledniho znaku
 
@@ -597,7 +596,7 @@ void saveLine(uint8_t row, uint16_t * data) {
 		
 		if (imageParameters.mode == MODE_TIMEPIX) {
 
-			*(data + i) = *(data + i) / 46;	
+			*(data + i) = ceil(((float) *(data + i)) / ((float) 46));	
 		}
 
 		// saturace na byte

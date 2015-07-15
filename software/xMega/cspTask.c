@@ -91,6 +91,14 @@ void cspTask(void *p) {
 				
 				break;
 				
+				// message with chunk ID
+				case 21:
+				
+					tempUint = ((dk_reply_info_t *) packet->data)->chunks;
+					xQueueSend(xCSPTimeQueue, &tempUint, 10);
+				
+				break;
+				
 				/* Process packet here */
 				default:
 				

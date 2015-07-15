@@ -145,10 +145,16 @@ typedef struct __attribute__((packed)) {
 	// pixel count threshold for image catcher mode
 	uint16_t pixelCountThr;
 	
+	// id of the chunk in the storage
+	uint32_t chunkId;
+	
+	// position from ADCS
 	int16_t attitude[7];
 	
+	// position from ADCS
 	int16_t position[3];
 	
+	// time from OBC.. unix time?
 	uint32_t time;
 	
 } imageParameters_t;

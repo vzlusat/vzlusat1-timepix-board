@@ -19,19 +19,13 @@
 
 #define OBC_PORT_ADCS			20
 
-#define NUMBER_OF_STORAGES		9
+#define NUMBER_OF_STORAGES		3
 
 typedef enum {
 	
-	STORAGE_SETTINGS_ID			= 1,
-	STORAGE_HK_ID				= 2,
-	STORAGE_METADATA_ID			= 3,
-	STORAGE_BINNED32_ID			= 4,
-	STORAGE_BINNED16_ID			= 5,
-	STORAGE_BINNED8_ID			= 6,
-	STORAGE_HISTOGRAMS_ID		= 7,
-	STORAGE_RAW_ID				= 8,
-	STORAGE_BOOTUP_MESSAGE_ID	= 9,
+	STORAGE_HK_ID				= 1,
+	STORAGE_METADATA_ID			= 2,
+	STORAGE_DATA_ID				= 3,
 } DK_STORAGES_IDS;
 
 #define DEFAULT_CONF_CHUNK_SIZE		20
@@ -117,9 +111,19 @@ typedef struct __attribute__((packed))
 	uint8_t port; //storage sub-identification
 } dk_msg_storage_t;
 
+typedef struct __attribute__((packed))
+{ //DKC_INFO, DKC_LIST
+	uint8_t host; //storage identification
+	uint8_t port; //storage sub-identification
+	uint32_t chunks; //number of data chunks in a storage
+	uint32_t write_tim; //since 01.01.2000 00:00:00 UTC
+} dk_reply_info_t;
+
 uint8_t createStorages();
 uint32_t getTime();
 uint8_t getAttitude(int16_t * attitude, int16_t * position);
 uint8_t clearStorage(uint8_t id);
+uint32_t waitForTimeAck();
+uint32_t my_ntho32(uint32_t in);
 
 #endif /* DKHANDLER_H_ */
