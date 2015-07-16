@@ -318,7 +318,16 @@ void mainTask(void *p) {
 				case 'h':
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 17, 17, CSP_O_NONE,  outcomingPacket, 10);
 				break;
-			
+				
+				case 'x':
+				
+					outcomingPacket->data[0] = MEDIPIX_SEND_SENSOR_DATA;
+					outcomingPacket->length = 1;
+					pingSent = milisecondsTimer;
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
+				
+				break;
+							
 				// sends the char and is supposed to receive it back
 				default:
 				break;

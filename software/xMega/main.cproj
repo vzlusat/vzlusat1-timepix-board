@@ -531,6 +531,12 @@
     <Compile Include="MyDrivers\ADT7420.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="MyDrivers\myADC.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="MyDrivers\myADC.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="MyDrivers\port_driver.c">
       <SubType>compile</SubType>
     </Compile>

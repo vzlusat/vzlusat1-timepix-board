@@ -124,6 +124,5 @@ uint32_t getTime();
 uint8_t getAttitude(int16_t * attitude, int16_t * position);
 uint8_t clearStorage(uint8_t id);
 uint32_t waitForTimeAck();
-uint32_t my_ntho32(uint32_t in);
 
 #endif /* DKHANDLER_H_ */

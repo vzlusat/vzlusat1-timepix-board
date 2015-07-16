@@ -1,10 +1,10 @@
 openPort();
 
 treshold = 310;
-exposure = 10000;
+exposure = 20000;
 bias = 240;
-filtering = 1;
-mode = 1;
+filtering = 0;
+mode = 0;
 outputForm = 0;
 tempLimit = 50;
 pxlCount = 0;

@@ -79,6 +79,9 @@ typedef enum {
 	XRAY_DK_CREATE_STORAGES = 21,						// create all storages in the data keeper
 	MEDIPIX_SET_PIXELCNTTHR = 22,						// pixel count threshold for scanning mode
 	MEDIPIX_SET_TEMPLIMIT = 23,							// temperature limit for medipix
+	MEDIPIX_MEASURE_SCANNING_MODE = 24,					// similar as "MEDIPIX_MEASURE", but saves the data only if number of pixels (after filtration) exceeds a treshold
+	MEDIPIX_MEASURE_SCANNING_MODE_NO_TURNOFF = 25,		// -||- but not turnoff
+	MEDIPIX_SEND_SENSOR_DATA = 26,						// get data from the IR and UV sensors
 } MPX_COMMANDS;
 
 #endif /* MEDIPIXHEADERS_H_ */

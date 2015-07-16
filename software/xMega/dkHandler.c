@@ -104,21 +104,6 @@ uint32_t waitForTimeAck() {
 	return 0;
 }
 
-uint32_t my_ntho32(uint32_t in) {
-	
-	uint32_t out;
-	uint8_t * tempPtr = (uint8_t *) &in;
-	uint8_t * tempPtr2 = (uint8_t *) &out;
-	uint8_t l;
-	
-	for (l = 0; l < 4; l++) {
-		
-		*(tempPtr2 + l) = *(tempPtr + 3 - l);
-	}
-	
-	return out;
-}
-
 uint32_t getTime() {
 	
 	csp_cmp_msg_t * msg = (csp_cmp_msg_t *) outcomingPacket->data;
@@ -137,7 +122,7 @@ uint32_t getTime() {
 				
 		if (pdTRUE == xQueueReceive(xCSPTimeQueue, &time, 100)) {
 			
-			return my_ntho32(time);
+			return csp_ntoh32(time);
 		}
 	}
 	
@@ -148,7 +133,7 @@ uint8_t getAttitude(int16_t * attitude, int16_t * position) {
 	
 	timestamp_t * req_time = (timestamp_t *) &outcomingPacket->data;
 	
-	req_time->tv_sec = my_ntho32(imageParameters.time);
+	req_time->tv_sec = csp_hton32(imageParameters.time);
 	req_time->tv_nsec = 0;
 	
 	adcs_att_t attitudeIn;

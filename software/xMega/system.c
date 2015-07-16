@@ -12,6 +12,7 @@
  #include "ADT7420.h"
  #include "spi_memory_FM25.h"
  #include "fram_mapping.h"
+ #include "myADC.h"
  
  volatile uint16_t milisecondsTimer;
  volatile uint32_t secondsTimer;
@@ -81,6 +82,22 @@ void boardInit() {
 	/*	Initialize FRAM memory												*/
 	/* -------------------------------------------------------------------- */
 	spi_mem_init();
+	
+	/* -------------------------------------------------------------------- */
+	/*	Initialize adcs for IR and UV sensors								*/
+	/* -------------------------------------------------------------------- */
+	adc_init();
+
+	/* -------------------------------------------------------------------- */
+	/*	read ADC with sampling 10 Hz approx.								*/
+	/* -------------------------------------------------------------------- */
+	
+	// select the clock source and pre-scaler by 1
+	TC0_ConfigClockSource(&TCD0, TC_CLKSEL_DIV64_gc);
+	
+	TC0_SetOverflowIntLevel(&TCD0, TC_OVFINTLVL_LO_gc);
+	
+	TC_SetPeriod(&TCD0, 50000);
 
 	/* -------------------------------------------------------------------- */
 	/*	Increment the boot count											*/
@@ -118,4 +135,15 @@ ISR(TCC1_OVF_vect) {
 		
 		secondsTimer++;
 	}
+}
+
+/* -------------------------------------------------------------------- */
+/*	Periodically saves UV and IR sensor data							*/
+/* -------------------------------------------------------------------- */
+ISR(TCD0_OVF_vect) {
+	
+	uv_ir_data.TIR = adc_read_ch0();
+	uv_ir_data.IR = adc_read_ch1();
+	uv_ir_data.UV1 = adc_read_ch2();
+	uv_ir_data.UV2 = adc_read_ch3();
 }

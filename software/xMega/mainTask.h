@@ -51,6 +51,7 @@ typedef enum {
 	MEDIPIX_SET_TEMPLIMIT = 23,							// temperature limit for medipix
 	MEDIPIX_MEASURE_SCANNING_MODE = 24,					// similar as "MEDIPIX_MEASURE", but saves the data only if number of pixels (after filtration) exceeds a treshold
 	MEDIPIX_MEASURE_SCANNING_MODE_NO_TURNOFF = 25,		// -||- but not turnoff
+	MEDIPIX_SEND_SENSOR_DATA = 26,						// get data from the IR and UV sensors
 } MPX_COMMANDS;	
 
 typedef struct __attribute__((packed)) {

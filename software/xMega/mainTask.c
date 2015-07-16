@@ -18,6 +18,8 @@
 #include "adtTask.h"
 #include "spi_memory_FM25.h"
 #include "dkHandler.h"
+#include "myADC.h"
+#include "csp_endian.h"
 
 csp_packet_t * outcomingPacket;
 xQueueHandle * xCSPEventQueue;
@@ -750,7 +752,7 @@ uint32_t getNextChunkId(uint8_t port) {
 		
 		csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 21, CSP_O_NONE, outcomingPacket, 1000);
 		
-		chunksNum = my_ntho32(waitForTimeAck());
+		chunksNum = csp_hton32(waitForTimeAck());
 		
 		if (chunksNum > 0) {
 				
@@ -935,6 +937,22 @@ void sendTemperature(uint8_t outputTo) {
 	}
 }
 
+void sendSensorsData() {
+	
+	sensors_t tempData;
+	
+	sensors_t * sensors_data = (sensors_t *) outcomingPacket->data;
+	
+	sensors_data->IR = csp_hton16(uv_ir_data.IR);
+	sensors_data->TIR = csp_hton16(uv_ir_data.TIR);
+	sensors_data->UV1 = csp_hton16(uv_ir_data.UV1);
+	sensors_data->UV2 = csp_hton16(uv_ir_data.UV2);
+	
+	outcomingPacket->length = sizeof(sensors_t);
+	
+	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+}
+
 /* -------------------------------------------------------------------- */
 /*	The main task														*/
 /* -------------------------------------------------------------------- */
@@ -1062,13 +1080,20 @@ void mainTask(void *p) {
 					switch (command) {
 						
 						case MEDIPIX_PWR_ON:
+						
+							if (medipixPowered() == 1) {
+								
+								replyErr(ERROR_MEDIPIX_ALREADY_POWERED);	
 							
-							medipixInit();
+							} else {
 							
-							if (medipixPowered() == 1)
-								replyOk();
-							else
-								replyErr(ERROR_MEDIPIX_NOT_POWERED);	
+								medipixInit();
+							
+								if (medipixPowered() == 1)
+									replyOk();
+								else
+									replyErr(ERROR_MEDIPIX_NOT_POWERED);
+							}
 							
 						break;
 						
@@ -1323,6 +1348,12 @@ void mainTask(void *p) {
 								replyErr(ERROR_STORAGES_NOT_CREATED);
 							}
 						
+						break;
+						
+						case MEDIPIX_SEND_SENSOR_DATA:
+						
+							sendSensorsData();
+							
 						break;
 					}
 							

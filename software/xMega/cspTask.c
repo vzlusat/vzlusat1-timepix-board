@@ -102,8 +102,8 @@ void cspTask(void *p) {
 				/* Process packet here */
 				default:
 				
-				/* Let the service handler reply pings, buffer use, etc. */
-				csp_service_handler(conn, packet);
+					/* Let the service handler reply pings, buffer use, etc. */
+					csp_service_handler(conn, packet);
 				break;
 			}
 		}
