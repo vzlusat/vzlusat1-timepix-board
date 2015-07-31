@@ -366,6 +366,8 @@ uint8_t sendCompressed(uint8_t image, uint8_t replyTo) {
 		}
 	
 		waitForAck();
+		
+		vTaskDelay(20);
 	
 		// send the terminal packet
 		outcomingPacket->data[0] = 'C';
