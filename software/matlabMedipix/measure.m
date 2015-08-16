@@ -13,7 +13,7 @@ fprintf(s, '%c', '9');
 receiveMetadata;
 
 % receive compressed image
-if image.outputForm == 0
+if image.outputForm == 1
     
     receiveCompressed;
     save(['images/image_' int2str(image.imageId) 'r'], 'image');

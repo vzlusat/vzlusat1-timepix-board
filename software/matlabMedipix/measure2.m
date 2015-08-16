@@ -1,7 +1,6 @@
 setParameters;
 
 closePort();
-clear all;
 
 openPort();
 
@@ -10,21 +9,31 @@ tic
 % pozadej o mereni    
 fprintf(s, '%c', 'q');
 
-receiveMetadata;
+for g=0:5
 
-% receive compressed image
-if image.outputForm == 0
-    
-    receiveCompressed;
-    save(['images/image_' int2str(image.imageId) 'r'], 'image');
-    disp(['Image saved as ' int2str(image.imageId) 'r']);
-    
-else
-   
-    receivePostprocessed;
-    save(['images/image_' int2str(image.imageId) 'p'], 'image');
-    disp(['Image saved as ' int2str(image.imageId) 'p']);
-    
+    if ((bitand(outputForm, 2^g) > 0))
+
+        receiveMetadata;
+
+        % receive compressed image
+        if (g == 0)
+
+            receiveCompressed;
+            disp('Compressed');
+
+        else
+
+            receivePostprocessed;
+            disp('Postprocessed');
+            
+        end
+        
+        save(['images/image_' int2str(image.imageId) '_' int2str(g+1)], 'image');
+        disp(['Image saved as ' int2str(image.imageId) '_' int2str(g+1)]);
+        disp(image);
+        
+    end
+
 end
 
 toc

@@ -40,14 +40,14 @@ uint8_t getHistogram1(uint8_t idx);
 uint8_t getHistogram2(uint8_t idx);
 
 // get pixel in the binned image
-uint8_t getBinnedPixel(uint8_t row, uint8_t col);
+uint8_t getBinnedPixel(uint8_t row, uint8_t col, uint8_t outputForm);
 
 // copy the raw image into the filtered image
 // remove the non-one pixel events
 void filterOnePixelEvents();
 
 // apply binning
-void applyBinning();
+void applyBinning(uint8_t outputForm);
 
 // create histograms from the image
 void createHistograms();

@@ -33,5 +33,3 @@ end
 image.time =  fread(s, 1, 'uint32');
 
 fread(s, 1, 'int16');
-
-disp(image);

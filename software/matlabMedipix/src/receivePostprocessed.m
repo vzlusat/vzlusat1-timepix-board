@@ -1,5 +1,28 @@
+% Energy histogram
+if (image.outputForm == 6)
+
+     image.data = zeros(1, 16);
+    
+     % wait for next packet    
+     while (s.BytesAvailable <= 0)
+     end
+     
+     packetType = fread(s, 1, 'uchar');
+     imageId = fread(s, 1, 'uint16');
+     
+     for i=1:16
+        image.data(1, i) = fread(s, 1, 'uint16');
+     end
+     
+     % send ack      
+     fprintf(s, '%c', 'h');
+         
+    figure(6);
+    title('Energy histogram');
+    bar(image.data);
+     
 % Histograms 
-if (image.outputForm == 4)
+elseif (image.outputForm == 5)
 
     image.data = zeros(2, 256);
 
@@ -37,8 +60,8 @@ if (image.outputForm == 4)
         end
 
     end
-
-    figure(4);
+    
+    figure(5);
     subplot(2, 1, 1);
     title('Line histogram');
     plot(image.data(1, :)');
@@ -50,20 +73,23 @@ if (image.outputForm == 4)
     
 else
    
-    if (image.outputForm == 1)
+    if (image.outputForm == 2)
        
         numPerLine = 32; 
         numerOfPackets = 16;
+        figure(2);
        
-    elseif (image.outputForm == 2)
+    elseif (image.outputForm == 3)
         
         numPerLine = 16;
         numerOfPackets = 4;
+        figure(3);
         
-    elseif (image.outputForm == 3)
+    elseif (image.outputForm == 4)
         
         numPerLine = 8;
         numerOfPackets = 1;
+        figure(4);
     
     end
     
@@ -94,8 +120,6 @@ else
         fprintf(s, '%c', 'h');
         
     end
-    
-    figure(3);
     imagesc(image.data);
     axis equal;
     axis tight;

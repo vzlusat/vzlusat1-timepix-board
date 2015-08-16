@@ -86,11 +86,12 @@ typedef struct {
 } DACsTimepix;
 
 typedef enum {
-	BINNING_1 = 0,
-	BINNING_8 = 1,
-	BINNING_16 = 2,
-	BINNING_32 = 3,
-	HISTOGRAMS = 4,
+	BINNING_1 = 1,
+	BINNING_8 = 2,
+	BINNING_16 = 3,
+	BINNING_32 = 4,
+	HISTOGRAMS = 5,
+	ENERGY_HISTOGRAM = 6,
 } OUTPUT_FORMS;
 
 // structure that hold all parameters of the measurement

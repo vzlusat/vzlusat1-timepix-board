@@ -76,11 +76,11 @@ uint8_t getFilteredPixel(uint8_t row, uint8_t col) {
 }
 
 // get the value of the pixel in the downscaled image
-uint8_t getBinnedPixel(uint8_t row, uint8_t col) {
+uint8_t getBinnedPixel(uint8_t row, uint8_t col, uint8_t outputForm) {
 	
 	unsigned long address = WORKING_SPACE_START_ADDRESS;
 	
-	switch (imageParameters.outputForm) {
+	switch (outputForm) {
 		
 		case BINNING_8:
 			address += ((unsigned long) row)*32 + ((unsigned long) col);
@@ -99,11 +99,11 @@ uint8_t getBinnedPixel(uint8_t row, uint8_t col) {
 }
 
 // set the value in the pixel of the downscaled image
-void setBinnedPixel(uint8_t row, uint8_t col, uint8_t value) {
+void setBinnedPixel(uint8_t row, uint8_t col, uint8_t value, uint8_t outputForm) {
 	
 	unsigned long address = WORKING_SPACE_START_ADDRESS;
 	
-	switch (imageParameters.outputForm) {
+	switch (outputForm) {
 		
 		case BINNING_8:
 			address += ((unsigned long) row)*32 + ((unsigned long) col);
@@ -143,6 +143,22 @@ uint8_t getHistogram1(uint8_t idx) {
 	unsigned long address = WORKING_SPACE_START_ADDRESS+idx;
 	
 	return spi_mem_read_byte(address);
+}
+
+// set energy histogram value
+void setEnergyHistogram(uint8_t idx, uint16_t value) {
+	
+	unsigned long address = ENERGY_HISTOGRAM_ADRESS + 2*idx;
+	
+	spi_mem_write_uint16(address, value);
+}
+
+// get value of the energy histogram
+uint16_t getEnergyHistogram(uint8_t idx) {
+	
+	unsigned long address = ENERGY_HISTOGRAM_ADRESS + 2*idx;
+	
+	return spi_mem_read_uint16t(address);
 }
 
 // get histogram2 value
@@ -318,7 +334,7 @@ void computeImageStatistics() {
 }
 
 // apply binning
-void applyBinning() {
+void applyBinning(uint8_t outputForm) {
 	
 	uint16_t i, j, x, y, sum;
 	
@@ -326,7 +342,7 @@ void applyBinning() {
 	uint8_t numInBin = 0;
 	uint8_t tempPixel;
 	
-	switch (imageParameters.outputForm) {
+	switch (outputForm) {
 		
 		case BINNING_8:
 			numPerLine = 32;
@@ -344,7 +360,7 @@ void applyBinning() {
 		break;
 	}
 
-	if (imageParameters.outputForm > BINNING_1) {
+	if (outputForm > BINNING_1) {
 		
 		// go through the binned image
 		for (i = 0; i < numPerLine; i++) {
@@ -368,7 +384,7 @@ void applyBinning() {
 				}
 				
 				// pokud binujeme po 32, tak downscale
-				if (imageParameters.outputForm == BINNING_32) {
+				if (outputForm == BINNING_32) {
 					
 					sum = (uint16_t) ((float) sum / (float) 4);
 				}
@@ -382,7 +398,7 @@ void applyBinning() {
 				// print the test pattern
 				// setBinnedPixel(i, j, i*numPerLine + j);
 			
-				setBinnedPixel(i, j, (uint8_t) sum);
+				setBinnedPixel(i, j, (uint8_t) sum, outputForm);
 			}
 		}
 	}
@@ -422,5 +438,31 @@ void createHistograms() {
 			sum = 255;
 		
 		setHistogram2(i, (uint8_t) sum);
+	}
+}
+
+// create the energy histogram
+void createEnergyHistogram() {
+	
+	uint16_t i, j, sum;
+	
+	uint8_t pixelValue;
+	
+	// clear the memory at first
+	for (i = 0; i < 16; i++)
+		setEnergyHistogram(i, 0);
+	
+	// compute the histogram
+	for (i = 0; i < 256; i++) {
+		
+		for (j = 0; j < 256; j++) {
+			
+			pixelValue = getFilteredPixel(i, j);
+			
+			if (pixelValue > 0) {
+				
+				setEnergyHistogram(pixelValue/16, getEnergyHistogram(pixelValue/16)+1);	
+			}
+		}
 	}
 }

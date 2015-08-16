@@ -1,12 +1,12 @@
 openPort();
 
 treshold = 310;
-exposure = 20000;
+exposure = 100;
 bias = 240;
 filtering = 0;
-mode = 0;
-outputForm = 0;
-tempLimit = 50;
+mode = 1;
+outputForm = 1 + 2 + 4 + 8 + 16 + 32;
+tempLimit = 55;
 pxlCount = 0;
 
 fprintf(s, '%c', '2');

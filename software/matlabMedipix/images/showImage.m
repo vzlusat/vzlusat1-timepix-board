@@ -3,7 +3,7 @@ function [] = showImage( name )
     image = load(['image_' name '.mat']);
     image = image.image;
 
-    if (size(image.data, 1) > 2)
+    if (size(image.data, 1) > 3)
 
         figure(1);
         imagesc(image.data);
@@ -12,6 +12,11 @@ function [] = showImage( name )
         colorbar;
         colormap(hot)
 
+    elseif (size(image.data, 1) == 1)
+        
+        figure(6);
+        bar(image.data);
+        
     else
 
         figure(3);

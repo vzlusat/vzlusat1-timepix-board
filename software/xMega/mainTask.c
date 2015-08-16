@@ -204,12 +204,14 @@ void medipixStop() {
 	pwrOffMedipix();
 }
 
-void sendImageInfo(uint8_t repplyTo) {
+void sendImageInfo(uint8_t repplyTo, uint8_t outputForm) {
 	
 	if (repplyTo == OUTPUT_DIRECT) {
 
 		// load current info from fram
 		loadImageParametersFromFram();
+		
+		imageParameters.outputForm = outputForm;
 
 		imageParameters.packetType = 'A';
 
@@ -224,11 +226,16 @@ void sendImageInfo(uint8_t repplyTo) {
 
 		vTaskDelay(100);
 		
+		// restore current parameters (they have changed)
+		loadImageParametersFromFram();
+		
 	// save data to datakeeper
 	} else {
 		
 		// load current info from fram
 		loadImageParametersFromFram();
+		
+		imageParameters.outputForm = outputForm;
 		
 		dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
 		
@@ -254,6 +261,9 @@ void sendImageInfo(uint8_t repplyTo) {
 				break;
 			}
 		}
+
+		// restore current parameters (they have changed)
+		loadImageParametersFromFram();
 	}
 }
 
@@ -459,7 +469,7 @@ uint8_t sendCompressed(uint8_t image, uint8_t replyTo) {
 
 }
 
-void sendPostProcessed(uint8_t replyTo) {
+void sendPostProcessed(uint8_t replyTo, uint8_t outputForm) {
 	
 	uint16_t i, j;
 	
@@ -469,7 +479,7 @@ void sendPostProcessed(uint8_t replyTo) {
 	
 	uint8_t noErr = 1;
 	
-	switch (imageParameters.outputForm) {
+	switch (outputForm) {
 		
 		case BINNING_8:
 			numPerLine = 32;
@@ -493,7 +503,34 @@ void sendPostProcessed(uint8_t replyTo) {
 	}
 	
 	// send the histograms
-	if (imageParameters.outputForm == HISTOGRAMS) {
+	if (outputForm == ENERGY_HISTOGRAM) {
+		
+		if (replyTo == OUTPUT_DIRECT) {
+			
+			// it is a first histogram packet [0]
+			outcomingPacket->data[0] = 'E';
+			
+			// save the image ID [1, 2]
+			saveUint16(outcomingPacket->data+1, imageParameters.imageId);
+				
+			// fill the packets
+			for (j = 0; j < 32; j++) {
+					
+				outcomingPacket->data[j+3] = spi_mem_read_byte((unsigned long) (ENERGY_HISTOGRAM_ADRESS + j));
+			}
+				
+			outcomingPacket->length = 32 + 3;
+				
+			csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
+				
+			waitForAck();
+
+		} else {
+
+
+		}
+		
+	} else if (outputForm == HISTOGRAMS) {
 		
 		if (replyTo == OUTPUT_DIRECT) {
 			
@@ -626,7 +663,7 @@ void sendPostProcessed(uint8_t replyTo) {
 		}
 		
 	// send the binned content
-	} else if (imageParameters.outputForm >= BINNING_8 && imageParameters.outputForm <= BINNING_32) {
+	} else if (outputForm >= BINNING_8 && outputForm <= BINNING_32) {
 		
 		uint8_t packetId = 0;
 		uint8_t byteInPacket = 0;
@@ -634,7 +671,7 @@ void sendPostProcessed(uint8_t replyTo) {
 		if (replyTo == OUTPUT_DIRECT) {
 		
 			// it is a first histogram packet [0]
-			outcomingPacket->data[0] = 'C' + imageParameters.outputForm;
+			outcomingPacket->data[0] = 'C' + outputForm - 1;
 		
 			// save the image ID [1, 2]
 			saveUint16(outcomingPacket->data+1, imageParameters.imageId);
@@ -646,7 +683,7 @@ void sendPostProcessed(uint8_t replyTo) {
 			
 				for (j = 0; j < numPerLine; j++) {
 				
-					outcomingPacket->data[4+byteInPacket++] = getBinnedPixel(i, j);
+					outcomingPacket->data[4+byteInPacket++] = getBinnedPixel(i, j, outputForm);
 				
 					// packet is full, send it
 					if (byteInPacket == 64) {
@@ -668,7 +705,7 @@ void sendPostProcessed(uint8_t replyTo) {
 		} else {
 			
 			// it is a first histogram packet [0]
-			message->data[0] = 'C' + imageParameters.outputForm;
+			message->data[0] = 'C' + outputForm - 1;
 			
 			// save the image ID [1, 2]
 			saveUint16(message->data+1, imageParameters.imageId);
@@ -680,7 +717,7 @@ void sendPostProcessed(uint8_t replyTo) {
 				
 				for (j = 0; j < numPerLine; j++) {
 					
-					message->data[4+byteInPacket++] = getBinnedPixel(i, j);
+					message->data[4+byteInPacket++] = getBinnedPixel(i, j, outputForm);
 					
 					// packet is full, send it
 					if (byteInPacket == 64) {
@@ -709,11 +746,6 @@ void sendPostProcessed(uint8_t replyTo) {
 				}
 			}
 		}
-	}
-	
-	if (replyTo == OUTPUT_DATAKEEPER) {
-		
-		// zaloguj mereni
 	}
 }
 
@@ -810,20 +842,6 @@ uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t 
 	filterOnePixelEvents();
 
 	computeImageStatistics();
-	
-	// do binning
-	if (imageParameters.outputForm >= BINNING_1 && imageParameters.outputForm <= BINNING_32) {
-		
-		applyBinning();
-		
-	} else if (imageParameters.outputForm == HISTOGRAMS) {
-		
-		createHistograms();
-	}
-	
-	imageParameters.imageId++;
-	
-	saveImageParametersToFram();
 
 	if (usePixelTreshold == 1) {
 		
@@ -832,26 +850,73 @@ uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t 
 			return 0;
 		}
 	}
-	
-	// get chunk-ID of the next image
-	imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
-	
+
+	// increase image id
+	imageParameters.imageId++;
 	saveImageParametersToFram();
 	
-	sendImageInfo(repplyTo);
+	/* ZDE KONÈÍ VYÈÍTÁNÍ OBRÁZKU */
 	
-	if (withoutData == MEASURE_WITHOUT_DATA_NO) {
-	
-		if (imageParameters.outputForm == BINNING_1) {
-			
-			sendCompressed(1, repplyTo);
-			
-		} else {
-			
-			sendPostProcessed(repplyTo);
-		}
+	// BINING_1
+	if ((imageParameters.outputForm & 0x01) > 0) {
+		
+		applyBinning(BINNING_1);
+		imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
+		saveImageParametersToFram();
+		sendImageInfo(repplyTo, BINNING_1);
+		sendCompressed(1, repplyTo);
 	}
 	
+	// BINING_8
+	if ((imageParameters.outputForm & 0x02) > 0) {
+
+		applyBinning(BINNING_8);		
+		imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
+		saveImageParametersToFram();
+		sendImageInfo(repplyTo, BINNING_8);
+		sendPostProcessed(repplyTo, BINNING_8);
+	}
+	
+	// BINING_16
+	if ((imageParameters.outputForm & 0x04) > 0) {
+		
+		applyBinning(BINNING_16);		
+		imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
+		saveImageParametersToFram();
+		sendImageInfo(repplyTo, BINNING_16);
+		sendPostProcessed(repplyTo, BINNING_16);
+	}
+	
+	// BINING_32
+	if ((imageParameters.outputForm & 0x08) > 0) {
+		
+		applyBinning(BINNING_32);
+		imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
+		saveImageParametersToFram();
+		sendImageInfo(repplyTo, BINNING_32);
+		sendPostProcessed(repplyTo, BINNING_32);
+	}
+	
+	// HISTOGRAMY
+	if ((imageParameters.outputForm & 0x10) > 0) {
+		
+		createHistograms(HISTOGRAMS);
+		imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
+		saveImageParametersToFram();
+		sendImageInfo(repplyTo, HISTOGRAMS);
+		sendPostProcessed(repplyTo, HISTOGRAMS);
+	}
+	
+	// ENERGY_HISTOGRAM
+	if ((imageParameters.outputForm & 0x20) > 0) {
+		
+		createEnergyHistogram();
+		imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
+		saveImageParametersToFram();
+		sendImageInfo(repplyTo, ENERGY_HISTOGRAM);
+		sendPostProcessed(repplyTo, ENERGY_HISTOGRAM);
+	}
+
 	return 1;
 }
 
@@ -1064,12 +1129,16 @@ void mainTask(void *p) {
 						
 						break;
 
+						/*
+						
 						case MEDIPIX_SEND_BINNED:
 						
 							replyOk();
 							sendPostProcessed(OUTPUT_DATAKEEPER);
 
 						break;
+						
+						*/
 					}
 									
 				break;
@@ -1294,28 +1363,31 @@ void mainTask(void *p) {
 						
 						case MEDIPIX_SEND_ORIGINAL:
 						
-							sendImageInfo(OUTPUT_DIRECT);
+							sendImageInfo(OUTPUT_DIRECT, BINNING_1);
 							sendCompressed(0, OUTPUT_DIRECT);
 						
 						break;
 						
 						case MEDIPIX_SEND_FILTERED:
 						
-							sendImageInfo(OUTPUT_DIRECT);
+							sendImageInfo(OUTPUT_DIRECT, BINNING_1);
 							sendCompressed(1, OUTPUT_DIRECT);
 						
 						break;
 						
+						/*
 						case MEDIPIX_SEND_BINNED:
 						
 							sendImageInfo(OUTPUT_DIRECT);
 							sendPostProcessed(OUTPUT_DIRECT);
 						
 						break;	
+						*/
 						
 						case MEDIPIX_SEND_METADATA:
 							
-							sendImageInfo(OUTPUT_DIRECT);
+							loadImageParametersFromFram();
+							sendImageInfo(OUTPUT_DIRECT, imageParameters.outputForm);
 						
 						break;
 						
