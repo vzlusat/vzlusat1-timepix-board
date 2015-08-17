@@ -44,3 +44,4 @@ axis equal;
 axis tight;
 colorbar;
 colormap(hot)
+drawnow; 

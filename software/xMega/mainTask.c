@@ -504,13 +504,13 @@ void sendPostProcessed(uint8_t replyTo, uint8_t outputForm) {
 		message->host = CSP_DK_MY_ADDRESS;
 	}
 	
-	// send the histograms
+	// send the energy histogram
 	if (outputForm == ENERGY_HISTOGRAM) {
 		
 		if (replyTo == OUTPUT_DIRECT) {
 			
 			// it is a first histogram packet [0]
-			outcomingPacket->data[0] = 'E';
+			outcomingPacket->data[0] = 'e';
 			
 			// save the image ID [1, 2]
 			saveUint16(outcomingPacket->data+1, imageParameters.imageId);
@@ -529,7 +529,34 @@ void sendPostProcessed(uint8_t replyTo, uint8_t outputForm) {
 
 		} else {
 
-
+			// it is a first histogram packet [0]
+			message->data[0] = 'e';
+			
+			// save the image ID [1, 2]
+			saveUint16(message->data+1, imageParameters.imageId);
+			
+			// fill the packets
+			for (j = 0; j < 32; j++) {
+				
+				message->data[j+3] = spi_mem_read_byte((unsigned long) (ENERGY_HISTOGRAM_ADRESS + j));
+			}
+				
+			uint8_t k;
+			for (k = 0; k < 3; k++) {
+					
+				outcomingPacket->length = 32 + 3 + sizeof(dk_msg_store_ack_t);
+				csp_sendto(CSP_PRIO_NORM, CSP_DK_ADDRESS, CSP_DK_PORT, 18, CSP_O_NONE, outcomingPacket, 1000);
+					
+				if (waitForDkAck() == 1) {
+						
+					break;
+				}
+			}
+				
+			if (k == 3) {
+					
+				noErr *= 0;
+			}
 		}
 		
 	} else if (outputForm == HISTOGRAMS) {

@@ -20,7 +20,8 @@ if (image.outputForm == 6)
     figure(6);
     title('Energy histogram');
     bar(image.data);
-     
+    drawnow; 
+    
 % Histograms 
 elseif (image.outputForm == 5)
 
@@ -70,6 +71,7 @@ elseif (image.outputForm == 5)
     title('Row histogram');
     plot(image.data(2, :)');
     axis auto
+    drawnow; 
     
 else
    
@@ -125,5 +127,6 @@ else
     axis tight;
     colorbar;
     colormap(hot)
+    drawnow; 
     
 end
