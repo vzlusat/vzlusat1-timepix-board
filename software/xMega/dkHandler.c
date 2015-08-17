@@ -133,7 +133,7 @@ uint8_t getAttitude(int16_t * attitude, int16_t * position) {
 	
 	timestamp_t * req_time = (timestamp_t *) &outcomingPacket->data;
 	
-	req_time->tv_sec = csp_hton32(imageParameters.time);
+	req_time->tv_sec = csp_hton32(imageParameters.time + 946684800);
 	req_time->tv_nsec = 0;
 	
 	adcs_att_t attitudeIn;

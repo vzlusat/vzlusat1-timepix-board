@@ -11,6 +11,8 @@
 #include "system.h"
 
 volatile int8_t adtTemp;
+volatile int8_t adtTemp_max;
+volatile int8_t adtTemp_min;
 
 void adtTask();
 

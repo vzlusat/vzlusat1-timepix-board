@@ -104,19 +104,38 @@ void houseKeeping(uint8_t outputTo) {
 	
 	loadImageParametersFromFram();
 	
-	hk_data_t hk_data;
+	hk_data_t * hk_data;
+	dk_msg_store_ack_t * message;
 	
-	hk_data.bootCount = getBootCount();
-	hk_data.imagesTaken = imageParameters.imageId;
-	hk_data.temperature = adt_convert_temperature(ADT_get_temperature());
-	hk_data.framStatus = fram_test();
-	hk_data.medipixStatus = medipixCheckStatus();
-	hk_data.seconds = secondsTimer;
+	if (outputTo == OUTPUT_DIRECT) {
+		
+		hk_data = (hk_data_t *) outcomingPacket->data;
+	} else {
+		
+		message = (dk_msg_store_ack_t *) outcomingPacket->data;
+		hk_data = (hk_data_t *) message->data;
+	}
+	
+	hk_data->bootCount = csp_hton16(getBootCount());
+	hk_data->imagesTaken = csp_hton16(imageParameters.imageId);
+	hk_data->temperature = adt_convert_temperature(ADT_get_temperature());
+	hk_data->framStatus = fram_test();
+	hk_data->medipixStatus = medipixCheckStatus();
+	hk_data->seconds = csp_hton32(secondsTimer);
+	hk_data->TIR_max = csp_hton16(uv_ir_data.TIR_max);
+	hk_data->TIR_min = csp_hton16(uv_ir_data.TIR_min);
+	hk_data->IR_max = csp_hton16(uv_ir_data.IR_max);
+	hk_data->IR_min = csp_hton16(uv_ir_data.IR_min);
+	hk_data->UV1_max = csp_hton16(uv_ir_data.UV1_max);
+	hk_data->UV1_min = csp_hton16(uv_ir_data.UV1_min);
+	hk_data->UV2_max = csp_hton16(uv_ir_data.UV2_max);
+	hk_data->UV2_min = csp_hton16(uv_ir_data.UV2_min);
+	hk_data->temperature_max = adtTemp_max;
+	hk_data->temperature_min = adtTemp_min;
 	
 	// direct answer
 	if (outputTo == OUTPUT_DIRECT) {
 
-		memcpy(outcomingPacket->data, &hk_data, sizeof(hk_data_t));
 		outcomingPacket->length = sizeof(hk_data_t);
 
 		csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
@@ -124,8 +143,6 @@ void houseKeeping(uint8_t outputTo) {
 	// save it to datakeeper
 	} else {
 	
-		dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
-		
 		message->parent.cmd = DKC_STORE_ACK;
 		message->port = STORAGE_HK_ID;
 		message->host = CSP_DK_MY_ADDRESS;
@@ -152,32 +169,6 @@ void houseKeeping(uint8_t outputTo) {
 			replyOk();
 		}
 	}
-}
-
-/* -------------------------------------------------------------------- */
-/*	Sends back the incoming packet										*/
-/* -------------------------------------------------------------------- */
-int echoBack(csp_packet_t * inPacket) {
-
-	/* Send packet */
-	// reuses the incoming packet for the response
-	if (csp_sendto(CSP_PRIO_NORM, inPacket->id.src, inPacket->id.sport, inPacket->id.dport, CSP_O_NONE, inPacket, 1000) == CSP_ERR_NONE) {
-		/* Send succeeded */
-		led_red_toggle();
-		} else {
-		/* Send failed */
-	}
-
-	return 0;
-}
-
-void sendString(char * in) {
-	
-	vTaskDelay(40);
-	
-	strcpy(outcomingPacket->data, in);
-	outcomingPacket->length = strlen(in);
-	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
 
 void medipixInit() {
@@ -217,6 +208,24 @@ void sendImageInfo(uint8_t repplyTo, uint8_t outputForm) {
 
 		// save current info to the packet
 		memcpy(outcomingPacket->data, &imageParameters, sizeof(imageParameters_t));
+		
+		imageParameters_t * params = (imageParameters_t *) (outcomingPacket->data);
+		params->imageId = csp_hton16(params->imageId);
+		params->threshold = csp_hton16(params->threshold);
+		params->exposure = csp_hton16(params->exposure);
+		params->nonZeroPixelsFiltered = csp_hton16(params->nonZeroPixelsFiltered);
+		params->nonZeroPixelsOriginal = csp_hton16(params->nonZeroPixelsOriginal);
+		params->pixelCountThr = csp_hton16(params->pixelCountThr);
+		params->uv1_treshold = csp_hton16(params->uv1_treshold);
+		params->chunkId = csp_hton32(params->chunkId);
+		
+		uint8_t i;
+		for (i = 0; i < 7; i++) {
+			params->attitude[i] = csp_hton16(params->attitude[i]);
+		}
+		for (i = 0; i < 3; i++) {
+			params->position[i] = csp_hton16(params->position[i]);
+		}
 
 		// set the size of the packet
 		outcomingPacket->length = sizeof(imageParameters_t);
@@ -955,6 +964,8 @@ void sendBootupMessage(uint8_t replyTo) {
 	char myChar;
 	
 	if (replyTo == OUTPUT_DIRECT) {
+		
+		/*
 	
 		for (i = 0; i < 64; i++) {
 			
@@ -972,17 +983,16 @@ void sendBootupMessage(uint8_t replyTo) {
 		
 		csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 		
+		*/
+		
 	// DK response
 	} else {
 		
-		/*
 		dk_msg_store_ack_t * message = (dk_msg_store_ack_t *) outcomingPacket->data;
 		
 		message->parent.cmd = DKC_STORE_ACK;
-		message->port = STORAGE_BOOTUP_MESSAGE_ID;
+		message->port = STORAGE_HK_ID;
 		message->host = CSP_DK_MY_ADDRESS;
-		
-		// zde narvat daty memcpy(message->data, &hk_data, sizeof(hk_data_t));
 		
 		for (i = 0; i < 64; i++) {
 			
@@ -1013,7 +1023,6 @@ void sendBootupMessage(uint8_t replyTo) {
 			
 			replyErr(ERROR_DATA_NOT_SAVED);
 		}
-		*/
 	}
 }
 
@@ -1024,11 +1033,7 @@ void sendTemperature(uint8_t outputTo) {
 		outcomingPacket->data[0] = adtTemp;
 		outcomingPacket->length = 1;
 		csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
-		
-	} else {
-		
-		
-	}
+	} 
 }
 
 void sendSensorsData() {
@@ -1041,6 +1046,14 @@ void sendSensorsData() {
 	sensors_data->TIR = csp_hton16(uv_ir_data.TIR);
 	sensors_data->UV1 = csp_hton16(uv_ir_data.UV1);
 	sensors_data->UV2 = csp_hton16(uv_ir_data.UV2);
+	sensors_data->TIR_max = csp_hton16(uv_ir_data.TIR_max);
+	sensors_data->TIR_min = csp_hton16(uv_ir_data.TIR_min);
+	sensors_data->IR_max = csp_hton16(uv_ir_data.IR_max);
+	sensors_data->IR_min = csp_hton16(uv_ir_data.IR_min);
+	sensors_data->UV1_max = csp_hton16(uv_ir_data.UV1_max);
+	sensors_data->UV1_min = csp_hton16(uv_ir_data.UV1_min);
+	sensors_data->UV2_max = csp_hton16(uv_ir_data.UV2_max);
+	sensors_data->UV2_min = csp_hton16(uv_ir_data.UV2_min);
 	
 	outcomingPacket->length = sizeof(sensors_t);
 	
@@ -1055,6 +1068,7 @@ void mainTask(void *p) {
 	outcomingPacket = csp_buffer_get(CSP_PACKET_SIZE);
 		
 	uint8_t modeChanging;
+	uint16_t i;
 	
 	loadImageParametersFromFram();
 					
@@ -1082,7 +1096,7 @@ void mainTask(void *p) {
 						
 						break;
 
-						case MEDIPIX_GET_HOUSKEEPING:
+						case MEDIPIX_GET_HOUSEKEEPING:
 
 							houseKeeping(OUTPUT_DATAKEEPER);
 
@@ -1101,6 +1115,24 @@ void mainTask(void *p) {
 						
 						break;
 						
+						case MEDIPIX_MEASURE_UV:
+						
+							replyOk();
+							loadImageParametersFromFram();
+							
+							for (i = 0; i < ADRENALIN_LENGTH; i++) {
+								
+								if (uv_ir_data.UV1 > imageParameters.uv1_treshold) {
+									
+									measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DATAKEEPER, USE_PIXEL_TRESHOLD_NO);
+									break;
+								}
+								
+								vTaskDelay(ADRENALIN_DELAY);
+							}
+						
+						break;
+						
 						case MEDIPIX_MEASURE_WITH_PARAMETERS:
 						
 							replyOk();
@@ -1115,6 +1147,7 @@ void mainTask(void *p) {
 
 						break;
 					
+						/*
 						case MEDIPIX_MEASURE_WITHOUT_DATA:
 
 							replyOk();
@@ -1128,6 +1161,7 @@ void mainTask(void *p) {
 							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_YES, OUTPUT_DATAKEEPER, USE_PIXEL_TRESHOLD_NO);
 
 						break;
+						*/
 						
 						case MEDIPIX_MEASURE_SCANNING_MODE:
 						
@@ -1143,6 +1177,7 @@ void mainTask(void *p) {
 						
 						break;
 						
+						/*	REMOVED TO PRESERVE A PROGRAM MEMORY... OBSOLETE 
 						
 						case MEDIPIX_SEND_ORIGINAL:
 						
@@ -1157,8 +1192,6 @@ void mainTask(void *p) {
 							sendCompressed(1, OUTPUT_DATAKEEPER);
 						
 						break;
-
-						/*
 						
 						case MEDIPIX_SEND_BINNED:
 						
@@ -1214,14 +1247,15 @@ void mainTask(void *p) {
 							else
 								modeChanging = 0;
 							
-							imageParameters.threshold = settings->treshold;
-							imageParameters.exposure = settings->exposure;
+							imageParameters.threshold = csp_ntoh16(settings->treshold);
+							imageParameters.exposure = csp_ntoh16(settings->exposure);
 							imageParameters.bias = settings->bias;
 							imageParameters.filtering = settings->filtering;
 							imageParameters.mode = settings->mode;
 							imageParameters.outputForm = settings->outputForm;
 							imageParameters.temperatureLimit = settings->temperatureLimit;
-							imageParameters.pixelCountThr = settings->pixelCountThr;
+							imageParameters.pixelCountThr = csp_ntoh16(settings->pixelCountThr);
+							imageParameters.uv1_treshold = csp_ntoh16(settings->uv1_treshold);
 							
 							saveImageParametersToFram();
 							
@@ -1248,7 +1282,7 @@ void mainTask(void *p) {
 						
 							loadImageParametersFromFram();
 
-							imageParameters.threshold = parseUint16(packetPayload);
+							imageParameters.threshold = csp_ntoh16(parseUint16(packetPayload));
 							
 							if (medipixPowered() == 1)
 								setDACs(imageParameters.threshold);
@@ -1278,7 +1312,7 @@ void mainTask(void *p) {
 						
 							loadImageParametersFromFram();
 
-							imageParameters.exposure = parseUint16(packetPayload);
+							imageParameters.exposure = csp_ntoh16(parseUint16(packetPayload));
 							
 							saveImageParametersToFram();
 							
@@ -1314,13 +1348,25 @@ void mainTask(void *p) {
 						
 							loadImageParametersFromFram();
 
-							imageParameters.pixelCountThr = parseUint16(packetPayload);
+							imageParameters.pixelCountThr = csp_ntoh16(parseUint16(packetPayload));
 							
 							saveImageParametersToFram();
 							
 							replyOk();
 						
-						break;				
+						break;			
+						
+						case MEDIPIX_SET_UV1THL:
+						
+							loadImageParametersFromFram();
+
+							imageParameters.uv1_treshold = csp_ntoh16(parseUint16(packetPayload));
+							
+							saveImageParametersToFram();
+							
+							replyOk();
+						
+						break;	
 					
 						case MEDIPIX_SET_MODE:
 						
@@ -1378,6 +1424,7 @@ void mainTask(void *p) {
 						
 						break;
 						
+						/*
 						case MEDIPIX_MEASURE_WITHOUT_DATA:
 						
 							measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_YES, OUTPUT_DIRECT, USE_PIXEL_TRESHOLD_NO);
@@ -1389,6 +1436,7 @@ void mainTask(void *p) {
 							measure(MEASURE_TURNOFF_NO, MEASURE_WITHOUT_DATA_YES, OUTPUT_DIRECT, USE_PIXEL_TRESHOLD_NO);
 						
 						break;
+						*/
 						
 						case MEDIPIX_SEND_ORIGINAL:
 						
@@ -1397,12 +1445,14 @@ void mainTask(void *p) {
 						
 						break;
 						
+						/*
 						case MEDIPIX_SEND_FILTERED:
 						
 							sendImageInfo(OUTPUT_DIRECT, BINNING_1);
 							sendCompressed(1, OUTPUT_DIRECT);
 						
 						break;
+						*/
 						
 						/*
 						case MEDIPIX_SEND_BINNED:
@@ -1420,11 +1470,13 @@ void mainTask(void *p) {
 						
 						break;
 						
+						/*						
 						case MEDIPIX_GET_BOOTUP_MESSAGE:
 						
 							sendBootupMessage(OUTPUT_DIRECT);
 						
 						break;
+						*/
 						
 						case MEDIPIX_GET_TEMPERATURE:
 						
@@ -1432,7 +1484,7 @@ void mainTask(void *p) {
 						
 						break;
 						
-						case MEDIPIX_GET_HOUSKEEPING:
+						case MEDIPIX_GET_HOUSEKEEPING:
 						
 							houseKeeping(OUTPUT_DIRECT);
 						

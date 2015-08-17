@@ -44,7 +44,7 @@ typedef enum {
 	MEDIPIX_MEASURE_NO_TURNOFF = 16,					// dont turn off medipix after measurement
 	MEDIPIX_GET_BOOTUP_MESSAGE = 17,					// return the medipix's bootup message from the last boot
 	MEDIPIX_GET_TEMPERATURE = 18,						// return the medipix's bootup message from the last boot
-	MEDIPIX_GET_HOUSKEEPING = 19,						// return the main houskeeping information
+	MEDIPIX_GET_HOUSEKEEPING = 19,						// return the main houskeeping information
 	MEDIPIX_MEASURE_WITHOUT_DATA_NO_TURNOFF = 20,		// return the main houskeeping information
 	XRAY_DK_CREATE_STORAGES = 21,						// create all storages in the data keeper
 	MEDIPIX_SET_PIXELCNTTHR = 22,						// pixel count threshold for scanning mode
@@ -52,6 +52,8 @@ typedef enum {
 	MEDIPIX_MEASURE_SCANNING_MODE = 24,					// similar as "MEDIPIX_MEASURE", but saves the data only if number of pixels (after filtration) exceeds a treshold
 	MEDIPIX_MEASURE_SCANNING_MODE_NO_TURNOFF = 25,		// -||- but not turnoff
 	MEDIPIX_SEND_SENSOR_DATA = 26,						// get data from the IR and UV sensors
+	MEDIPIX_MEASURE_UV = 27,							// measuring triggered by UV1 sensor
+	MEDIPIX_SET_UV1THL = 28,							// set the UV1 treshold
 } MPX_COMMANDS;	
 
 typedef struct __attribute__((packed)) {
@@ -62,6 +64,16 @@ typedef struct __attribute__((packed)) {
 	uint8_t framStatus;
 	uint8_t medipixStatus;
 	uint32_t seconds;
+	uint16_t TIR_max;
+	uint16_t TIR_min;
+	uint16_t IR_max;
+	uint16_t IR_min;
+	uint16_t UV1_max;
+	uint16_t UV1_min;
+	uint16_t UV2_max;
+	uint16_t UV2_min;
+	uint8_t temperature_max;
+	uint8_t temperature_min;
 } hk_data_t;
 
 #define MEASURE_TURNOFF_YES		1
@@ -75,5 +87,10 @@ typedef struct __attribute__((packed)) {
 
 #define USE_PIXEL_TRESHOLD_YES	1
 #define USE_PIXEL_TRESHOLD_NO	0
+
+// prodleva mezi kontrolou UV1 sensoru v adrenalin modu
+#define	ADRENALIN_DELAY	10
+// kolikrat se ma skontrolovat UV1 sensor v adrenalin modu
+#define ADRENALIN_LENGTH 6000
 
 #endif /* MAINTASK_H_ */

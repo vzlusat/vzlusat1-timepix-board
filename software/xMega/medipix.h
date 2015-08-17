@@ -146,6 +146,9 @@ typedef struct __attribute__((packed)) {
 	// pixel count threshold for image catcher mode
 	uint16_t pixelCountThr;
 	
+	// UV1 treshold
+	uint16_t uv1_treshold;
+	
 	// id of the chunk in the storage
 	uint32_t chunkId;
 	
@@ -189,6 +192,9 @@ typedef struct __attribute__((packed)) {
 	
 	// pixel count threshold for image catcher mode
 	uint16_t pixelCountThr;
+	
+	// UV1 treshold
+	uint16_t uv1_treshold;
 	
 } newSettings_t;
 

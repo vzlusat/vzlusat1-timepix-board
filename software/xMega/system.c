@@ -5,23 +5,41 @@
  *  Author: Tomas Baca
  */
 
- #include "sysclk.h"
- #include "system.h"
- #include "TC_driver.h"
- #include "medipixTask.h"
- #include "ADT7420.h"
- #include "spi_memory_FM25.h"
- #include "fram_mapping.h"
- #include "myADC.h"
+#include "sysclk.h"
+#include "system.h"
+#include "TC_driver.h"
+#include "medipixTask.h"
+#include "ADT7420.h"
+#include "spi_memory_FM25.h"
+#include "fram_mapping.h"
+#include "myADC.h"
+#include "medipix.h"
  
- volatile uint16_t milisecondsTimer;
- volatile uint32_t secondsTimer;
+volatile uint16_t milisecondsTimer;
+volatile uint32_t secondsTimer;
  
- // UART handler
- UsartBuffer * medipix_usart_buffer;
+// UART handler
+UsartBuffer * medipix_usart_buffer;
  
- // queue for command for medipix
- xQueueHandle * medipixActionQueue;
+// queue for command for medipix
+xQueueHandle * medipixActionQueue;
+
+// return the number of boots
+uint16_t getBootCount() {
+	
+	return spi_mem_read_uint16t(BOOT_COUNT_ADDRESS);
+}
+
+// increase the number of boots
+void increaseBootCount() {
+	
+	uint16_t tempInt;
+	
+	tempInt = spi_mem_read_uint16t(BOOT_COUNT_ADDRESS);
+	tempInt++;
+	
+	spi_mem_write_uint16(BOOT_COUNT_ADDRESS, tempInt);
+}
 
 /* -------------------------------------------------------------------- */
 /*	Initialize the xMega peripherals									*/
@@ -103,23 +121,6 @@ void boardInit() {
 	/*	Increment the boot count											*/
 	/* -------------------------------------------------------------------- */
 	increaseBootCount();
-}
-
-// return the number of boots
-uint16_t getBootCount() {
-	
-	return spi_mem_read_uint16t(BOOT_COUNT_ADDRESS);
-}
-
-// increase the number of boots
-void increaseBootCount() {
-	
-	uint16_t tempInt;
-	
-	tempInt = spi_mem_read_uint16t(BOOT_COUNT_ADDRESS);
-	tempInt++;
-	
-	spi_mem_write_uint16(BOOT_COUNT_ADDRESS, tempInt);
 }
 
 /* -------------------------------------------------------------------- */

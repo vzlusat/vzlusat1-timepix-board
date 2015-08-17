@@ -42,32 +42,6 @@ uint8_t medipixCheckStatus() {
 	return 1;
 }
 
-void bin2hex(uint8_t in, uint8_t * out) {
-	
-	unsigned char ch;
-	
-	// creates the first hex character
-	ch = in;
-	ch = ch & 240;
-	ch = ch >> 4;
-	if (ch >= 0 && ch <= 9)
-	ch = ch + '0';
-	else
-	ch = ch + 'A' - 10;
-	*out = (uint8_t) ch;
-
-	out++;
-
-	// creates the second hex character
-	ch = in;
-	ch = ch & 15;
-	if (ch >= 0 && ch <= 9)
-	ch = ch + '0';
-	else
-	ch = ch + 'A' - 10;
-	*out = (uint8_t) ch;
-}
-
 // 'd' = Set all DACS, if numofchips is 0 the device default will be used
 void MpxSetDACs() {
 	

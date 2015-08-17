@@ -8,17 +8,19 @@ mode = 1;
 outputForm = 1 + 2 + 4 + 8 + 16 + 32;
 tempLimit = 55;
 pxlCount = 0;
+uv1limit = 500;
 
 fprintf(s, '%c', '2');
 
-fwrite(s, treshold, 'uint16');
-fwrite(s, exposure, 'uint16');
+fwrite(s, swapbytes(uint16(treshold)), 'uint16');
+fwrite(s, swapbytes(uint16(exposure)), 'uint16');
 fwrite(s, bias, 'uchar');
 fwrite(s, filtering, 'uchar');
 fwrite(s, mode, 'uchar');
 fwrite(s, outputForm, 'uchar');
 fwrite(s, tempLimit, 'int8');
-fwrite(s, pxlCount, 'uint16');
+fwrite(s, swapbytes(uint16(pxlCount)), 'uint16');
+fwrite(s, swapbytes(int16(uv1limit)), 'int16');
 
 % wait for data       
 while (s.BytesAvailable <= 0)
