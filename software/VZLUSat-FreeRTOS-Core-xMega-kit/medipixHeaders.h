@@ -51,6 +51,9 @@ typedef struct __attribute__((packed)) {
 	// pixel count threshold for image catcher mode
 	uint16_t pixelCountThr;
 	
+	// UV1 treshold
+	uint16_t uv1_treshold;
+	
 } newSettings_t;
 
 // board commands
@@ -74,7 +77,7 @@ typedef enum {
 	MEDIPIX_MEASURE_NO_TURNOFF = 16,					// dont turn off medipix after measurement
 	MEDIPIX_GET_BOOTUP_MESSAGE = 17,					// return the medipix's bootup message from the last boot
 	MEDIPIX_GET_TEMPERATURE = 18,						// return the medipix's bootup message from the last boot
-	MEDIPIX_GET_HOUSKEEPING = 19,						// return the main houskeeping information
+	MEDIPIX_GET_HOUSEKEEPING = 19,						// return the main houskeeping information
 	MEDIPIX_MEASURE_WITHOUT_DATA_NO_TURNOFF = 20,		// return the main houskeeping information
 	XRAY_DK_CREATE_STORAGES = 21,						// create all storages in the data keeper
 	MEDIPIX_SET_PIXELCNTTHR = 22,						// pixel count threshold for scanning mode
@@ -82,6 +85,8 @@ typedef enum {
 	MEDIPIX_MEASURE_SCANNING_MODE = 24,					// similar as "MEDIPIX_MEASURE", but saves the data only if number of pixels (after filtration) exceeds a treshold
 	MEDIPIX_MEASURE_SCANNING_MODE_NO_TURNOFF = 25,		// -||- but not turnoff
 	MEDIPIX_SEND_SENSOR_DATA = 26,						// get data from the IR and UV sensors
+	MEDIPIX_MEASURE_UV = 27,							// measuring triggered by UV1 sensor
+	MEDIPIX_SET_UV1THL = 28,							// set the UV1 treshold
 } MPX_COMMANDS;
 
 #endif /* MEDIPIXHEADERS_H_ */

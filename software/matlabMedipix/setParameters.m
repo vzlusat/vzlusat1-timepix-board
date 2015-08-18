@@ -1,14 +1,14 @@
 openPort();
 
 treshold = 310;
-exposure = 100;
+exposure = 200;
 bias = 240;
 filtering = 0;
 mode = 1;
 outputForm = 1 + 2 + 4 + 8 + 16 + 32;
 tempLimit = 55;
 pxlCount = 0;
-uv1limit = 500;
+uv1thr = 500;
 
 fprintf(s, '%c', '2');
 
@@ -20,7 +20,7 @@ fwrite(s, mode, 'uchar');
 fwrite(s, outputForm, 'uchar');
 fwrite(s, tempLimit, 'int8');
 fwrite(s, swapbytes(uint16(pxlCount)), 'uint16');
-fwrite(s, swapbytes(int16(uv1limit)), 'int16');
+fwrite(s, swapbytes(int16(uv1thr)), 'int16');
 
 % wait for data       
 while (s.BytesAvailable <= 0)

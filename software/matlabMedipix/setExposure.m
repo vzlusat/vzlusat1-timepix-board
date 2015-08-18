@@ -2,10 +2,10 @@ openPort();
 
 tic
 
-exposure = 100;
+exposure = 200;
 
 fprintf(s, '%c', '5');
-fwrite(s, exposure, 'uint16');
+fwrite(s, swapbytes(uint16(exposure)), 'uint16');
 
 % wait for data       
 while (s.BytesAvailable <= 0)
