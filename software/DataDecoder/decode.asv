@@ -1,0 +1,23 @@
+clear all
+
+%% open the input file 
+
+fileName = 'input.txt';
+fid = fopen(fileName,'r');
+
+%% 
+
+line = fgets(fid);
+while ischar(line)
+    
+    % parse the line
+    if (line(1:4) == 'data') % if it is the data line
+        
+        
+        
+    end
+    
+    line = fgets(fid);
+end
+
+%% 
