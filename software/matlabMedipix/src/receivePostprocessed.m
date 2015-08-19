@@ -1,5 +1,5 @@
 % Energy histogram
-if (image.outputForm == 6)
+if (image.outputForm == 32)
 
      image.data = zeros(1, 16);
     
@@ -23,7 +23,7 @@ if (image.outputForm == 6)
     drawnow; 
     
 % Histograms 
-elseif (image.outputForm == 5)
+elseif (image.outputForm == 16)
 
     image.data = zeros(2, 256);
 
@@ -81,13 +81,13 @@ else
         numerOfPackets = 16;
         figure(2);
        
-    elseif (image.outputForm == 3)
+    elseif (image.outputForm == 4)
         
         numPerLine = 16;
         numerOfPackets = 4;
         figure(3);
         
-    elseif (image.outputForm == 4)
+    elseif (image.outputForm == 8)
         
         numPerLine = 8;
         numerOfPackets = 1;

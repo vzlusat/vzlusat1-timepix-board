@@ -3,13 +3,13 @@ while (s.BytesAvailable <= 0)
 end
 
 image.packetType = fread(s, 1, 'uchar');
+image.outputForm = fread(s, 1, 'uchar');
 image.imageId = swapbytes(uint16(fread(s, 1, 'uint16')));
 image.mode = fread(s, 1, 'uchar');
 image.treshold = swapbytes(uint16(fread(s, 1, 'uint16')));
 image.bias = fread(s, 1, 'uchar');
 image.exposure = swapbytes(uint16(fread(s, 1, 'uint16')));
 image.filtering = fread(s, 1, 'uchar');
-image.outputForm = fread(s, 1, 'uchar');
 image.nonzeropixelsfiltered = swapbytes(uint16(fread(s, 1, 'uint16')));
 image.nonzeropixelsoriginal = swapbytes(uint16(fread(s, 1, 'uint16')));
 image.minValueOriginal = fread(s, 1, 'uchar');
