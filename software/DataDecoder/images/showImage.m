@@ -3,23 +3,25 @@ function [] = showImage( name )
     image = load([name '.mat']);
     image = image.image;
 
-    if (size(image.data, 1) > 3)
+    if (image.outputForm <= 8)
 
         figure(1);
         imagesc(image.data);
         axis equal;
         axis tight;
         colorbar;
-        colormap(hot)
+        colormap(hot);
+        drawnow;
 
-    elseif (size(image.data, 1) == 1)
+    elseif (image.outputForm == 32)
         
-        figure(6);
-        bar(image.data);
-        
-    else
-
         figure(3);
+        bar(image.data);
+        drawnow;
+        
+    elseif (image.outputForm == 16)
+        
+        figure(2);
         subplot(2, 1, 1);
         title('Line histogram');
         plot(image.data(1, :)');
@@ -28,6 +30,7 @@ function [] = showImage( name )
         title('Row histogram');
         plot(image.data(2, :)');
         axis auto
+        drawnow;
         
     end
 

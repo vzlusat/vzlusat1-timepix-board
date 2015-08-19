@@ -13,7 +13,14 @@ while ischar(line)
     % parse the line
     if (line(1:4) == 'data') % if it is the data line
         
-        line = line(8:(end-2));
+        line = line(8:end);
+        while true
+            if ((line(end) == 10) || (line(end) == 13))
+                line = line(1:(end-1));
+            else
+               break; 
+            end
+        end
         binaryData = 0;
         
         for (i=1:2:(length(line)-1))
@@ -75,6 +82,7 @@ while ischar(line)
         else
             
            disp('UNKNOWN PACKET'); 
+           disp(line);
         end
     end
     

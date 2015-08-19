@@ -1,14 +1,19 @@
 function [] = parseMetadata(data)
 
-    imageId = typecast(data(1:2), 'uint16');
+    outputForm = data(1);
+    imageId = typecast(data(2:3), 'uint16');
+
+    fileName = [int2str(imageId) '_' int2str(outputForm)];
     
+    image = openFile(fileName);
+    
+    image.outputForm = outputForm;
     image.imageId = imageId;
-    image.mode = data(3);
-    image.treshold = typecast(data(4:5), 'uint16');
-    image.bias = data(6);
-    image.exposure = typecast(data(7:8), 'uint16');
-    image.filtering = data(9);
-    image.outputForm = data(10);
+    image.mode = data(4);
+    image.treshold = typecast(data(5:6), 'uint16');
+    image.bias = data(7);
+    image.exposure = typecast(data(8:9), 'uint16');
+    image.filtering = data(10);
     image.nonzeropixelsfiltered = typecast(data(11:12), 'uint16');
     image.nonzeropixelsoriginal = typecast(data(13:14), 'uint16');
     image.minValueOriginal = data(15);
@@ -29,12 +34,8 @@ function [] = parseMetadata(data)
     for u=1:3
         image.position(u) = int16(typecast(data(((u-1)*2+43):((u-1)*2+1+43)), 'int16'));
     end
-
-    image.time = typecast(data(49:52), 'uint32');
-
-    fileName = [int2str(imageId) '_2'];
     
-    image = openFile(fileName);
+    image.time = typecast(data(49:52), 'uint32');
     
     saveFile(image, fileName);
     

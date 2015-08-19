@@ -88,16 +88,23 @@ typedef struct {
 typedef enum {
 	BINNING_1 = 1,
 	BINNING_8 = 2,
-	BINNING_16 = 3,
-	BINNING_32 = 4,
-	HISTOGRAMS = 5,
-	ENERGY_HISTOGRAM = 6,
+	BINNING_16 = 4,
+	BINNING_32 = 8,
+	HISTOGRAMS = 16,
+	ENERGY_HISTOGRAM = 32,
 } OUTPUT_FORMS;
 
 // structure that hold all parameters of the measurement
 typedef struct __attribute__((packed)) {
 	
 	uint8_t packetType;
+
+	// 0 -> 1 binning
+	// 1 -> 8 binning
+	// 2 -> 16 binning
+	// 3 -> 32 binning
+	// 4 -> histograms
+	uint8_t outputForm;
 	
 	// 0 -> 65535
 	uint16_t imageId;
@@ -115,13 +122,6 @@ typedef struct __attribute__((packed)) {
 	// 0 -> off
 	// 1 -> on
 	uint8_t filtering;
-	
-	// 0 -> 1 binning
-	// 1 -> 8 binning
-	// 2 -> 16 binning
-	// 3 -> 32 binning
-	// 4 -> histograms
-	uint8_t outputForm;
 	
 	// number of non-zero pixels in the output image
 	uint16_t nonZeroPixelsFiltered;

@@ -1,4 +1,4 @@
-function [] = show( name )
+function [] = show(name)
 
     showImage(name);
 

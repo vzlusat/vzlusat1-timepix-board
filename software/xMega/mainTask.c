@@ -705,14 +705,23 @@ void sendPostProcessed(uint8_t replyTo, uint8_t outputForm) {
 		
 		uint8_t packetId = 0;
 		uint8_t byteInPacket = 0;
+		uint8_t outId = 0;
+		
+		if (outputForm == BINNING_8)
+			outId = 'D';
+		else if (outputForm == BINNING_16)
+			outId = 'E';
+		else if (outputForm == BINNING_32)
+			outId = 'F';
 		
 		if (replyTo == OUTPUT_DIRECT) {
 		
 			// it is a first histogram packet [0]
-			outcomingPacket->data[0] = 'C' + outputForm - 1;
 		
 			// save the image ID [1, 2]
 			saveUint16(outcomingPacket->data+1, imageParameters.imageId);
+			
+			outcomingPacket->data[0] = outId;
 		
 			// bytes count
 			outcomingPacket->data[3] = packetId++;
@@ -743,7 +752,7 @@ void sendPostProcessed(uint8_t replyTo, uint8_t outputForm) {
 		} else {
 			
 			// it is a first histogram packet [0]
-			message->data[0] = 'C' + outputForm - 1;
+			message->data[0] = outId;
 			
 			// save the image ID [1, 2]
 			saveUint16(message->data+1, imageParameters.imageId);
