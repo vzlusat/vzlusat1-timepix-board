@@ -16,6 +16,8 @@ function [] = parseBinn32(data)
     
     image.data = reshape(image_reshaped, 8, [])';
     
+    image.outputForm = 8;
+    
     saveFile(image, fileName);
     
 end

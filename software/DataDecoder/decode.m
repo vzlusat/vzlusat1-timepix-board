@@ -2,7 +2,7 @@ clear all
 
 %% open the input file 
 
-fileName = 'input2.txt';
+fileName = 'input3.txt';
 fid = fopen(fileName,'r');
 
 %% 
@@ -78,6 +78,12 @@ while ischar(line)
             
             disp('Reading image (En. hist)');
             parseEnergeticHist(binaryData(2:end));
+            
+        % houskeeping
+        elseif (binaryData(1) == uint8('Z'))
+            
+            disp('Reading HK data');
+            parseHK(binaryData(2:end));
             
         else
             

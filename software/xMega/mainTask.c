@@ -116,6 +116,7 @@ void houseKeeping(uint8_t outputTo) {
 		hk_data = (hk_data_t *) message->data;
 	}
 	
+	hk_data->packetType = 'Z';
 	hk_data->bootCount = csp_hton16(getBootCount());
 	hk_data->imagesTaken = csp_hton16(imageParameters.imageId);
 	hk_data->temperature = adt_convert_temperature(ADT_get_temperature());
@@ -146,8 +147,6 @@ void houseKeeping(uint8_t outputTo) {
 		message->parent.cmd = DKC_STORE_ACK;
 		message->port = STORAGE_HK_ID;
 		message->host = CSP_DK_MY_ADDRESS;
-		
-		memcpy(message->data, &hk_data, sizeof(hk_data_t));
 		
 		uint8_t k;
 		for (k = 0; k < 3; k++) {
@@ -904,36 +903,6 @@ uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t 
 	
 	/* ZDE KONÈÍ VYÈÍTÁNÍ OBRÁZKU */
 	
-	// BINING_1
-	if ((imageParameters.outputForm & 0x01) > 0) {
-		
-		applyBinning(BINNING_1);
-		imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
-		saveImageParametersToFram();
-		sendImageInfo(repplyTo, BINNING_1);
-		sendCompressed(1, repplyTo);
-	}
-	
-	// BINING_8
-	if ((imageParameters.outputForm & 0x02) > 0) {
-
-		applyBinning(BINNING_8);		
-		imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
-		saveImageParametersToFram();
-		sendImageInfo(repplyTo, BINNING_8);
-		sendPostProcessed(repplyTo, BINNING_8);
-	}
-	
-	// BINING_16
-	if ((imageParameters.outputForm & 0x04) > 0) {
-		
-		applyBinning(BINNING_16);		
-		imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
-		saveImageParametersToFram();
-		sendImageInfo(repplyTo, BINNING_16);
-		sendPostProcessed(repplyTo, BINNING_16);
-	}
-	
 	// BINING_32
 	if ((imageParameters.outputForm & 0x08) > 0) {
 		
@@ -943,25 +912,55 @@ uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t 
 		sendImageInfo(repplyTo, BINNING_32);
 		sendPostProcessed(repplyTo, BINNING_32);
 	}
+
+	// BINING_16
+	if ((imageParameters.outputForm & 0x04) > 0) {
 	
+		applyBinning(BINNING_16);
+		imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
+		saveImageParametersToFram();
+		sendImageInfo(repplyTo, BINNING_16);
+		sendPostProcessed(repplyTo, BINNING_16);
+	}
+
+	// BINING_8
+	if ((imageParameters.outputForm & 0x02) > 0) {
+
+		applyBinning(BINNING_8);
+		imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
+		saveImageParametersToFram();
+		sendImageInfo(repplyTo, BINNING_8);
+		sendPostProcessed(repplyTo, BINNING_8);
+	}
+
 	// HISTOGRAMY
 	if ((imageParameters.outputForm & 0x10) > 0) {
-		
+	
 		createHistograms(HISTOGRAMS);
 		imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
 		saveImageParametersToFram();
 		sendImageInfo(repplyTo, HISTOGRAMS);
 		sendPostProcessed(repplyTo, HISTOGRAMS);
 	}
-	
+
 	// ENERGY_HISTOGRAM
 	if ((imageParameters.outputForm & 0x20) > 0) {
-		
+	
 		createEnergyHistogram();
 		imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
 		saveImageParametersToFram();
 		sendImageInfo(repplyTo, ENERGY_HISTOGRAM);
 		sendPostProcessed(repplyTo, ENERGY_HISTOGRAM);
+	}
+	
+	// BINING_1
+	if ((imageParameters.outputForm & 0x01) > 0) {
+		
+		applyBinning(BINNING_1);
+		imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
+		saveImageParametersToFram();
+		sendImageInfo(repplyTo, BINNING_1);
+		sendCompressed(1, repplyTo);
 	}
 
 	return 1;

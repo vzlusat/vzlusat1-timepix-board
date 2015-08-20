@@ -12,6 +12,8 @@ function [] = parseRowSums(data)
     
     image.data(1, (packetId*64+1):((packetId+1)*64)) = data(4:67);
     
+    image.outputForm = 16;
+    
     saveFile(image, fileName);
     
 end

@@ -17,6 +17,8 @@ function [] = parseRaw(data)
         image.data(floor((idx/256))+1, mod(idx, 256)+1) = uint16(data(i+2));
     end
     
+    image.outputForm = 1;
+    
     saveFile(image, fileName);
     
 end

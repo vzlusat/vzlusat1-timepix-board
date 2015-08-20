@@ -13,6 +13,8 @@ function [] = parseEnergeticHist(data)
     for i=1:16
         image.data(1, i) = typecast(data((i*2-1):(i*2)), 'uint16');
     end
+    
+    image.outputForm = 32;
         
     saveFile(image, fileName);
     

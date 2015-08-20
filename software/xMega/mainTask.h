@@ -58,6 +58,7 @@ typedef enum {
 
 typedef struct __attribute__((packed)) {
 	
+	uint8_t packetType;
 	uint16_t bootCount;
 	uint16_t imagesTaken;
 	uint8_t temperature;
