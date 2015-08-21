@@ -16,7 +16,7 @@ for g=0:5
         receiveMetadata;
 
         % receive compressed image
-        if (g == 0)
+        if (image.outputForm == 1)
 
             receiveCompressed;
             disp('Compressed');
@@ -28,8 +28,8 @@ for g=0:5
             
         end
         
-        save(['images/image_' int2str(image.imageId) '_' int2str(g+1)], 'image');
-        disp(['Image saved as ' int2str(image.imageId) '_' int2str(g+1)]);
+        save(['images/image_' int2str(image.imageId) '_' int2str(image.outputForm)], 'image');
+        disp(['Image saved as ' int2str(image.imageId) '_' int2str(image.outputForm)]);
         disp(image);
         
     end

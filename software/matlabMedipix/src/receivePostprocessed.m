@@ -16,6 +16,8 @@ if (image.outputForm == 32)
      
      % send ack      
      fprintf(s, '%c', 'h');
+     
+     fread(s, 1, 'uint16');
          
     figure(6);
     title('Energy histogram');
