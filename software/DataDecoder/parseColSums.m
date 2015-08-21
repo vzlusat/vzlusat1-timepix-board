@@ -7,7 +7,7 @@ function [] = parseColSums(data)
     image = openFile(fileName);
     
     if ((size(image.data, 1) ~= 2) || (size(image.data, 2) ~= 256))
-       image.data = zeros(2, 256); 
+       image.data = -ones(2, 256); 
     end
     
     image.data(2, (packetId*64+1):((packetId+1)*64)) = data(4:67);

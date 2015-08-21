@@ -7,7 +7,7 @@ function [] = parseBinn8(data)
     image = openFile(fileName);
     
     if ((size(image.data, 1) ~= 32) || (size(image.data, 2) ~= 32))
-       image.data = zeros(32, 32); 
+       image.data = -ones(32, 32); 
     end
     
     image_reshaped = reshape(image.data', 1, []);

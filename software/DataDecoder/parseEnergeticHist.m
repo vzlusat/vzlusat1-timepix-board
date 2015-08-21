@@ -7,7 +7,7 @@ function [] = parseEnergeticHist(data)
     image = openFile(fileName);
     
     if ((size(image.data, 1) ~= 1) || (size(image.data, 2) ~= 16))
-       image.data = zeros(1, 16); 
+       image.data = -ones(1, 16); 
     end
     
     for i=1:16

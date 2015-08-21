@@ -2,7 +2,7 @@ clear all
 
 %% open the input file 
 
-fileName = 'input3.txt';
+fileName = 'input.txt';
 fid = fopen(fileName,'r');
 
 %% 

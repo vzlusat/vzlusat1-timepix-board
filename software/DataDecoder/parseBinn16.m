@@ -7,7 +7,7 @@ function [] = parseBinn16(data)
     image = openFile(fileName);
     
     if ((size(image.data, 1) ~= 16) || (size(image.data, 2) ~= 16))
-       image.data = zeros(16, 16); 
+       image.data = -ones(16, 16); 
     end
     
     image_reshaped = reshape(image.data', 1, []);

@@ -7,7 +7,7 @@ function [] = parseRaw(data)
     image = openFile(fileName);
     
     if ((size(image.data, 1) ~= 256) || (size(image.data, 2) ~= 256))
-       image.data = zeros(256, 256); 
+       image.data = -ones(256, 256); 
     end
     
     data = data(4:end);
