@@ -19,6 +19,10 @@ else
             for i=1:numPixels
 
                 image.data(floor((idx/256))+1, mod(idx, 256)+1) = fread(s, 1, 'uchar');
+                
+                if (image.mode == 1)
+                    image.data(floor((idx/256))+1, mod(idx, 256)+1) = image.data(floor((idx/256))+1, mod(idx, 256)+1)*46;
+                end
 
                 idx = fread(s, 1, 'uint16');
 
