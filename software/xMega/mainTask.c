@@ -956,7 +956,6 @@ uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t 
 	// BINING_1
 	if ((imageParameters.outputForm & 0x01) > 0) {
 		
-		applyBinning(BINNING_1);
 		imageParameters.chunkId = getNextChunkId(STORAGE_DATA_ID);
 		saveImageParametersToFram();
 		sendImageInfo(repplyTo, BINNING_1);

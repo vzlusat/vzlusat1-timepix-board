@@ -49,3 +49,4 @@ axis tight;
 colorbar;
 colormap(hot)
 drawnow; 
+tightfig;

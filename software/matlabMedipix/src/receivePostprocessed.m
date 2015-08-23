@@ -20,6 +20,7 @@ if (image.outputForm == 32)
     title('Energy histogram');
     bar(image.data);
     drawnow;
+    tightfig;
     
     % send ack
     fprintf(s, '%c', 'h');
@@ -74,6 +75,7 @@ elseif (image.outputForm == 16)
     plot(image.data(2, :)');
     axis auto
     drawnow; 
+    tightfig;
     
     % send ack
     fprintf(s, '%c', 'h');
@@ -140,6 +142,7 @@ else
     colorbar;
     colormap(hot)
     drawnow; 
+    tightfig;
     
     % send ack
     fprintf(s, '%c', 'h');
