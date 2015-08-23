@@ -1,11 +1,11 @@
 openPort();
 
 treshold = 310;
-exposure = 2000;
-bias = 70;
+exposure = 200;
+bias = 240;
 filtering = 0;
 mode = 1;
-outputForm = 15;
+outputForm = 63;
 tempLimit = 80;
 pxlCount = 0;
 uv1thr = 500;
