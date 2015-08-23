@@ -911,6 +911,7 @@ uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t 
 		saveImageParametersToFram();
 		sendImageInfo(repplyTo, BINNING_32);
 		sendPostProcessed(repplyTo, BINNING_32);
+		vTaskDelay(30);
 	}
 
 	// BINING_16
@@ -921,6 +922,7 @@ uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t 
 		saveImageParametersToFram();
 		sendImageInfo(repplyTo, BINNING_16);
 		sendPostProcessed(repplyTo, BINNING_16);
+		vTaskDelay(30);
 	}
 
 	// BINING_8
@@ -931,6 +933,7 @@ uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t 
 		saveImageParametersToFram();
 		sendImageInfo(repplyTo, BINNING_8);
 		sendPostProcessed(repplyTo, BINNING_8);
+		vTaskDelay(30);
 	}
 
 	// HISTOGRAMY
@@ -941,6 +944,7 @@ uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t 
 		saveImageParametersToFram();
 		sendImageInfo(repplyTo, HISTOGRAMS);
 		sendPostProcessed(repplyTo, HISTOGRAMS);
+		vTaskDelay(30);
 	}
 
 	// ENERGY_HISTOGRAM
@@ -951,6 +955,7 @@ uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t 
 		saveImageParametersToFram();
 		sendImageInfo(repplyTo, ENERGY_HISTOGRAM);
 		sendPostProcessed(repplyTo, ENERGY_HISTOGRAM);
+		vTaskDelay(30);
 	}
 	
 	// BINING_1
@@ -961,6 +966,7 @@ uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t 
 		saveImageParametersToFram();
 		sendImageInfo(repplyTo, BINNING_1);
 		sendCompressed(1, repplyTo);
+		vTaskDelay(30);
 	}
 
 	return 1;
