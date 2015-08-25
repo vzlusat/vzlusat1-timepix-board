@@ -12,7 +12,6 @@
 #include "system.h"
 #include "mainTask.h"
 #include "cspTask.h"
-#include "medipixTask.h"
 #include "adtTask.h"
 
 int main(void) {

@@ -295,14 +295,12 @@ void mainTask(void *p) {
 				case 'z':
 					outcomingPacket->data[0] = MEDIPIX_SEND_METADATA;
 					outcomingPacket->length = 1;
-					pingSent = milisecondsTimer;
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 				break;
 				
 				case 'u':
 					outcomingPacket->data[0] = MEDIPIX_GET_BOOTUP_MESSAGE;
 					outcomingPacket->length = 1;
-					pingSent = milisecondsTimer;
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 				break;
 			 
@@ -319,13 +317,17 @@ void mainTask(void *p) {
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 17, 17, CSP_O_NONE,  outcomingPacket, 10);
 				break;
 				
+				// get sensors data
 				case 'x':
-				
 					outcomingPacket->data[0] = MEDIPIX_SEND_SENSOR_DATA;
 					outcomingPacket->length = 1;
-					pingSent = milisecondsTimer;
 					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
+				break;
 				
+				case 'l':
+					outcomingPacket->data[0] = MEDIPIX_GET_HOUSEKEEPING;
+					outcomingPacket->length = 1;
+					csp_sendto(CSP_PRIO_NORM, CSP_BOARD_ADDRESS, 16, 17, CSP_O_NONE, outcomingPacket, 10);
 				break;
 							
 				// sends the char and is supposed to receive it back

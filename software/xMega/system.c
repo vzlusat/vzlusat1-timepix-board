@@ -8,7 +8,6 @@
 #include "sysclk.h"
 #include "system.h"
 #include "TC_driver.h"
-#include "medipixTask.h"
 #include "ADT7420.h"
 #include "spi_memory_FM25.h"
 #include "fram_mapping.h"

@@ -16,7 +16,8 @@ if (image.outputForm == 32)
     
     fread(s, 1, 'uint16');
     
-    figure(6);
+%     figure(6);
+    subfigure();
     title('Energy histogram');
     bar(image.data);
     drawnow;
@@ -73,7 +74,7 @@ elseif (image.outputForm == 16)
     title('Row histogram');
     plot(image.data(2, :)');
     axis auto
-    drawnow;
+    drawnow; 
     
     % send ack
     fprintf(s, '%c', 'h');
@@ -129,11 +130,6 @@ else
         end
         
     end
-    
-    if (image.outputForm == 8)
-       image.data = image.data*4; 
-    end
-    
     imagesc(image.data);
     axis equal;
     axis tight;

@@ -276,7 +276,7 @@ void sendImageInfo(uint8_t repplyTo, uint8_t outputForm) {
 }
 
 void waitForAck() {
-		
+
 	xQueueReceive(xCSPEventQueue, &xReceivedEvent, 1500);
 }
 
