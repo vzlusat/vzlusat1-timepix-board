@@ -11,8 +11,8 @@
 #include "twi_master_driver.h"
 
 // define different versions of timepix
-#define MEDIPIX_EQM	1			// EQM kus
-// #define MEDIPIX_FLIGHT	1	// LETOVY kus
+// #define MEDIPIX_EQM	1			// EQM 
+#define MEDIPIX_FLIGHT	1			// LETOVY kus
 
 #define DEBUG_OUTPUT 1
 #define MATLAB_OUTPUT 1

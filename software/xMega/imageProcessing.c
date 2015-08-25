@@ -386,7 +386,7 @@ void applyBinning(uint8_t outputForm) {
 				// pokud binujeme po 32, tak downscale
 				if (outputForm == BINNING_32) {
 					
-					sum = (uint16_t) ((float) sum / (float) 4);
+					sum = (uint16_t) ceil(((float) sum / (float) 4));
 				}
 				
 				if (sum >= 256)

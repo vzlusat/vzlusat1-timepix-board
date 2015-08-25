@@ -6,3 +6,4 @@ software/EqualizationParser/build-equalizationParser-Desktop_Qt_5_4_0_MinGW_32bi
 software/EqualizationParser/build-equalizationParser-Desktop_Qt_5_4_0_MinGW_32bit-Ladění/Makefile.Release
 software/EqualizationParser/build-equalizationParser-Desktop_Qt_5_4_0_MinGW_32bit-Ladění/Makefile
 software/matlabMedipix/images/*.mat
+software/DataDecoder/images/*.mat

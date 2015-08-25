@@ -277,7 +277,7 @@ void sendImageInfo(uint8_t repplyTo, uint8_t outputForm) {
 
 void waitForAck() {
 		
-	xQueueReceive(xCSPEventQueue, &xReceivedEvent, 100);
+	xQueueReceive(xCSPEventQueue, &xReceivedEvent, 1500);
 }
 
 uint16_t parseUint16(uint8_t * buffer) {
@@ -1054,16 +1054,8 @@ void sendSensorsData() {
 	sensors_data->TIR = csp_hton16(uv_ir_data.TIR);
 	sensors_data->UV1 = csp_hton16(uv_ir_data.UV1);
 	sensors_data->UV2 = csp_hton16(uv_ir_data.UV2);
-	sensors_data->TIR_max = csp_hton16(uv_ir_data.TIR_max);
-	sensors_data->TIR_min = csp_hton16(uv_ir_data.TIR_min);
-	sensors_data->IR_max = csp_hton16(uv_ir_data.IR_max);
-	sensors_data->IR_min = csp_hton16(uv_ir_data.IR_min);
-	sensors_data->UV1_max = csp_hton16(uv_ir_data.UV1_max);
-	sensors_data->UV1_min = csp_hton16(uv_ir_data.UV1_min);
-	sensors_data->UV2_max = csp_hton16(uv_ir_data.UV2_max);
-	sensors_data->UV2_min = csp_hton16(uv_ir_data.UV2_min);
 	
-	outcomingPacket->length = sizeof(sensors_t);
+	outcomingPacket->length = 8;
 	
 	csp_sendto(CSP_PRIO_NORM, dest_addr, dest_p, source_p, CSP_O_NONE, outcomingPacket, 1000);
 }
