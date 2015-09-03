@@ -41,5 +41,3 @@ toc
 closePort();
 
 drawnow;
-
-tightfig;

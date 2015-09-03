@@ -1122,7 +1122,7 @@ void mainTask(void *p) {
 							
 							for (i = 0; i < ADRENALIN_LENGTH; i++) {
 								
-								if (uv_ir_data.UV1 > imageParameters.uv1_treshold) {
+								if ((int16_t) uv_ir_data.UV1 > (int16_t) imageParameters.uv1_treshold) {
 									
 									measure(MEASURE_TURNOFF_YES, MEASURE_WITHOUT_DATA_NO, OUTPUT_DATAKEEPER, USE_PIXEL_TRESHOLD_NO);
 									break;

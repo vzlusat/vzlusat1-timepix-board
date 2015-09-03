@@ -27,7 +27,7 @@ void adtTask(void *p) {
 	/* -------------------------------------------------------------------- */
 	ADT_init();
 	
-	vTaskDelay(1000);
+	vTaskDelay(3000);
 	
 	adtTemp = adt_convert_temperature(ADT_get_temperature());
 	
@@ -49,28 +49,28 @@ void adtTask(void *p) {
 		if (adtTemp < adtTemp_min)
 			adtTemp_min = adtTemp;
 
-		if (uv_ir_data.TIR > uv_ir_data.TIR_max)
+		if ((int16_t) uv_ir_data.TIR > (int16_t) uv_ir_data.TIR_max)
 			uv_ir_data.TIR_max = uv_ir_data.TIR;
 
-		if (uv_ir_data.TIR < uv_ir_data.TIR_min)
+		if ((int16_t) uv_ir_data.TIR < (int16_t) uv_ir_data.TIR_min)
 			uv_ir_data.TIR_min = uv_ir_data.TIR;
 
-		if (uv_ir_data.IR > uv_ir_data.IR_max)
+		if ((int16_t) uv_ir_data.IR > (int16_t) uv_ir_data.IR_max)
 			uv_ir_data.IR_max = uv_ir_data.IR;
 
-		if (uv_ir_data.IR < uv_ir_data.IR_min)
+		if ((int16_t) uv_ir_data.IR < (int16_t) uv_ir_data.IR_min)
 			uv_ir_data.IR_min = uv_ir_data.IR;
 
-		if (uv_ir_data.UV1 > uv_ir_data.UV1_max)
+		if ((int16_t) uv_ir_data.UV1 > (int16_t) uv_ir_data.UV1_max)
 			uv_ir_data.UV1_max = uv_ir_data.UV1;
 
-		if (uv_ir_data.UV1 < uv_ir_data.UV1_min)
+		if ((int16_t) uv_ir_data.UV1 < (int16_t) uv_ir_data.UV1_min)
 			uv_ir_data.UV1_min = uv_ir_data.UV1;
 
-		if (uv_ir_data.UV2 > uv_ir_data.UV2_max)
+		if ((int16_t) uv_ir_data.UV2 > (int16_t) uv_ir_data.UV2_max)
 			uv_ir_data.UV2_max = uv_ir_data.UV2;
 
-		if (uv_ir_data.UV2 < uv_ir_data.UV2_min)
+		if ((int16_t) uv_ir_data.UV2 < (int16_t) uv_ir_data.UV2_min)
 			uv_ir_data.UV2_min = uv_ir_data.UV2;
 	}
 }
