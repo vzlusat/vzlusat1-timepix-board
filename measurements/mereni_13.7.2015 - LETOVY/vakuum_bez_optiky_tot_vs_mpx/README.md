@@ -1,0 +1,12 @@
+Měření 13.7.2015
+================
+
+Probíhalo měření s letovým HW v komoře v Rigaku, bez optiky. Máme dvě sady měření - (TOT mód / MPX mód). Obojí je ve vakuu.
+
+Legenda je uložena v mereni-13.7.2013-BEZOPTIKY-TOT_VS_MPX.pdf
+ 
+POZOR! Sada měření v režimu Time-Over-Treshold není validní pro srovnávání, v tuto dobu byla ještě přítomna chyba se zaokrouhlováním energie s hodnotou menší než 43 na nulu.
+
+Všechna měření byla provedena s výkonem x-ray zdroje 40kV, 0.1mA a filtrace byla zaplá.
+
+Ke všem měřením je přítomen i originální, nevyfiltrovaný snímek *_o.
