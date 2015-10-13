@@ -15,4 +15,4 @@ Poté jsme se jali měřiti s optikou. Ukládány byly různé varianty výstupu
 
 Snímky pravděpodobně nejsou vhodné pro srovnání vzhledem k expozici ve vzduchu.
 
-Konvence pojmenování souborů: soubor s "o" nakonci (např. image_513o.mat) obsahuje originální snímek, soubor s "p" nakoneci (image_513p.mat) obsahuje příslušný zpracovaný snímek (tedy postprocess, filtrace, zmenšenina, podle toho, co bylo zapnuté).
+Konvence pojmenování souborů: soubor s "o" nakonci (např. image_513o.mat) obsahuje originální snímek, soubor s "p" nakonci (image_513p.mat) obsahuje příslušný zpracovaný snímek (tedy postprocess, filtrace, zmenšenina, podle toho, co bylo zapnuté).

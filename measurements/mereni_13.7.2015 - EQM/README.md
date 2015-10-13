@@ -13,4 +13,6 @@ Měření se stává z několika sérií s expozicemi od 1ms do 10 až 30ms.
 
 Všchna měření měla zaplou filtraci, nicméně mimo post-processovaného výstupu se ukládaly i originální snímky (soubory s _o).
 
+Konvence pojmenování souborů: soubor s "o" nakonci (např. image_513o.mat) obsahuje originální snímek, soubor s "p" nakonci (image_513p.mat) obsahuje příslušný zpracovaný snímek (tedy postprocess, filtrace, zmenšenina, podle toho, co bylo zapnuté).
+
 POZOR, BĚHEM TOHOTO MěřENí BYLA V SOFTWARU CHYBA, V TOT REžIMU SE ZAOKROUHLOVALO DOLU, TEDY ZMIZELY PIXELI S ENERGIí < 43. MěřENí V MÓDU MPX JSOU V POřáDKU.
