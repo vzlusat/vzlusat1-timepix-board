@@ -14,3 +14,5 @@ Zajímavé (srovnatelné) jsou tedy snímky 420, 422 a 423, které jsou v MPX m�
 Poté jsme se jali měřiti s optikou. Ukládány byly různé varianty výstupu pro expozice od 1ms do 200ms, vše na vzduchu a s filtrací.
 
 Snímky pravděpodobně nejsou vhodné pro srovnání vzhledem k expozici ve vzduchu.
+
+Konvence pojmenování souborů: soubor s "o" nakonci (např. image_513o.mat) obsahuje originální snímek, soubor s "p" nakoneci (image_513p.mat) obsahuje příslušný zpracovaný snímek (tedy postprocess, filtrace, zmenšenina, podle toho, co bylo zapnuté).
