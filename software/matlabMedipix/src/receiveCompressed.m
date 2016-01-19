@@ -42,10 +42,10 @@ else
     
 end
 
-figure(1);
-imagesc(image.data);
-axis equal;
-axis tight;
-colorbar;
-colormap(hot)
-drawnow; 
+% figure(1);
+% imagesc(image.data);
+% axis equal;
+% axis tight;
+% colorbar;
+% colormap(hot)
+% drawnow; 

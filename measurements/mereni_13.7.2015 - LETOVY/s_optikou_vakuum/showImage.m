@@ -10,7 +10,9 @@ function [] = showImage( name )
         axis equal;
         axis tight;
         colorbar;
-        colormap(hot)
+        colormap(parula);
+        set(gcf,'Units','normal')
+        set(gca,'Position',[0 0 0.92 1])
 
     else
 

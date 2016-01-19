@@ -5,12 +5,14 @@ function [] = showImage( name )
 
     if (size(image.data, 1) > 3)
 
-        figure(1);
-        imagesc(image.data);
+        figure(2);
+        imagesc(image.data');
         axis equal;
         axis tight;
         colorbar;
-        colormap(hot)
+        colormap(parula);
+        set(gcf,'Units','normal');
+        set(gca,'Position',[0 0 0.92 1]);
 
     elseif (size(image.data, 1) == 1)
         

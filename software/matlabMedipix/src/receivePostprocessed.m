@@ -16,10 +16,10 @@ if (image.outputForm == 32)
     
     fread(s, 1, 'uint16');
     
-    figure(6);
-    title('Energy histogram');
-    bar(image.data);
-    drawnow;
+%     figure(6);
+%     title('Energy histogram');
+%     bar(image.data);
+%     drawnow;
     
     % send ack
     fprintf(s, '%c', 'h');
@@ -64,16 +64,16 @@ elseif (image.outputForm == 16)
 
     end
     
-    figure(5);
-    subplot(2, 1, 1);
-    title('Line histogram');
-    plot(image.data(1, :)');
-    axis auto
-    subplot(2, 1, 2);
-    title('Row histogram');
-    plot(image.data(2, :)');
-    axis auto
-    drawnow;
+%     figure(5);
+%     subplot(2, 1, 1);
+%     title('Line histogram');
+%     plot(image.data(1, :)');
+%     axis auto
+%     subplot(2, 1, 2);
+%     title('Row histogram');
+%     plot(image.data(2, :)');
+%     axis auto
+%     drawnow;
     
     % send ack
     fprintf(s, '%c', 'h');
@@ -134,12 +134,12 @@ else
        image.data = image.data*4; 
     end
     
-    imagesc(image.data);
-    axis equal;
-    axis tight;
-    colorbar;
-    colormap(hot)
-    drawnow; 
+%     imagesc(image.data);
+%     axis equal;
+%     axis tight;
+%     colorbar;
+%     colormap(hot)
+%     drawnow; 
     
     % send ack
     fprintf(s, '%c', 'h');

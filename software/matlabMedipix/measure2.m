@@ -32,6 +32,8 @@ for g=0:5
         disp(['Image saved as ' int2str(image.imageId) '_' int2str(image.outputForm)]);
         disp(image);
         
+        show(['image_' int2str(image.imageId) '_' int2str(image.outputForm)]);
+        
     end
 
 end
