@@ -903,6 +903,14 @@ uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t 
 	
 	/* ZDE KONÈÍ VYÈÍTÁNÍ OBRÁZKU */
 	
+	// no data output, just save metadata
+	if (imageParameters.outputForm == 0) {
+		
+		imageParameters.chunkId = 0;
+		saveImageParametersToFram();
+		sendImageInfo(repplyTo, 0);
+	}
+	
 	// BINING_32
 	if ((imageParameters.outputForm & 0x08) > 0) {
 		
