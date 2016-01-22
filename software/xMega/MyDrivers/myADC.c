@@ -29,14 +29,14 @@ void adc_init(void) {
 	ADCA.CH2.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc ;	//
 	ADCA.CH3.MUXCTRL = ADC_CH_MUXPOS_PIN4_gc ;	//
 	
-	uv_ir_data.TIR_max = 0x00;
-	uv_ir_data.TIR_min = 0xFFFF;
-	uv_ir_data.IR_max = 0x00;
-	uv_ir_data.IR_min = 0xFFFF;
-	uv_ir_data.UV1_max = 0x00;
-	uv_ir_data.UV1_min = 0xFFFF;
-	uv_ir_data.UV2_max = 0x00;
-	uv_ir_data.UV2_min = 0xFFFF;
+	uv_ir_data.TIR_max = -32000;
+	uv_ir_data.TIR_min = 32000;
+	uv_ir_data.IR_max = -32000;
+	uv_ir_data.IR_min = 32000;
+	uv_ir_data.UV1_max = -32000;
+	uv_ir_data.UV1_min = 32000;
+	uv_ir_data.UV2_max = -32000;
+	uv_ir_data.UV2_min = 32000;
 }
 
 int16_t adc_read_ch0(void) {
