@@ -81,6 +81,8 @@ void replyOk() {
 
 uint8_t waitForDkAck() {
 	
+	vTaskDelay(20);
+	
 	int32_t err;
 	
 	if (pdTRUE == xQueueReceive(xCSPAckQueue, &err, 3000)) {
