@@ -96,7 +96,7 @@ uint32_t waitForTimeAck() {
 	
 	int32_t time;
 	
-	if (pdTRUE == xQueueReceive(xCSPTimeQueue, &time, 500)) {
+	if (pdTRUE == xQueueReceive(xCSPTimeQueue, &time, 1000)) {
 		
 		return (uint32_t) time;
 	}

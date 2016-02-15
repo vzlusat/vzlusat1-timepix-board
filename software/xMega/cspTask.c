@@ -36,7 +36,8 @@ void cspTask(void *p) {
 	uint32_t tempUint;
 	adcs_att_t attitudeData;
 	
-	xCSPStackEvent_t * newEvent;
+	xCSPStackEvent_t eventData;
+	xCSPStackEvent_t * newEvent = &eventData;
 
 	/* Process incoming connections */
 	while (1) {

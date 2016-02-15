@@ -81,7 +81,7 @@ void replyOk() {
 
 uint8_t waitForDkAck() {
 	
-	vTaskDelay(20);
+	vTaskDelay(5);
 	
 	int32_t err;
 	
