@@ -59,4 +59,7 @@ void loadImageParametersFromFram();
 
 void saveImageParametersToFram();
 
+// create the energy histogram
+void createEnergyHistogram();
+
 #endif /* IMAGEPROCESSING_H_ */

@@ -58,9 +58,6 @@
 
 #include "compiler.h"
 
-
-#define BOARD USER_BOARD
-
 #ifdef __cplusplus
 extern "C" {
 #endif
