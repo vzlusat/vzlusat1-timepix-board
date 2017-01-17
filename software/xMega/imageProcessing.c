@@ -459,9 +459,12 @@ void createEnergyHistogram() {
 			
 			pixelValue = getFilteredPixel(i, j);
 			
-			if (pixelValue > 0) {
+			if ((pixelValue > 0) && (pixelValue < 128)) {
 				
-				setEnergyHistogram(pixelValue/16, getEnergyHistogram(pixelValue/16)+1);	
+				setEnergyHistogram(floor(pixelValue/8.0), getEnergyHistogram(floor(pixelValue/8.0))+1);	
+			} else {
+				
+				setEnergyHistogram(15, getEnergyHistogram(15)+1);
 			}
 		}
 	}

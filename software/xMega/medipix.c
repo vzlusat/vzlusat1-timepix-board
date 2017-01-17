@@ -568,10 +568,14 @@ void saveLine(uint8_t row, uint16_t * data) {
 	
 	for (i = 0; i < 256; i++) {
 		
+		/*
+		* commented on 17.1.2016
+		* range compression not necessary since the good data is under values lower than 128
 		if (imageParameters.mode == MODE_TIMEPIX) {
 
 			*(data + i) = ceil(((float) *(data + i)) / ((float) 46));	
 		}
+		*/
 
 		// saturace na byte
 		if (*(data + i) > 255) {
