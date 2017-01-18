@@ -843,7 +843,7 @@ uint32_t getNextChunkId(uint8_t port) {
 	if (chunksNum == 0)
 		return 0;
 		
-	return chunksNum;
+	return chunksNum + 1;
 }
 
 uint8_t measure(uint8_t turnOff, uint8_t withoutData, uint8_t repplyTo, uint8_t usePixelTreshold) {

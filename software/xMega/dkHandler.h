@@ -30,6 +30,7 @@ typedef enum {
 
 #define DEFAULT_CONF_CHUNK_SIZE		20
 
+/* obsolete, replaced on 18.1.2017
 typedef enum {
 	DKC_STORE = 0,			//Store a chunk of data.
 	DKC_STORE_ACK = 1,		//Store a chunk of data and reply result
@@ -45,6 +46,33 @@ typedef enum {
 	DKC_STATS = 20,			//Statistics about space and storages
 	DKC_MAINTENANCE = 21	//Repair storages and actual remove cleaned chunks
 
+} DK_COMMAND_ENUM;
+*/
+
+typedef enum
+{
+	DKC_STORE = 0,       //Store a chunk of data.
+	DKC_STORE_ACK = 1,   //Store a chunk of data and reply result
+	DKC_GET_RAW = 2,     //Retrieve only a chunk of data
+	DKC_GET_RICH = 3,    //Retrieve a data with all adational info
+	DKC_GET_RANGE = 4,   //Retrive a range of chunks
+	DKC_GET_NUM = 5,     //Retrive sepecified number of chunks
+	DKC_FIND = 6,        //Retrive a chunk ID with certain store time
+	DKC_INFO = 10,       //Information about one storage
+	DKC_LIST = 11,       //List of all storages information
+	DKC_INFO_RICH = 12,  //Rich information about one storage
+	DKC_CREATE = 13,     //Create new storage
+	DKC_WIPE = 14,       //Delete all data from storage
+	DKC_CLEAN = 15,      //Clean chunks from storage
+	DKC_STORE_FULL = 16, //Store a chunk with defined time and flags
+	DKC_CREATE_FOR = 17, //Create new storage for host
+	DKC_STRIP = 18,      //Delete 1/2 of storage data (oldest)
+	DKC_DELETE = 19,     //Delete a storage with all it's data
+	DKC_STATS = 20,      //Statistics about space and storages
+	DKC_MAINTENANCE = 21,//Repair storages and actual remove cleaned chunks
+	DKC_INIT = 22,       //Re-load cache from files
+	DKC_BCK_ONOFF = 23,  //mount/umount backup and start/stop backuping
+	DKC_BCK_SWAP = 24    //Swap main and backup storage
 } DK_COMMAND_ENUM;
 
 typedef struct __attribute__((packed))
@@ -111,12 +139,24 @@ typedef struct __attribute__((packed))
 	uint8_t port; //storage sub-identification
 } dk_msg_storage_t;
 
+/* old and obsolete, replaced on 18.1.2017
 typedef struct __attribute__((packed))
 { //DKC_INFO, DKC_LIST
 	uint8_t host; //storage identification
 	uint8_t port; //storage sub-identification
 	uint32_t chunks; //number of data chunks in a storage
 	uint32_t write_tim; //since 01.01.2000 00:00:00 UTC
+} dk_reply_info_t;
+*/
+
+typedef struct __attribute__((packed))
+{ //DKC_INFO, DKC_LIST
+	uint8_t host;        //storage identification
+	uint8_t port;        //storage sub-identification
+	uint8_t errors;      //number of read / write / open errors
+	uint32_t newest_chunk_id;
+	uint32_t write_tim;  //since 01.01.2000 00:00:00 UTC
+	uint32_t oldest_chunk_id;
 } dk_reply_info_t;
 
 uint8_t createStorages();

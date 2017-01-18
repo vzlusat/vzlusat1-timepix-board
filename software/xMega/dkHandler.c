@@ -39,7 +39,7 @@ uint8_t removeStorage(uint8_t id) {
 	
 	dk_msg_storage_t * message = (dk_msg_storage_t *) outcomingPacket->data;
 	
-	message->parent.cmd = DKC_REMOVE;
+	message->parent.cmd = DKC_WIPE;
 	message->port = id;
 	message->host = CSP_DK_MY_ADDRESS;
 	
