@@ -3,6 +3,7 @@
  *
  * Created: 24.8.2014 15:10:04
  *  Author: Tomas Baca
+ * Flashed on 18.1.2017
  */ 
 
 #include "FreeRTOS.h"
