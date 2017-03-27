@@ -1,4 +1,5 @@
 import numpy
+import math
 from src.Image import Image 
 from src.loadImage import loadImage
 from src.saveImage import saveImage
@@ -91,3 +92,115 @@ def parseBinning8(bin_data):
 
     saveImage(image)
 
+def parseBinning16(bin_data):
+
+    image = parseImageHeader(bin_data, 2)
+
+    packet_id = bin_data[2]
+
+    if (image.data.shape[0] != 16) or (image.data.shape[1] != 16):
+        image.data = numpy.ones(shape=[16, 16]) * -1        
+
+    image_reshaped = image.data.reshape((1, 16*16))
+
+    image_reshaped[:, (packet_id*64):((packet_id+1)*64)] = bin_data[3:67]
+    
+    image.data = image_reshaped.reshape((16, 16))
+    
+    image.type = 4
+
+    image.got_data = 1
+
+    saveImage(image)
+
+def parseBinning32(bin_data):
+
+    image = parseImageHeader(bin_data, 2)
+
+    packet_id = bin_data[2]
+
+    if (image.data.shape[0] != 8) or (image.data.shape[1] != 8):
+        image.data = numpy.ones(shape=[8, 8]) * -1        
+
+    image_reshaped = image.data.reshape((1, 8*8))
+
+    image_reshaped[:, (packet_id*64):((packet_id+1)*64)] = bin_data[3:67]
+    
+    image.data = image_reshaped.reshape((8, 8))
+    
+    image.type = 8
+
+    image.got_data = 1
+
+    saveImage(image)
+
+def parseColsSums(bin_data):
+
+    image = parseImageHeader(bin_data, 2)
+
+    packet_id = bin_data[2]
+
+    if (image.data.shape[0] != 2) or (image.data.shape[1] != 256):
+        image.data = numpy.ones(shape=[2, 256]) * -1        
+
+    image.data[1, (packet_id*64):((packet_id+1)*64)] = bin_data[3:67]
+    
+    image.type = 16
+
+    image.got_data = 1
+
+    saveImage(image)
+    
+def parseRowsSums(bin_data):
+
+    image = parseImageHeader(bin_data, 2)
+
+    packet_id = bin_data[2]
+
+    if (image.data.shape[0] != 2) or (image.data.shape[1] != 256):
+        image.data = numpy.ones(shape=[2, 256]) * -1        
+
+    image.data[0, (packet_id*64):((packet_id+1)*64)] = bin_data[3:67]
+    
+    image.type = 16
+
+    image.got_data = 1
+
+    saveImage(image)
+
+def parseEnergyHist(bin_data):
+
+    image = parseImageHeader(bin_data, 2)
+
+    if (image.data.shape[0] != 1) or (image.data.shape[1] != 16):
+        image.data = numpy.ones(shape=[1, 16]) * -1        
+
+    for i in range(0, 16):
+        image.data[0, i] = bytesToInt16(bin_data[2 + 2*i], bin_data[3 + 2*i])
+    
+    image.type = 32
+
+    image.got_data = 1
+
+    saveImage(image)
+
+def parseRaw(bin_data):
+
+    image = parseImageHeader(bin_data, 2)
+
+    if (image.data.shape[0] != 256) or (image.data.shape[1] != 256):
+        image.data = numpy.ones(shape=[256, 256]) * -1        
+
+    payload = bin_data[2:]
+
+    i = 0
+    while i < len(payload)-2:
+        idx = bytesToInt16(payload[i], payload[i+1])
+        image.data[math.floor(idx/256), idx%256] = payload[i+2]
+        i += 3;
+    
+    image.type = 1
+
+    image.got_data = 1
+
+    saveImage(image)
