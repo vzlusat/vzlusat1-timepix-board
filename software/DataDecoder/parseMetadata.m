@@ -1,5 +1,3 @@
-function [] = parseMetadata(data)
-
     outputForm = data(1);
     imageId = typecast(data(2:3), 'uint16');
 

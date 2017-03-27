@@ -1,5 +1,6 @@
 import binascii
 from src.parseMetadata import parseMetadata
+from src.parseMetadata import parseBinning8
 
 def parseInputFile(file_path):
 
@@ -15,42 +16,44 @@ def parseInputFile(file_path):
             hex_data = line[7:-1]
 
             # convert to binary
-            bin_data = binascii.unhexlify(hex_data)
+            data = binascii.unhexlify(hex_data)
+            bin_data = [ord(new_int) for new_int in data]
 
-            if bin_data[0] == 'A':
+            if data[0] == 'A':
 
                 print("Parsing metadata")
                 parseMetadata(bin_data[1:])
 
-            elif bin_data[0] == 'B':
+            elif data[0] == 'B':
 
                 print("Parsing image (raw)")
                 
-            elif bin_data[0] == 'D':
+            elif data[0] == 'D':
 
-                print("Parsing image (binning-32)")
+                print("Parsing image (binning-8)")
+                parseBinning8(bin_data[1:])
 
-            elif bin_data[0] == 'E':
+            elif data[0] == 'E':
 
                 print("Parsing image (binning-16)")
 
-            elif bin_data[0] == 'F':
+            elif data[0] == 'F':
 
                 print("Parsing image (binning-32)")
 
-            elif bin_data[0] == 'h':
+            elif data[0] == 'h':
 
                 print("Parsing image (rows summ)")
 
-            elif bin_data[0] == 'H':
+            elif data[0] == 'H':
 
                 print("Parsing image (cols summ)")
 
-            elif bin_data[0] == 'e':
+            elif data[0] == 'e':
 
                 print("Parsing image (energy hist.)")
 
-            elif bin_data[0] == 'H':
+            elif data[0] == 'H':
 
                 print("Parsing house keeping")
 
