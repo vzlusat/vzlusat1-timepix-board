@@ -60,10 +60,10 @@ def parseMetadata(bin_data):
     image.chunk_id = bytesToInt32(bin_data[24], bin_data[25], bin_data[26], bin_data[27])
 
     for x in range(0, 7):
-        image.attitude[x] = bytesToInt16(bin_data[28+x*2], bin_data[29+x*2])
+        image.attitude[x] = numpy.int16(bytesToInt16(bin_data[28+x*2], bin_data[29+x*2]))
 
     for x in range(0, 3):
-        image.position[x] = bytesToInt16(bin_data[42+x*2], bin_data[43+x*2])
+        image.position[x] = numpy.int16(bytesToInt16(bin_data[42+x*2], bin_data[43+x*2]))
 
     image.time = bytesToInt32(bin_data[48], bin_data[49], bin_data[50], bin_data[51])
 

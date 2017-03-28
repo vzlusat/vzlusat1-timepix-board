@@ -1,2 +1,5 @@
-./images/*.pkl
+./images/*
+./images
+./export/*
+./export
 *.pyc

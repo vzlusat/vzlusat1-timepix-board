@@ -22,6 +22,12 @@ else:
 
 import tkFileDialog
 
+if not os.path.exists("images"):
+    os.makedirs("images")
+
+if not os.path.exists("export"):
+    os.makedirs("export")
+
 root = Tk.Tk()
 root.resizable(width=1, height=1)
 root.geometry('{}x{}'.format(1200, 600))
@@ -74,6 +80,7 @@ toolbar.update()
 def loadFiles():
 
     file_names = os.listdir("images")
+
     file_names.sort()
     list_files = []
 
@@ -137,7 +144,15 @@ def showImage(image):
 
         metadatas_var[3].set(image.threshold)
         metadatas_var[4].set(image.bias)
-        metadatas_var[5].set(image.exposure)
+
+        exposure = image.exposure
+
+        if image.exposure <= 60000:
+            exposure = image.exposure*0.001
+        else:
+            exposure = 60 + image.exposure%60000
+
+        metadatas_var[5].set("{0:3.3f} s".format(exposure))
 
         if image.filtering == 0:
             filtering = "OFF"
@@ -213,7 +228,8 @@ def showImage(image):
             f.clf()
             a = f.add_subplot(111)
 
-            x = numpy.linspace(1, 16, 16)
+
+            x = [3.6041, 5.3291, 8.4091, 13.5134, 20.6738, 29.2457, 38.5756, 48.2956, 58.2288, 68.2879, 78.4265, 88.6182, 98.8470, 109.1026, 119.3783, 129.6]
 
             a.plot(x, image.data[0, :])
             f.tight_layout(pad=1)
@@ -263,8 +279,6 @@ load_button.pack(side=Tk.TOP)
 
 # detecting keyboard keypresses
 def on_key_event(event):
-    print('you pressed %s' % event.key)
-
     if event.key == 'q':
         _quit()
 
@@ -273,4 +287,3 @@ canvas.mpl_connect('key_press_event', on_key_event)
 Tk.mainloop()
 # If you put root.destroy() here, it will cause an error if
 # the window is closed with the window manager.
-

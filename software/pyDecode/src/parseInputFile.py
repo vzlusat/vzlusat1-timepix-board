@@ -28,7 +28,11 @@ def parseInputFile(file_path, v, root):
             hex_data = line[7:-1]
 
             # convert to binary
-            data = binascii.unhexlify(hex_data)
+            try:
+                data = binascii.unhexlify(hex_data)
+            except:
+                continue
+
             bin_data = [ord(new_int) for new_int in data]
 
             if data[0] == 'A':
