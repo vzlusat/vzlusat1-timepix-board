@@ -94,7 +94,7 @@ def parseBinning8(bin_data):
 
 def parseBinning16(bin_data):
 
-    image = parseImageHeader(bin_data, 2)
+    image = parseImageHeader(bin_data, 4)
 
     packet_id = bin_data[2]
 
@@ -115,7 +115,7 @@ def parseBinning16(bin_data):
 
 def parseBinning32(bin_data):
 
-    image = parseImageHeader(bin_data, 2)
+    image = parseImageHeader(bin_data, 8)
 
     packet_id = bin_data[2]
 
@@ -136,7 +136,7 @@ def parseBinning32(bin_data):
 
 def parseColsSums(bin_data):
 
-    image = parseImageHeader(bin_data, 2)
+    image = parseImageHeader(bin_data, 16)
 
     packet_id = bin_data[2]
 
@@ -153,7 +153,7 @@ def parseColsSums(bin_data):
     
 def parseRowsSums(bin_data):
 
-    image = parseImageHeader(bin_data, 2)
+    image = parseImageHeader(bin_data, 16)
 
     packet_id = bin_data[2]
 
@@ -170,7 +170,7 @@ def parseRowsSums(bin_data):
 
 def parseEnergyHist(bin_data):
 
-    image = parseImageHeader(bin_data, 2)
+    image = parseImageHeader(bin_data, 32)
 
     if (image.data.shape[0] != 1) or (image.data.shape[1] != 16):
         image.data = numpy.ones(shape=[1, 16]) * -1        
@@ -186,19 +186,26 @@ def parseEnergyHist(bin_data):
 
 def parseRaw(bin_data):
 
-    image = parseImageHeader(bin_data, 2)
+    image = parseImageHeader(bin_data, 1)
 
-    if (image.data.shape[0] != 256) or (image.data.shape[1] != 256):
-        image.data = numpy.ones(shape=[256, 256]) * -1        
+    if image.data.shape[0] != 256 or image.data.shape[1] != 256:
+        image.data = numpy.ones((256, 256)) * -1        
 
-    payload = bin_data[2:]
+    payload = bin_data[3:]
 
     i = 0
     while i < (len(payload)-2):
         idx = bytesToInt16(payload[i], payload[i+1])
-        image.data[math.floor(idx/256), idx%256] = payload[i+2]
+        newx = int(math.floor(idx/256))
+        newy = idx%256
+
+        if newx > 255 or newx < 0 or newy > 255 or newy < 0:
+            print "Index out of bounds: {0}, {1}".format(newx, newy)
+        else:
+            image.data[newx, newy] = payload[i+2]
+
         i += 3
-    
+
     image.type = 1
 
     image.got_data = 1

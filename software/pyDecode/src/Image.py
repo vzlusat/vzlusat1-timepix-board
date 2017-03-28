@@ -31,3 +31,26 @@ class Image:
 
         self.got_data = 0
         self.got_metadata = 0
+
+    metadata_labels=["Image number:",
+                     "Image type:",
+                     "Measurement mode:",
+                     "Threshold:",
+                     "Bias:",
+                     "Exposure:",
+                     "Filtering:",
+                     "Pixel count (Original):",
+                     "Pixel count (Filtered):",
+                     "Minimal pixel value (Original):",
+                     "Maximal pixel value (Original):",
+                     "Minimal pixel value (Filtered):",
+                     "Maximal pixel value (Filtered):",
+                     "Temperature:",
+                     "Temperature limit:",
+                     "Pixel count threshold (Scaning mode):",
+                     "UAV1 threshold (Adrenalin mode):",
+                     "Attitude:",
+                     "Position:",
+                     "Time:",
+                     "Chunk ID:"
+                     ]
