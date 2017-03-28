@@ -194,10 +194,10 @@ def parseRaw(bin_data):
     payload = bin_data[2:]
 
     i = 0
-    while i < len(payload)-2:
+    while i < (len(payload)-2):
         idx = bytesToInt16(payload[i], payload[i+1])
         image.data[math.floor(idx/256), idx%256] = payload[i+2]
-        i += 3;
+        i += 3
     
     image.type = 1
 
