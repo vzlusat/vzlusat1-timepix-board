@@ -54,6 +54,9 @@ frame_right1.pack(side=Tk.RIGHT, fill=Tk.BOTH, expand=1, padx=5, pady=5)
 frame_above_canvas = Tk.Frame(frame_right1, bd=1);
 frame_above_canvas.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1, padx=5, pady=5)
 
+metadata = Tk.Label(frame_above_canvas, anchor=Tk.W, justify=Tk.LEFT, height=20, bg="white", bd=2, highlightbackground="black")
+metadata.pack(side=Tk.TOP, fill=Tk.BOTH, expand=0)
+
 # a tk.DrawingArea
 frame_canvas = Tk.Frame(frame_right1);
 frame_canvas.pack(side=Tk.BOTTOM, fill=Tk.BOTH, expand=0)
@@ -74,6 +77,7 @@ toolbar.update()
 def loadFiles():
 
     file_names = os.listdir("images")
+    file_names.sort()
     list_files = []
 
     for file in file_names:
@@ -105,6 +109,10 @@ for item in list_files:
     listbox.insert(Tk.END, item)
 
 def showImage(image):
+
+    if image.got_data == 1:
+
+        print "pes"
 
     if image.got_data == 1:
 
@@ -151,6 +159,7 @@ def onselect(evt):
 
     # load the image
     file_names = os.listdir("images")
+    file_names.sort()
     image = loadImage(file_names[index])
 
     showImage(image)
