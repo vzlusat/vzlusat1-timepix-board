@@ -21,6 +21,7 @@ else:
     import tkinter as Tk
 
 import tkFileDialog
+import datetime
 
 if not os.path.exists("images"):
     os.makedirs("images")
@@ -182,7 +183,9 @@ def showImage(image):
             position += str(pos)+" "
 
         metadatas_var[18].set(position)
-        metadatas_var[19].set(image.time)
+
+        human_readible_time = datetime.datetime.fromtimestamp(image.time).strftime('%Y-%m-%d %H:%M:%S')
+        metadatas_var[19].set(human_readible_time)
 
         if image.type == 2:
             chunk_id = str(image.chunk_id)+" to "+str(image.chunk_id+15)
@@ -221,6 +224,13 @@ def showImage(image):
             a2.plot(x, image.data[1, :])
             a1.axis([1, 256, numpy.min(image.data[0, :]), numpy.max(image.data[0, :])])
             a2.axis([1, 256, numpy.min(image.data[1, :]), numpy.max(image.data[1, :])])
+
+            a1.set_xlabel("Row [-]")
+            a1.set_ylabel("Active pixel count [-]")
+
+            a2.set_xlabel("Column [-]")
+            a2.set_ylabel("Active pixel count [-]")
+
             f.tight_layout(pad=2)
 
         elif image.type == 32:
@@ -228,10 +238,13 @@ def showImage(image):
             f.clf()
             a = f.add_subplot(111)
 
-
             x = [3.6041, 5.3291, 8.4091, 13.5134, 20.6738, 29.2457, 38.5756, 48.2956, 58.2288, 68.2879, 78.4265, 88.6182, 98.8470, 109.1026, 119.3783, 129.6]
 
             a.plot(x, image.data[0, :])
+
+            a.set_xlabel("Energy [keV]")
+            a.set_ylabel("Counts [-]")
+
             f.tight_layout(pad=1)
 
     else:
