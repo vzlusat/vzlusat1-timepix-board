@@ -6,6 +6,7 @@ from src.saveImage import saveImage
 from src.numberConversion import bytesToInt16
 from src.numberConversion import bytesToInt32
 from src.calibration import *
+from src.exportMethods import exportImage
 
 def parseImageHeader(bin_data, image_type):
 
@@ -71,6 +72,8 @@ def parseMetadata(bin_data):
     image.got_metadata = 1
 
     saveImage(image)
+    
+    exportImage(image)
 
 def parseBinning8(bin_data):
 
@@ -92,6 +95,8 @@ def parseBinning8(bin_data):
     image.got_data = 1
 
     saveImage(image)
+    
+    exportImage(image)
 
 def parseBinning16(bin_data):
 
@@ -113,6 +118,8 @@ def parseBinning16(bin_data):
     image.got_data = 1
 
     saveImage(image)
+    
+    exportImage(image)
 
 def parseBinning32(bin_data):
 
@@ -135,6 +142,8 @@ def parseBinning32(bin_data):
 
     saveImage(image)
 
+    exportImage(image)
+
 def parseColsSums(bin_data):
 
     image = parseImageHeader(bin_data, 16)
@@ -152,6 +161,8 @@ def parseColsSums(bin_data):
 
     saveImage(image)
     
+    exportImage(image)
+    
 def parseRowsSums(bin_data):
 
     image = parseImageHeader(bin_data, 16)
@@ -168,6 +179,8 @@ def parseRowsSums(bin_data):
     image.got_data = 1
 
     saveImage(image)
+    
+    exportImage(image)
 
 def parseEnergyHist(bin_data):
 
@@ -184,13 +197,15 @@ def parseEnergyHist(bin_data):
     image.got_data = 1
 
     saveImage(image)
+    
+    exportImage(image)
 
 def parseRaw(bin_data):
 
     image = parseImageHeader(bin_data, 1)
 
     if image.data.shape[0] != 256 or image.data.shape[1] != 256:
-        image.data = numpy.ones((256, 256))
+        image.data = numpy.zeros((256, 256))
 
     payload = bin_data[3:]
 
@@ -214,3 +229,5 @@ def parseRaw(bin_data):
     image.got_data = 1
 
     saveImage(image)
+    
+    exportImage(image)
