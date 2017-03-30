@@ -2,11 +2,11 @@ clear all
 
 function [] = pes(name, matice, file)
 
-  fprintf(file, ["calibration_", name, " = np.array([["]);
+  fprintf(file, ["calibration_", name, " = numpy.array([["]);
 
   for i=1:65536
 
-    fprintf(file, "%3.5f", matice(i));
+    fprintf(file, "%4.10f", matice(i));
 
     if i ~= 65536
 

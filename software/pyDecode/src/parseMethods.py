@@ -174,7 +174,7 @@ def parseEnergyHist(bin_data):
     image = parseImageHeader(bin_data, 32)
 
     if (image.data.shape[0] != 1) or (image.data.shape[1] != 16):
-        image.data = numpy.ones(shape=[1, 16]) * -1        
+        image.data = numpy.ones(shape=[1, 16])
 
     for i in range(0, 16):
         image.data[0, i] = bytesToInt16(bin_data[2 + 2*i], bin_data[3 + 2*i])
@@ -190,7 +190,7 @@ def parseRaw(bin_data):
     image = parseImageHeader(bin_data, 1)
 
     if image.data.shape[0] != 256 or image.data.shape[1] != 256:
-        image.data = numpy.ones((256, 256)) * -1        
+        image.data = numpy.ones((256, 256))
 
     payload = bin_data[3:]
 
@@ -205,7 +205,7 @@ def parseRaw(bin_data):
         if newx > 255 or newx < 0 or newy > 255 or newy < 0:
             print "Index out of bounds: {0}, {1}".format(idx)
         else:
-            image.data[idx] = calibrated_pixel
+            image.data[newx, newy] = calibrated_pixel
 
         i += 3
 

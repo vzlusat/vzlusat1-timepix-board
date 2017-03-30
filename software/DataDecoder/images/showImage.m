@@ -79,7 +79,9 @@ if (image.outputForm <= 8)
            x(i) = (mt*ma + x(i) - mb + sqrt((mb + mt*ma - x(i))^2 + 4*ma*mc))/(2*ma);
         end
 
-        x(1:end-1) + (x(2:end)-x(1:end-1))./2
+        x
+
+        % x(1:end-1) + (x(2:end)-x(1:end-1))./2
 
         for i=1:16
            rectangle('Position', [x(i), 0, x(i+1)-x(i), image.data(i)], 'FaceColor', [0 0.5 0.5], 'EdgeColor', 'b','LineWidth',1);

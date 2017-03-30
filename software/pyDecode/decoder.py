@@ -22,6 +22,7 @@ else:
 
 import tkFileDialog
 import datetime
+import matplotlib.patches as patches
 
 if not os.path.exists("images"):
     os.makedirs("images")
@@ -209,7 +210,23 @@ def showImage(image):
             # plot the image
             f.clf()
             a = f.add_subplot(111)
-            a.imshow(image.data, interpolation='none', cmap=colormap)
+
+            a.set_xlabel("Column [-]")
+            a.set_ylabel("Row [-]")
+            a.set_title(img_type+" n.{0}, {1} s exposure, ".format(image.id, exposure)+mode+" mode", fontsize=13, y=1.02)
+
+            cax = a.imshow(image.data, interpolation='none', cmap=colormap)
+            cbar = f.colorbar(cax)
+
+            cbar.ax.get_yaxis().labelpad = 20
+            if image.type == 1:
+                if image.mode == 0:
+                    cbar.ax.set_ylabel('[counts]', rotation=270)
+                else:
+                    cbar.ax.set_ylabel('[keV]', rotation=270)
+            else:
+                cbar.ax.set_ylabel('[active pixel in the bin]', rotation=270)
+
             f.tight_layout(pad=1)
 
         elif image.type == 16:
@@ -225,9 +242,12 @@ def showImage(image):
             a1.axis([1, 256, numpy.min(image.data[0, :]), numpy.max(image.data[0, :])])
             a2.axis([1, 256, numpy.min(image.data[1, :]), numpy.max(image.data[1, :])])
 
+
+            a1.set_title("Row summs n.{0}, {1} s exposure ".format(image.id, exposure), fontsize=13, y=1.02)
             a1.set_xlabel("Row [-]")
             a1.set_ylabel("Active pixel count [-]")
 
+            a2.set_title("Column summs n.{0}, {1} s exposure ".format(image.id, exposure), fontsize=13, y=1.02)
             a2.set_xlabel("Column [-]")
             a2.set_ylabel("Active pixel count [-]")
 
@@ -238,12 +258,31 @@ def showImage(image):
             f.clf()
             a = f.add_subplot(111)
 
-            x = [3.6041, 5.3291, 8.4091, 13.5134, 20.6738, 29.2457, 38.5756, 48.2956, 58.2288, 68.2879, 78.4265, 88.6182, 98.8470, 109.1026, 119.3783, 129.6]
+            x = [2.9807, 4.2275, 6.4308, 10.3875, 16.6394, 24.7081, 33.7833, 43.3679, 53.2233, 63.2344, 73.3415, 83.5115, 93.7248, 103.9691, 114.2361, 124.5204, 134.8182]
+            
+            for i in range(0, 16):
 
-            a.plot(x, image.data[0, :])
+               # rectangle('Position', [x(i), 0, x(i+1)-x(i), image.data(i)], 'FaceColor', [0 0.5 0.5], 'EdgeColor', 'b','LineWidth',1);
+               a.add_patch(
+                   patches.Rectangle(
+                       (x[i], 0),            # (x,y)
+                       x[i+1]-x[i],          # width
+                       image.data[0, i],                  # height
+                   )
+               )
 
-            a.set_xlabel("Energy [keV]")
+            # a.plot(x, image.data[0, :])
+
+            a.relim()
+            a.autoscale_view()
+
+            if image.mode == 0:
+                a.set_xlabel("Particle counts [-]")
+            else:
+                a.set_xlabel("Energy [keV]")
+
             a.set_ylabel("Counts [-]")
+            a.set_title("Image histogram n.{0}, {1} s exposure, ".format(image.id, exposure)+mode+" mode", fontsize=13, y=1.02)
 
             f.tight_layout(pad=1)
 
