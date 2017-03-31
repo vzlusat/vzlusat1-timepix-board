@@ -38,7 +38,6 @@ root.wm_title("VZLUSAT-1 X-Ray data decoder")
 # plot
 f = Figure(facecolor='none')
 f.clf()
-
 frame_main = Tk.Frame(root);
 frame_main.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
 
@@ -79,13 +78,23 @@ toolbar = NavigationToolbar2TkAgg(canvas, frame_toolbar)
 toolbar.pack(side=Tk.LEFT)
 toolbar.update()
 
+a = f.add_subplot(111)
+a.axes.get_xaxis().set_visible(False)
+a.axes.get_yaxis().set_visible(False)
+a.patch.set_visible(False)
+a.axis('off')
+canvas.show()
+
 def loadFiles():
 
+    # updated the filename list
+    global file_names
     file_names = os.listdir("images")
-
     file_names.sort()
+
     list_files = []
 
+    # create the list of files for the listbox
     for file in file_names:
         image = loadImage(file)
 
@@ -98,6 +107,8 @@ def loadFiles():
 
     return list_files
 
+# preload and sort file names from "images" directories
+global file_names
 list_files = loadFiles()
 
 frame_list = Tk.Frame(frame_left1);
@@ -289,49 +300,79 @@ def showImage(image):
     else:
 
         f.clf()
+        a = f.add_subplot(111)
+        a.text(0.5, 0.5, 'No data', horizontalalignment='center',verticalalignment='center', transform = a.transAxes)
+        a.axes.get_xaxis().set_visible(False)
+        a.axes.get_yaxis().set_visible(False)
+        a.patch.set_visible(False)
+        a.axis('off')
 
     canvas.show()
 
+# callback function for showing an image after clicking the listbox
 def onselect(evt):
-    # Note here that Tkinter passes an event object to onselect()
+
+    global file_names
+
     w = evt.widget
+
+    if len(w.curselection()) == 0:
+        return
+
     index = int(w.curselection()[0])
     value = w.get(index)
 
-    # load the image
-    file_names = os.listdir("images")
-    file_names.sort()
     image = loadImage(file_names[index])
 
     showImage(image)
 
+# bind onselect() callback function to listbox, so we can 
+# show images after clicking on their name
 listbox.bind('<<ListboxSelect>>', onselect)
 
-# quit button
+# listbox.selection_clear()
+listbox.after(10, lambda: listbox.focus_force())
+listbox.after(10, lambda: listbox.selection_set("end"))
+listbox.after(10, lambda: listbox.see(Tk.END))
+
+# autoselect the last item in the listbox after start
+if len(file_names) > 0:
+    image = loadImage(file_names[-1])
+    showImage(image)
+
+# really we want the scrollabar to be down
+listbox.after(100, lambda: listbox.see(Tk.END))
+
+# quit button callback
 def _quit():
     root.quit()   
     root.destroy()
  
+# spawn quit button
 button = Tk.Button(master=frame_left1, text='Quit', command=_quit)
 button.pack(side=Tk.BOTTOM)
 
+# callback for loading new images from a text file
 def _loadNewImages():
 
     file_name = tkFileDialog.askopenfilename()
     print "Openning file \"{}\"".format(file_name)
     parseInputFile(file_name, v, root)
+
     list_files = loadFiles()
 
     listbox.delete(0, Tk.END)
+
     for item in list_files:
         listbox.insert(Tk.END, item)
 
+# spawn button for loading new images
 load_button = Tk.Button(master=frame_list, text='Load new images', command=_loadNewImages)
 load_button.pack(side=Tk.TOP)
 
-# detecting keyboard keypresses
+# callback for detecting keypresses
 def on_key_event(event):
-    if event.key == 'q':
+    if event.key == 'q' or event.key == 'esc':
         _quit()
 
 canvas.mpl_connect('key_press_event', on_key_event)
