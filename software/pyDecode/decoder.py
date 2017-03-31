@@ -102,7 +102,7 @@ def loadFiles():
         if image != 0:
            list_files.append(str(image.id)+"_"+str(image.type)) 
         else:
-            print "could not open file "+file
+            print("could not open file "+file)
 
     v.set("All images loaded")
 
@@ -370,7 +370,11 @@ button.pack(side=Tk.BOTTOM)
 def _loadNewImages():
 
     file_name = tkFileDialog.askopenfilename()
-    print "Openning file \"{}\"".format(file_name)
+
+    if file_name == "":
+        return
+
+    print("Openning file \"{}\"".format(file_name))
     parseInputFile(file_name, v, root)
 
     list_files = loadFiles()
