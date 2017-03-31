@@ -215,7 +215,7 @@ def parseRaw(bin_data):
         newx = int(math.floor(idx/256))
         newy = idx%256
 
-        if image.mode == 1:
+        if image.mode == 0:
             calibrated_pixel = payload[i+2]
         else:
             calibrated_pixel = (calibration_t[0, idx]*calibration_a[0, idx] + payload[i+2] - calibration_b[0, idx] + math.sqrt(math.pow(calibration_b[0, idx] + calibration_t[0, idx]*calibration_a[0, idx] - payload[i+2], 2) + 4*calibration_a[0, idx]*calibration_c[0, idx]))/(2*calibration_a[0, idx]);

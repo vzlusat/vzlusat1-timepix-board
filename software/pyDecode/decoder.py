@@ -41,6 +41,7 @@ f.clf()
 frame_main = Tk.Frame(root);
 frame_main.pack(side=Tk.TOP, fill=Tk.BOTH, expand=1)
 
+global v
 v = Tk.StringVar()
 log = Tk.Label(root, anchor=Tk.W, justify=Tk.LEFT, textvariable=v, height=1, bg="white", bd=2, highlightbackground="black")
 log.pack(side=Tk.BOTTOM, fill=Tk.X, expand=0)
@@ -129,24 +130,24 @@ colormap = "hot"
 
 def showImage(image):
 
+    metadatas_var[0].set(str(image.id))
+
+    if image.type == 1:
+        img_type = "RAW"
+    elif image.type == 2:
+        img_type = "Binning 8"
+    elif image.type == 4:
+        img_type = "Binning 16"
+    elif image.type == 8:
+        img_type = "Binning 32"
+    elif image.type == 16:
+        img_type = "Sums"
+    elif image.type == 32:
+        img_type = "Energy histogram"
+
+    metadatas_var[1].set(img_type)
+
     if image.got_metadata == 1:
-
-        metadatas_var[0].set(str(image.id))
-
-        if image.type == 1:
-            img_type = "RAW"
-        elif image.type == 2:
-            img_type = "Binning 8"
-        elif image.type == 4:
-            img_type = "Binning 16"
-        elif image.type == 8:
-            img_type = "Binning 32"
-        elif image.type == 16:
-            img_type = "Sums"
-        elif image.type == 32:
-            img_type = "Energy histogram"
-
-        metadatas_var[1].set(img_type)
 
         if image.mode == 0:
             mode = "Medipix (Counting)"
@@ -224,7 +225,11 @@ def showImage(image):
 
             a.set_xlabel("Column [-]")
             a.set_ylabel("Row [-]")
-            a.set_title(img_type+" n.{0}, {1} s exposure, ".format(image.id, exposure)+mode+" mode", fontsize=13, y=1.02)
+
+            if image.got_metadata == 1:
+                a.set_title(img_type+" n.{0}, {1} s exposure, ".format(image.id, exposure)+mode+" mode", fontsize=13, y=1.02)
+            else:
+                a.set_title(img_type+" n.{0}, ??? s exposure, ".format(image.id)+"??? mode", fontsize=13, y=1.02)
 
             cax = a.imshow(image.data, interpolation='none', cmap=colormap)
             cbar = f.colorbar(cax)
@@ -253,12 +258,17 @@ def showImage(image):
             a1.axis([1, 256, numpy.min(image.data[0, :]), numpy.max(image.data[0, :])])
             a2.axis([1, 256, numpy.min(image.data[1, :]), numpy.max(image.data[1, :])])
 
-
-            a1.set_title("Row summs n.{0}, {1} s exposure ".format(image.id, exposure), fontsize=13, y=1.02)
+            if image.got_metadata == 1:
+                a1.set_title("Row summs n.{0}, {1} s exposure ".format(image.id, exposure), fontsize=13, y=1.02)
+            else:
+                a1.set_title("Row summs n.{0}, ??? s exposure ".format(image.id), fontsize=13, y=1.02)
             a1.set_xlabel("Row [-]")
             a1.set_ylabel("Active pixel count [-]")
 
-            a2.set_title("Column summs n.{0}, {1} s exposure ".format(image.id, exposure), fontsize=13, y=1.02)
+            if image.got_metadata == 1:
+                a2.set_title("Column summs n.{0}, {1} s exposure ".format(image.id, exposure), fontsize=13, y=1.02)
+            else:
+                a2.set_title("Column summs n.{0}, ??? s exposure ".format(image.id), fontsize=13, y=1.02)
             a2.set_xlabel("Column [-]")
             a2.set_ylabel("Active pixel count [-]")
 
@@ -293,7 +303,11 @@ def showImage(image):
                 a.set_xlabel("Energy [keV]")
 
             a.set_ylabel("Counts [-]")
-            a.set_title("Image histogram n.{0}, {1} s exposure, ".format(image.id, exposure)+mode+" mode", fontsize=13, y=1.02)
+
+            if image.got_metadata == 1:
+                a.set_title("Image histogram n.{0}, {1} s exposure, ".format(image.id, exposure)+mode+" mode", fontsize=13, y=1.02)
+            else:
+                a.set_title("Image histogram n.{0}, ??? s exposure, ".format(image.id)+"??? mode", fontsize=13, y=1.02)
 
             f.tight_layout(pad=1)
 
@@ -365,6 +379,15 @@ def _loadNewImages():
 
     for item in list_files:
         listbox.insert(Tk.END, item)
+
+    # listbox.selection_clear()
+    listbox.after(10, lambda: listbox.selection_set("end"))
+    listbox.after(10, lambda: listbox.see(Tk.END))
+
+    # autoselect the last item in the listbox after start
+    if len(file_names) > 0:
+        image = loadImage(file_names[-1])
+        showImage(image)
 
 # spawn button for loading new images
 load_button = Tk.Button(master=frame_list, text='Load new images', command=_loadNewImages)
