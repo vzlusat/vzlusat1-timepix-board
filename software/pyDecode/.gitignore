@@ -5,3 +5,4 @@ export
 *.pyc
 for_distribution
 for_distribution/*
+*.*~

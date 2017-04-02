@@ -221,7 +221,7 @@ def parseRaw(bin_data):
             calibrated_pixel = (calibration_t[0, idx]*calibration_a[0, idx] + payload[i+2] - calibration_b[0, idx] + math.sqrt(math.pow(calibration_b[0, idx] + calibration_t[0, idx]*calibration_a[0, idx] - payload[i+2], 2) + 4*calibration_a[0, idx]*calibration_c[0, idx]))/(2*calibration_a[0, idx]);
 
         if newx > 255 or newx < 0 or newy > 255 or newy < 0:
-            print "Index out of bounds: {0}, {1}".format(idx)
+            print("Index out of bounds: {0}, {1}".format(idx))
         else:
             image.data[newx, newy] = calibrated_pixel
 

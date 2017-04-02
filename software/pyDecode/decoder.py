@@ -20,7 +20,7 @@ if sys.version_info[0] < 3:
 else:
     import tkinter as Tk
 
-import tkFileDialog
+import tkinter.filedialog
 import datetime
 import matplotlib.patches as patches
 
@@ -369,7 +369,7 @@ button.pack(side=Tk.BOTTOM)
 # callback for loading new images from a text file
 def _loadNewImages():
 
-    file_name = tkFileDialog.askopenfilename()
+    file_name = tkinter.filedialog.askopenfilename()
 
     if file_name == "":
         return
