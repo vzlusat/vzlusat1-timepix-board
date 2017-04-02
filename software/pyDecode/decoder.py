@@ -32,7 +32,7 @@ if not os.path.exists("export"):
 
 root = Tk.Tk()
 root.resizable(width=1, height=1)
-root.geometry('{}x{}'.format(1200, 600))
+root.geometry('{}x{}'.format(1300, 600))
 root.wm_title("VZLUSAT-1 X-Ray data decoder")
 
 # plot
