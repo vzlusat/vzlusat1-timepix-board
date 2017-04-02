@@ -17,10 +17,11 @@ from src.parseInputFile import parseInputFile
 import sys
 if sys.version_info[0] < 3:
     import Tkinter as Tk
+    import tkFileDialog
 else:
     import tkinter as Tk
+    import tkinter.filedialog
 
-import tkinter.filedialog
 import datetime
 import matplotlib.patches as patches
 
@@ -369,7 +370,10 @@ button.pack(side=Tk.BOTTOM)
 # callback for loading new images from a text file
 def _loadNewImages():
 
-    file_name = tkinter.filedialog.askopenfilename()
+    if sys.version_info[0] < 3:
+        file_name = tkFileDialog.askopenfilename()
+    else:
+        file_name = tkinter.filedialog.askopenfilename()
 
     if file_name == "":
         return

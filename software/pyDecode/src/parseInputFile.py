@@ -33,7 +33,11 @@ def parseInputFile(file_path, v, root):
             except:
                  continue
 
-            bin_data = [int(x) for x in data]
+            if sys.version_info[0] < 3:
+                bin_data = [ord(x) for x in data]
+                data = bin_data
+            else:
+                bin_data = [int(x) for x in data]
 
             if data[0] == ord('A'):
 
