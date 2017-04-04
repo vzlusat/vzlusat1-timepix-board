@@ -3,10 +3,37 @@ import math
 from src.Image import Image 
 from src.loadImage import loadImage
 from src.saveImage import saveImage
+from src.saveHouseKeeping import saveHouseKeeping
 from src.numberConversion import bytesToInt16
 from src.numberConversion import bytesToInt32
 from src.calibration import *
 from src.exportMethods import exportImage
+from src.HouseKeeping import HouseKeeping
+
+def parseHouseKeeping(bin_data):
+
+    new_hk = HouseKeeping()
+
+    new_hk.boot_count = bytesToInt16(bin_data[0], bin_data[1])
+    new_hk.images_taken = bytesToInt16(bin_data[2], bin_data[3])
+    new_hk.temperature = bin_data[4]
+    new_hk.fram_status = bin_data[5]
+    new_hk.medipix_status = bin_data[6]
+    new_hk.time_since_boot = bytesToInt32(bin_data[7], bin_data[8], bin_data[9], bin_data[10])
+    new_hk.TIR_max = bytesToInt16(bin_data[11], bin_data[12])
+    new_hk.TIR_min = bytesToInt16(bin_data[13], bin_data[14])
+    new_hk.IR_max = bytesToInt16(bin_data[15], bin_data[16])
+    new_hk.IR_min = bytesToInt16(bin_data[17], bin_data[18])
+    new_hk.UV1_max = bytesToInt16(bin_data[19], bin_data[20])
+    new_hk.UV1_min = bytesToInt16(bin_data[21], bin_data[22])
+    new_hk.UV2_max = bytesToInt16(bin_data[23], bin_data[24])
+    new_hk.UV2_min = bytesToInt16(bin_data[25], bin_data[26])
+    new_hk.temp_max = bin_data[27]
+    new_hk.temp_min = bin_data[28]
+
+    saveImage(new_hk);
+
+    return new_hk
 
 def parseImageHeader(bin_data, image_type):
 

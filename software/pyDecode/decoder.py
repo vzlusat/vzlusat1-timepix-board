@@ -30,6 +30,9 @@ if not os.path.exists("images"):
 if not os.path.exists("export"):
     os.makedirs("export")
 
+if not os.path.exists("housekeeping"):
+    os.makedirs("housekeeping")
+
 root = Tk.Tk()
 root.resizable(width=1, height=1)
 root.geometry('{}x{}'.format(1200, 600))
