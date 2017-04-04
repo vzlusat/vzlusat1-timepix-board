@@ -14,24 +14,24 @@ def parseHouseKeeping(bin_data):
 
     new_hk = HouseKeeping()
 
-    new_hk.boot_count = bytesToInt16(bin_data[0], bin_data[1])
-    new_hk.images_taken = bytesToInt16(bin_data[2], bin_data[3])
+    new_hk.boot_count = numpy.uint16(bytesToInt16(bin_data[1], bin_data[0]))
+    new_hk.images_taken = numpy.uint16(bytesToInt16(bin_data[3], bin_data[2]))
     new_hk.temperature = bin_data[4]
     new_hk.fram_status = bin_data[5]
     new_hk.medipix_status = bin_data[6]
-    new_hk.time_since_boot = bytesToInt32(bin_data[7], bin_data[8], bin_data[9], bin_data[10])
-    new_hk.TIR_max = bytesToInt16(bin_data[11], bin_data[12])
-    new_hk.TIR_min = bytesToInt16(bin_data[13], bin_data[14])
-    new_hk.IR_max = bytesToInt16(bin_data[15], bin_data[16])
-    new_hk.IR_min = bytesToInt16(bin_data[17], bin_data[18])
-    new_hk.UV1_max = bytesToInt16(bin_data[19], bin_data[20])
-    new_hk.UV1_min = bytesToInt16(bin_data[21], bin_data[22])
-    new_hk.UV2_max = bytesToInt16(bin_data[23], bin_data[24])
-    new_hk.UV2_min = bytesToInt16(bin_data[25], bin_data[26])
+    new_hk.time_since_boot = numpy.uint32(bytesToInt32(bin_data[10], bin_data[9], bin_data[8], bin_data[8]))
+    new_hk.TIR_max = numpy.int16(bytesToInt16(bin_data[12], bin_data[11]))
+    new_hk.TIR_min = numpy.int16(bytesToInt16(bin_data[14], bin_data[13]))
+    new_hk.IR_max = numpy.int16(bytesToInt16(bin_data[16], bin_data[15]))
+    new_hk.IR_min = numpy.int16(bytesToInt16(bin_data[18], bin_data[17]))
+    new_hk.UV1_max = numpy.int16(bytesToInt16(bin_data[20], bin_data[19]))
+    new_hk.UV1_min = numpy.int16(bytesToInt16(bin_data[22], bin_data[21]))
+    new_hk.UV2_max = numpy.int16(bytesToInt16(bin_data[24], bin_data[23]))
+    new_hk.UV2_min = numpy.int16(bytesToInt16(bin_data[26], bin_data[25]))
     new_hk.temp_max = bin_data[27]
     new_hk.temp_min = bin_data[28]
 
-    saveImage(new_hk);
+    saveHouseKeeping(new_hk);
 
     return new_hk
 

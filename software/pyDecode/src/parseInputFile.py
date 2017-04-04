@@ -7,6 +7,7 @@ from src.parseMethods import parseColsSums
 from src.parseMethods import parseRowsSums
 from src.parseMethods import parseEnergyHist
 from src.parseMethods import parseRaw
+from src.parseMethods import parseHouseKeeping
 
 import sys
 if sys.version_info[0] < 3:
@@ -87,10 +88,11 @@ def parseInputFile(file_path, v, root):
                 root.update()
                 parseEnergyHist(bin_data[1:])
 
-            elif data[0] == ord('H'):
+            elif data[0] == ord('Z'):
 
                 v.set("Parsing house keeping")
                 root.update()
+                parseHouseKeeping(bin_data[1:])
 
             else:
 

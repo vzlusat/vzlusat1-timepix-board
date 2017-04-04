@@ -7,7 +7,7 @@ def loadHouseKeeping(images_taken, time_since_boot=0):
 
     # deduce the filename
     if time_since_boot == 0:
-        file_name = "housekeeping/"+images_taken
+        file_name = "images/"+images_taken
     else:
         file_name = getHkFileName(images_taken, time_since_boot)
 

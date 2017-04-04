@@ -23,7 +23,9 @@ from matplotlib.figure import Figure
 import os
 import numpy
 from src.Image import Image 
+from src.HouseKeeping import HouseKeeping 
 from src.loadImage import loadImage
+from src.loadHouseKeeping import loadHouseKeeping
 from src.parseInputFile import parseInputFile
 
 import sys
@@ -42,9 +44,6 @@ if not os.path.exists("images"):
 
 if not os.path.exists("export"):
     os.makedirs("export")
-
-if not os.path.exists("housekeeping"):
-    os.makedirs("housekeeping")
 
 root = Tk.Tk()
 root.resizable(width=1, height=1)
@@ -73,10 +72,17 @@ frame_left_to_canvas.pack(side=Tk.LEFT, fill=Tk.BOTH, expand=0, padx=10, pady=30
 
 metadatas = []
 metadatas_var = []
-for i in range(len(Image.metadata_labels)): #Rows
-    b = Tk.Label(frame_left_to_canvas, text=Image.metadata_labels[i]).grid(row=i, column=0, sticky=Tk.E)
+text_labels = []
+text_labels_var = []
+for i in range(0, len(Image.metadata_labels)): #Rows
+    text_labels_var.append(Tk.StringVar())
+    text_labels.append(Tk.Label(frame_left_to_canvas, textvariable=text_labels_var[i]).grid(row=i, column=0, sticky=Tk.E))
+
     metadatas_var.append(Tk.StringVar())
     metadatas.append(Tk.Label(frame_left_to_canvas, textvariable=metadatas_var[i]).grid(row=i, column=1, sticky=Tk.W))
+
+housekeeping_values = []
+housekeeping_labels = []
 
 # a tk.DrawingArea
 frame_canvas = Tk.Frame(frame_right1);
@@ -102,23 +108,43 @@ a.patch.set_visible(False)
 a.axis('off')
 canvas.show()
 
+import re
+numbers = re.compile(r'(\d+)')
+def numericalSort(value):
+    parts = numbers.split(value)
+    parts[1::2] = map(int, parts[1::2])
+    return parts
+
 def loadFiles():
 
     # updated the filename list
     global file_names
     file_names = os.listdir("images")
-    file_names.sort()
+
+    file_names = sorted(file_names, key=numericalSort)
 
     list_files = []
 
     # create the list of files for the listbox
     for file in file_names:
-        image = loadImage(file)
 
-        if image != 0:
-           list_files.append(str(image.id)+"_"+str(image.type)) 
+        if file[-5] == 'h':
+
+            housekeeeping = loadHouseKeeping(file)
+
+            if housekeeeping != 0:
+               list_files.append(str(housekeeeping.images_taken)+"_"+str(housekeeeping.time_since_boot)+"_hk") 
+            else:
+                print("could not open file "+file)
+
         else:
-            print("could not open file "+file)
+
+            image = loadImage(file)
+
+            if image != 0:
+               list_files.append(str(image.id)+"_"+str(image.type)) 
+            else:
+                print("could not open file "+file)
 
     v.set("All images loaded")
 
@@ -143,6 +169,59 @@ for item in list_files:
     listbox.insert(Tk.END, item)
 
 colormap = "hot"
+
+def showHouseKeeping(housekeeping):
+
+    f.clf()
+    a = f.add_subplot(111)
+    a.text(0.5, 0.5, 'No data', horizontalalignment='center',verticalalignment='center', transform = a.transAxes)
+    a.axes.get_xaxis().set_visible(False)
+    a.axes.get_yaxis().set_visible(False)
+    a.patch.set_visible(False)
+    a.axis('off')
+
+    canvas.show()
+
+    # clear the text
+    for i in range(0, len(Image.metadata_labels)):
+        text_labels_var[i].set("")
+
+    for i in range(0, len(Image.metadata_labels)):
+        metadatas_var[i].set("")
+
+    # fill the labels
+    for i in range(0, len(HouseKeeping.housekeeping_labels)):
+        text_labels_var[i].set(HouseKeeping.housekeeping_labels[i])
+
+    metadatas_var[0].set(str(housekeeping.boot_count))
+    metadatas_var[1].set(str(housekeeping.images_taken))
+    metadatas_var[2].set(str(housekeeping.temperature)+" C")
+
+    if housekeeping.fram_status == 1:
+        fram_status = "OK"
+    else:
+        fram_status = "ERROR"
+
+    metadatas_var[3].set(str(fram_status))
+
+    if housekeeping.medipix_status == 1:
+        medipix_status = "OK"
+    else:
+        medipix_status = "ERROR"
+
+    metadatas_var[4].set(str(medipix_status))
+    metadatas_var[5].set(str(housekeeping.time_since_boot)+" s")
+
+    metadatas_var[6].set(str(housekeeping.TIR_max))
+    metadatas_var[7].set(str(housekeeping.TIR_min))
+    metadatas_var[8].set(str(housekeeping.IR_max))
+    metadatas_var[9].set(str(housekeeping.IR_min))
+    metadatas_var[10].set(str(housekeeping.UV1_max))
+    metadatas_var[11].set(str(housekeeping.UV1_min))
+    metadatas_var[12].set(str(housekeeping.UV2_max))
+    metadatas_var[13].set(str(housekeeping.UV2_min))
+    metadatas_var[14].set(str(housekeeping.temp_max))
+    metadatas_var[15].set(str(housekeeping.temp_min))
 
 def showImage(image):
 
@@ -230,6 +309,9 @@ def showImage(image):
             chunk_id = str(image.chunk_id)+" to "+str(image.chunk_id+int(numpy.floor(image.filtered_pixels/20)))
 
         metadatas_var[20].set(chunk_id)
+
+        for i in range(0, len(Image.metadata_labels)):
+            text_labels_var[i].set(Image.metadata_labels[i])
 
     if image.got_data == 1:
 
@@ -352,9 +434,13 @@ def onselect(evt):
     index = int(w.curselection()[0])
     value = w.get(index)
 
-    image = loadImage(file_names[index])
-
-    showImage(image)
+    file_name = file_names[index]
+    if file_name[-5] == 'h':
+        housekeeping = loadHouseKeeping(file_names[index])
+        showHouseKeeping(housekeeping)
+    else:
+        image = loadImage(file_names[index])
+        showImage(image)
 
 # bind onselect() callback function to listbox, so we can 
 # show images after clicking on their name
@@ -367,8 +453,12 @@ listbox.after(10, lambda: listbox.see(Tk.END))
 
 # autoselect the last item in the listbox after start
 if len(file_names) > 0:
-    image = loadImage(file_names[-1])
-    showImage(image)
+    file_name = file_names[-1]
+    if file_name[-5] == 'h':
+        print "HK selected"
+    else:
+        image = loadImage(file_names[-1])
+        showImage(image)
 
 # really we want the scrollabar to be down
 listbox.after(100, lambda: listbox.see(Tk.END))
@@ -409,8 +499,12 @@ def _loadNewImages():
 
     # autoselect the last item in the listbox after start
     if len(file_names) > 0:
-        image = loadImage(file_names[-1])
-        showImage(image)
+        file_name = file_names[-1]
+        if file_name[-5] == 'h':
+            print "HK selected"
+        else:
+            image = loadImage(file_names[-1])
+            showImage(image)
 
 # spawn button for loading new images
 load_button = Tk.Button(master=frame_list, text='Load new images', command=_loadNewImages)

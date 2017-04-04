@@ -4,7 +4,7 @@ def getFileName(image_id, image_type):
 
 def getHkFileName(images_taken, time_since_boot):
 
-    return "housekeeping/"+str(images_taken)+"_{0:05d}.pkl".format(time_since_boot) 
+    return "images/"+str(images_taken)+"_99_{0:05d}_h.pkl".format(time_since_boot) 
 
 def getExportDataName(image_id, image_type):
 
