@@ -31,59 +31,63 @@ def parseInputFile(file_path, v, root):
             try:
                 data = binascii.unhexlify(hex_data)
             except:
-                continue
+                 continue
 
-            bin_data = [ord(new_int) for new_int in data]
+            if sys.version_info[0] < 3:
+                bin_data = [ord(x) for x in data]
+                data = bin_data
+            else:
+                bin_data = [int(x) for x in data]
 
-            if data[0] == 'A':
+            if data[0] == ord('A'):
 
                 v.set("Parsing metadata")
                 root.update()
                 parseMetadata(bin_data[1:])
 
-            elif data[0] == 'B':
+            elif data[0] == ord('B'):
 
                 v.set("Parsing image (raw)")
                 root.update()
                 parseRaw(bin_data[1:])
                 
-            elif data[0] == 'D':
+            elif data[0] == ord('D'):
 
                 v.set("Parsing image (binning-8)")
                 root.update()
                 parseBinning8(bin_data[1:])
 
-            elif data[0] == 'E':
+            elif data[0] == ord('E'):
 
                 v.set("Parsing image (binning-16)")
                 root.update()
                 parseBinning16(bin_data[1:])
 
-            elif data[0] == 'F':
+            elif data[0] == ord('F'):
 
                 v.set("Parsing image (binning-32)")
                 root.update()
                 parseBinning32(bin_data[1:])
 
-            elif data[0] == 'h':
+            elif data[0] == ord('h'):
 
                 v.set("Parsing image (rows summ)")
                 root.update()
                 parseRowsSums(bin_data[1:])
 
-            elif data[0] == 'H':
+            elif data[0] == ord('H'):
 
                 v.set("Parsing image (cols summ)")
                 root.update()
                 parseColsSums(bin_data[1:])
 
-            elif data[0] == 'e':
+            elif data[0] == ord('e'):
 
                 v.set("Parsing image (energy hist.)")
                 root.update()
                 parseEnergyHist(bin_data[1:])
 
-            elif data[0] == 'H':
+            elif data[0] == ord('H'):
 
                 v.set("Parsing house keeping")
                 root.update()

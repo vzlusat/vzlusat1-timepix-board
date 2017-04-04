@@ -4,6 +4,7 @@ from src.Image import Image
 from src.baseMethods import getExportDataName
 from src.baseMethods import getExportMetadataName
 import datetime
+import csv
 
 def exportMetadata(image):
 
@@ -109,16 +110,11 @@ def exportBinning(image):
             size = 8
         
         with open(getExportDataName(image.id, image.type), "w") as data_file:
+
+            writer = csv.writer(data_file, quoting=csv.QUOTE_NONE)
         
             for i in range(0, size):
-                for j in range(0, size):
-        
-                    data_file.write("{0}".format(image.data[i, j]))
-        
-                    if j == (size-1):
-                        data_file.write("\n")
-                    else:
-                        data_file.write(", ")
+                writer.writerow(['{0:d}'.format(math.trunc(x)) for x in image.data[i, :]])
 
     exportMetadata(image)
 
@@ -126,22 +122,11 @@ def exportSums(image):
 
     if image.got_data == 1:
         with open(getExportDataName(image.id, image.type), "w") as data_file:
+
+            writer = csv.writer(data_file, quoting=csv.QUOTE_NONE)
         
-            for i in range(0, 256):
-        
-                data_file.write("{0}".format(image.data[0, i]))
-        
-                if i < 255:
-                    data_file.write(", ")
-        
-            data_file.write("\n")
-        
-            for i in range(0, 256):
-        
-                data_file.write("{0}".format(image.data[0, i]))
-        
-                if i < 255:
-                    data_file.write(", ")
+            writer.writerow(['{0:d}'.format(math.trunc(x)) for x in image.data[0, :]])
+            writer.writerow(['{0:d}'.format(math.trunc(x)) for x in image.data[1, :]])
 
     exportMetadata(image)
 
@@ -149,30 +134,22 @@ def exportHistogram(image):
 
     if image.got_data == 1:
         with open(getExportDataName(image.id, image.type), "w") as data_file:
-        
-            for i in range(0, 16):
-        
-                data_file.write("{0}".format(image.data[0, i]))
-        
-                if i < 15:
-                    data_file.write(", ")
 
+            writer = csv.writer(data_file, quoting=csv.QUOTE_NONE)
+        
+            writer.writerow(['{0:d}'.format(math.trunc(x)) for x in image.data[0, :]])
+        
     exportMetadata(image)
 
 def exportRaw(image):
 
     if image.got_data == 1:
         with open(getExportDataName(image.id, image.type), "w") as data_file:
+
+            writer = csv.writer(data_file, quoting=csv.QUOTE_NONE)
         
             for i in range(0, 256):
-                for j in range(0, 256):
-        
-                    data_file.write("{0:3.2f}".format(image.data[i, j]))
-        
-                    if j == 255:
-                        data_file.write("\n")
-                    else:
-                        data_file.write(", ")
+                writer.writerow(["{0:.2f}".format(x) for x in image.data[i, :]])
 
     exportMetadata(image)
 

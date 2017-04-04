@@ -1,4 +1,16 @@
-import matplotlib
+def install_and_import(package):
+    import importlib
+    try:
+        importlib.import_module(package)
+    except ImportError:
+        import pip
+        pip.main(['install', package])
+    finally:
+        globals()[package] = importlib.import_module(package)
+
+
+install_and_import('matplotlib')
+
 matplotlib.use('TkAgg')
 
 from numpy import arange, sin, pi
@@ -17,10 +29,11 @@ from src.parseInputFile import parseInputFile
 import sys
 if sys.version_info[0] < 3:
     import Tkinter as Tk
+    import tkFileDialog
 else:
     import tkinter as Tk
+    import tkinter.filedialog
 
-import tkFileDialog
 import datetime
 import matplotlib.patches as patches
 
@@ -35,7 +48,7 @@ if not os.path.exists("housekeeping"):
 
 root = Tk.Tk()
 root.resizable(width=1, height=1)
-root.geometry('{}x{}'.format(1200, 600))
+root.geometry('{}x{}'.format(1300, 600))
 root.wm_title("VZLUSAT-1 X-Ray data decoder")
 
 # plot
@@ -372,7 +385,10 @@ button.pack(side=Tk.BOTTOM)
 # callback for loading new images from a text file
 def _loadNewImages():
 
-    file_name = tkFileDialog.askopenfilename()
+    if sys.version_info[0] < 3:
+        file_name = tkFileDialog.askopenfilename()
+    else:
+        file_name = tkinter.filedialog.askopenfilename()
 
     if file_name == "":
         return

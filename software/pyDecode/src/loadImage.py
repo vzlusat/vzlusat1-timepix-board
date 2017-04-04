@@ -21,7 +21,7 @@ def loadImage(image_id, image_type=0):
             try:
                 image = pickle.load(input)
             except:
-                print "file \"{}\" is corrupted".format(file_name)
+                print("file \"{}\" is corrupted".format(file_name))
                 return 0
     
             return image
