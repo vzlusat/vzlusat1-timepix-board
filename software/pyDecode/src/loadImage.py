@@ -7,7 +7,7 @@ def loadImage(image_id, image_type=0):
 
     # deduce the filename
     if image_type == 0:
-        file_name = "images/"+image_id
+        file_name = "images/"+str(image_id)
     else:
         file_name = getFileName(image_id, image_type)
 
