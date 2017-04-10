@@ -1,1 +1,0 @@
-/home/klaxalk/.vim/session/pyDecode
