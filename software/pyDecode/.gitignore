@@ -1,8 +1,0 @@
-images/*
-images
-export/*
-export
-*.pyc
-for_distribution
-for_distribution/*
-*.*~
