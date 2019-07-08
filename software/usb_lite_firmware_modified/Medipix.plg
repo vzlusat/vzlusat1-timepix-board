@@ -1,0 +1,17 @@
+<html>
+<body>
+<pre>
+<h1>µVision2 Build Log</h1>
+<h2>Project:</h2>
+Z:\Dropbox\Dokumenty\Medipix_deska\ModifiedFirmware\Medipix.uv2
+Project File Date:  05/23/2015
+
+<h2>Output:</h2>
+Build target 'Target 1'
+linking...
+*** WARNING L4: DATA SPACE MEMORY OVERLAP
+    FROM:    0000H
+    TO:      0075H
+Program Size: data=126.0 xdata=968 code=7695
+creating hex file from "Medipix"...
+"Medipix" - 0 Error(s), 1 Warning(s).
